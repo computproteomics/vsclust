@@ -1,0 +1,93 @@
+shinyUI(fluidPage(
+  singleton(
+    tags$head(tags$script(src = "message-handler.js"))),
+  h1("Variance-sensitive fuzzy c-means clustering",style="text-shadow: 2px 2px #999999;font-weight:bold;"),
+  sidebarLayout(
+    sidebarPanel(style="border-radius:10px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
+                 textOutput("description"),
+                 p(
+                   tags$head(tags$style("body {background-image: url(/BackgroundTexture.jpg);background-size:cover }")),
+                   h2("File input"),
+                   fileInput("in_file", "Input file:",accept=c("txt/csv", "text/comma-separated-values,text/plain")),
+                   actionLink("examplefile","load example"),
+                   checkboxInput(inputId="is_header", label="Column names?", value=TRUE),
+                   checkboxInput(inputId="protnames", label="Gene/protein names in second column?", value=FALSE)
+                 ),hr(),
+                 #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
+                 p(
+                   h2("Statistical Analysis"),
+                   checkboxInput(inputId="isStat", label="Do statistical analysis?",value=T),
+                   uiOutput("ui")
+                 ),hr()
+    ),
+    mainPanel(style="border-radius:10px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
+      tabsetPanel(
+        tabPanel("Statistics and variance",htmlOutput("data_summ"),
+                 plotOutput("plot0",height=600),br(),
+                 downloadLink('downloadDataLimma', 'Download q-values and log-ratios '),
+                 value = "stat"),
+        tabPanel("Estimation of cluster number",br(),inputPanel(
+          p("Maximum number of clusters for estimation:"),
+          sliderInput("maxclust",min=3,max=40,value=25,label=NULL, step=1),
+          actionButton("clButton1","Estimate parameters")),hr(),
+          plotOutput("plot1",height=600), value="pest"),
+        tabPanel("Clustering results / variance-based", inputPanel(
+          p("Number of clusters"),
+          sliderInput("nclust1",min=3,max=40,value=5,label=NULL,step=1),
+          actionButton("clButton2","Run clustering")),hr(),
+          plotOutput("plot2"),br(),
+          downloadLink('downloadData2', 'Download results '),
+          downloadLink('downloadCentroid2', 'Download centroids '),
+          downloadLink('downloadFigure', 'Download cluster figure'),br(),
+          h3("Distribution of features over clusters"),
+          dataTableOutput("clustinf1"),
+          value="clust1"),
+        tabPanel("Clustering results / standard method",inputPanel(
+          p("Number of clusters"),
+          sliderInput("nclust2",min=3,max=40,value=5,label=NULL,step=1),
+          actionButton("clButton3","Run clustering")),hr(),
+          plotOutput("plot3"),br(),
+          downloadLink('downloadData3', 'Download results'),
+          downloadLink('downloadCentroid3', 'Download centroids '),
+          downloadLink('downloadFigure2', 'Download cluster figure'),br(),
+          h3("Distribution of features over clusters"),
+          dataTableOutput("clustinf2"),
+          value="clust2"),
+        tabPanel("GO terms (DAVID)",inputPanel(
+          # radioButtons("enrich_method","Enrichment tool",choices=c("DAVID"="DAVID","KEGG (local copy)"="KEGG","GO molecular function (local copy)"="GOMF"),selected = "DAVID"),br(),
+          selectInput("infosource","Information resource (DAVID)",choices=c("GO molecular function"="GOTERM_MF_ALL",
+                                                                              "GO biological process"="GOTERM_BP_ALL",
+                                                                              "GO cellular component"="GOTERM_CC_ALL",
+                                                                              "KEGG"="KEGG_PATHWAY",
+                                                                              "PANTHER"="PANTHER_PATHWAY",
+                                                                              "REACTOME"="REACTOME_PATHWAY",
+                                                                    "InterPro domains"="INTERPRO",
+                                                                    "PIR superfamily"="PIR_SUPERFAMILY"),multiple=T,selectize=F),
+          selectInput("idtype","ID type (DAVID)",c("AFFYMETRIX_3PRIME_IVT_ID", 
+            "AFFYMETRIX_EXON_GENE_ID", "AFFYMETRIX_SNP_ID", "AGILENT_CHIP_ID", 
+            "AGILENT_ID", "AGILENT_OLIGO_ID", "ENSEMBL_GENE_ID", 
+            "ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION", 
+            "GENPEPT_ACCESSION", "ILLUMINA_ID", "IPI_ID", "MGI_ID", 
+            "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", 
+            "REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA", 
+            "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
+            "UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID", 
+            "WORMPEP_ID", "ZFIN_ID")),br(),
+          # selectInput("organism","Organism (not needed for DAVID)",c("anopheles","arabidopsis","bovine","canine", "chicken", "chimp", "coelicolor", "ecolik12","ecsakai", "fly", "gondii","human", "malaria", "mouse", "pig", "rat","rhesus", "worm", "xenopus", "yeast","zebrafish"),selected="human"),
+          actionButton("goButton","Run enrichment")),hr(),
+          plotOutput("plot4"),
+          downloadLink('downloadGOData1', 'Download results\n(variance-based clustering)'),
+          plotOutput("plot5"),
+          downloadLink('downloadGOData2', 'Download results\n(standard clustering)'),
+          value="gos"),
+        tabPanel("Help",h4("Introduction"),
+                 htmlOutput("intro"),
+                 h4("File input"),htmlOutput("finput"),
+                 h4("Statistical analysis"),htmlOutput("stat"),
+                 h4("Parameter estimation"),htmlOutput("pest"),
+                 h4("Clustering"),htmlOutput("fclust"),
+                 h4("GO terms"),htmlOutput("goterms"),
+                 h4("Further information"),htmlOutput("reading"), value="help"),id="tabset")
+    )
+    
+  )))
