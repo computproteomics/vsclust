@@ -1,17 +1,18 @@
-shinyUI(fluidPage(
+library(shinythemes)
+shinyUI(fluidPage(theme=shinytheme("cosmo"),
   singleton(
     tags$head(tags$script(src = "message-handler.js"))),
-  h1("Variance-sensitive fuzzy c-means clustering",style="text-shadow: 2px 2px #999999;font-weight:bold;"),
+  h1("VSClust: Variance-sensitive fuzzy c-means clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;"),
   sidebarLayout(
-    sidebarPanel(style="border-radius:10px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
+    sidebarPanel(style="border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
                  textOutput("description"),
                  p(
-                   tags$head(tags$style("body {background-image: url(/BackgroundTexture.jpg);background-size:cover }")),
+                   tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover }")),
                    h2("File input"),
-                   fileInput("in_file", "Input file:",accept=c("txt/csv", "text/comma-separated-values,text/plain")),
+                   fileInput("in_file","Input file:",accept=c("txt/csv", "text/comma-separated-values,text/plain",".csv")),
                    actionLink("examplefile","load example"),
                    checkboxInput(inputId="is_header", label="Column names?", value=TRUE),
-                   checkboxInput(inputId="protnames", label="Gene/protein names in second column?", value=FALSE)
+                   checkboxInput(inputId="protnames", label="Gene/protein identifiers in second column?", value=FALSE)
                  ),hr(),
                  #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
                  p(
@@ -20,17 +21,20 @@ shinyUI(fluidPage(
                    uiOutput("ui")
                  ),hr()
     ),
-    mainPanel(style="border-radius:10px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
+    mainPanel(style="border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
       tabsetPanel(
         tabPanel("Statistics and variance",htmlOutput("data_summ"),
-                 plotOutput("plot0",height=600),br(),
-                 downloadLink('downloadDataLimma', 'Download q-values and log-ratios '),
+                 plotOutput("plot0",height=800),br(),
+                 downloadLink('downloadDataLimma', 'Download q-values and mean log-values '),
                  value = "stat"),
         tabPanel("Estimation of cluster number",br(),inputPanel(
           p("Maximum number of clusters for estimation:"),
           sliderInput("maxclust",min=3,max=40,value=25,label=NULL, step=1),
           actionButton("clButton1","Estimate parameters")),hr(),
-          plotOutput("plot1",height=600), value="pest"),
+          plotOutput("plot1",height=600), 
+          downloadLink('downloadParamEst', 'Download cluster figure'),br(),
+          value="pest"),
+        
         tabPanel("Clustering results / variance-based", inputPanel(
           p("Number of clusters"),
           sliderInput("nclust1",min=3,max=40,value=5,label=NULL,step=1),
@@ -53,7 +57,7 @@ shinyUI(fluidPage(
           h3("Distribution of features over clusters"),
           dataTableOutput("clustinf2"),
           value="clust2"),
-        tabPanel("GO terms (DAVID)",inputPanel(
+        tabPanel("Enriched terms (DAVID)",inputPanel(
           # radioButtons("enrich_method","Enrichment tool",choices=c("DAVID"="DAVID","KEGG (local copy)"="KEGG","GO molecular function (local copy)"="GOMF"),selected = "DAVID"),br(),
           selectInput("infosource","Information resource (DAVID)",choices=c("GO molecular function"="GOTERM_MF_ALL",
                                                                               "GO biological process"="GOTERM_BP_ALL",
@@ -75,10 +79,14 @@ shinyUI(fluidPage(
             "WORMPEP_ID", "ZFIN_ID")),br(),
           # selectInput("organism","Organism (not needed for DAVID)",c("anopheles","arabidopsis","bovine","canine", "chicken", "chimp", "coelicolor", "ecolik12","ecsakai", "fly", "gondii","human", "malaria", "mouse", "pig", "rat","rhesus", "worm", "xenopus", "yeast","zebrafish"),selected="human"),
           actionButton("goButton","Run enrichment")),hr(),
+          h3("Variance-based clustering"),
           plotOutput("plot4"),
-          downloadLink('downloadGOData1', 'Download results\n(variance-based clustering)'),
+          p("Plot shows only top 20 terms"),
+          downloadLink('downloadGOData1', 'Download full results\n(variance-based clustering)'),br(),
+          h3("Standard clustering"),
           plotOutput("plot5"),
-          downloadLink('downloadGOData2', 'Download results\n(standard clustering)'),
+          p("Plot shows only top 20 terms"),          
+          downloadLink('downloadGOData2', 'Download full results\n(standard clustering)'),
           value="gos"),
         tabPanel("Help",h4("Introduction"),
                  htmlOutput("intro"),

@@ -42,39 +42,53 @@ SwitchOrder <- function(Bestcl,NClust) {
   tBest
 }
 
+
 ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds) {
   D<-ncol(tData)
   d<-sqrt(D/2)
-  dims<-dim(tData)
+  dims<-dim(tData)                                                                                                           
   mm <- 1 + (1418/dims[1] + 22.05)* dims[2]^(-2) + (12.33/dims[1] + 0.243)*dims[2]^(-0.0406*log(dims[1])-0.1134)
   
   ### d_i and d_t
-  difunc <- function (c,D) { a<-0; for (i in 0:c) { a<- a+ choose(c,i)*(-1)^(i)/(1+i*D)}; a;}
-  di <- difunc(NClust,D)
+  difunc <- function(c,D) { x <- 0:c; sum(choose(c,x)/(x*D+1)*(-1)^x) }
+  
+  di <- difunc(NClust,D)  /sqrt(pi) * gamma(D/2+1)^(1/D)
   dt <- (NClust)^(-1/D)
+  
   p <- dnorm(di,0,Sds) * (1-dnorm(dt,0,Sds))^(NClust-1)
-  step <- max(0.1,1/NClust)
-  mu<-p*(1-step)+step
-  # max to avoid positive denominators
-  m<- 1+ 2*log(di/dt)/log((1-mu)/mu/(NClust-1))
-  m[m<1] <- NA
+  
+  
+  m <- mm + p*mm*(D/3-1)
   m[m==Inf]<-0
   m[m==0]<-NA
   m[is.na(m)]<-mm*10
-  m<-rowMaxs(cbind(m,mm,na.rm=T))
+  #m<-rowMaxs(cbind(m,mm,na.rm=T))
+  
+  ## If m for highest Sd is mm then all = mm
   if (m[which.max(Sds)]== mm) 
     m[1:length(m)] <- mm
+  
+  #   plot(Sds,m,cex=0.5,pch=15,col=rainbow(maxClust)[NClust])
+  #   abline(h=mm)
+  
   colnames(tData)<-NULL
   PExpr <- new("ExpressionSet",expr=as.matrix(tData))
   PExpr.r <- filter.NA(PExpr, thres = 0.25)
   PExpr <- fill.NA(PExpr.r,mode = "mean")
   tmp <- filter.std(PExpr,min.std=0,visu=F)
   PExpr2 <- standardise(PExpr)
-  cls <- mclapply(1:NSs, function(x) cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=100), mc.cores=cores)
-  Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  cls <- mclapply(1:NSs, function(x) cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=100), mc.cores=cores)
-  Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   
+  cls <- mclapply(1:NSs, function(x) cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=1000), mc.cores=cores)
+  Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
+  # for (cc in 1:length(cls)) {
+  #   print(paste("New error:",cls[[cc]]$withinerror, "iter:",cls[[cc]]$iter))
+  # }
+  cls <- mclapply(1:NSs, function(x) cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000), mc.cores=cores)
+  Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
+  # for (cc in 1:length(cls)) {
+  #   print(paste("Std error:",cls[[cc]]$withinerror, "iter:",cls[[cc]]$iter))
+  # }
+  # 
   # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
                  min(dist(Bestcl2$centers)),cvalidate.xiebeni(Bestcl2,mm)),
@@ -145,15 +159,15 @@ enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene",
   Count <- List.Total <- Pop.Hits <- Pop.Total <- NULL
   pAdjustMethod <- match.arg(pAdjustMethod, c("bonferroni", 
                                               "BH"))
-  idType <- match.arg(idType, c("AFFYMETRIX_3PRIME_IVT_ID", 
-                                "AFFYMETRIX_EXON_GENE_ID", "AFFYMETRIX_SNP_ID", "AGILENT_CHIP_ID", 
-                                "AGILENT_ID", "AGILENT_OLIGO_ID", "ENSEMBL_GENE_ID", 
-                                "ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION", 
-                                "GENPEPT_ACCESSION", "ILLUMINA_ID", "IPI_ID", "MGI_ID", 
-                                "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", 
-                                "REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA", 
-                                "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
-                                "UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID", 
+  idType <- match.arg(idType, c("AFFYMETRIX_3PRIME_IVT_ID",
+                                "AFFYMETRIX_EXON_GENE_ID", "AFFYMETRIX_SNP_ID", "AGILENT_CHIP_ID",
+                                "AGILENT_ID", "AGILENT_OLIGO_ID", "ENSEMBL_GENE_ID",
+                                "ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION",
+                                "GENPEPT_ACCESSION", "ILLUMINA_ID", "IPI_ID", "MGI_ID",
+                                "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION",
+                                "REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA",
+                                "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE",
+                                "UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID",
                                 "WORMPEP_ID", "ZFIN_ID"))
   david <- DAVIDWebService$new(email = david.user,url="https://david.ncifcrf.gov/webservice/services/DAVIDWebService.DAVIDWebServiceHttpSoap12Endpoint/")
   setTimeOut(david,1000000)
@@ -236,7 +250,7 @@ enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene",
 
 calcBHI <- function(Accs,gos) {
   ## enrichment does not yield all GO terms! This could lead to problems
-  Rprof(tmp <- tempfile())
+#  Rprof(tmp <- tempfile())
   BHI <- sumcomb <- vector("integer",length(Accs))
   names(BHI) <- names(Accs)
   goData <- as.data.frame(gos@compareClusterResult)
@@ -266,7 +280,7 @@ calcBHI <- function(Accs,gos) {
     }
     BHI[i] <- BHI[i] + sum(ispair)/2
   }
-  Rprof()
-  print(summaryRprof(tmp))
+  # Rprof()
+  # print(summaryRprof(tmp))
   sum(BHI)/sum(sumcomb)
 }
