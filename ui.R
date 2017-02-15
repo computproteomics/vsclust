@@ -1,15 +1,34 @@
 library(shinythemes)
+library(shinyjs)
+
+
 shinyUI(fluidPage(theme=shinytheme("cosmo"),
   singleton(
     tags$head(tags$script(src = "message-handler.js"))),
+  tags$script('
+    Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
+        var id = "#" + x + "_progress";
+        var idFile = "#" + x;
+        var idBar = id + " .bar";
+        $(id).css("visibility", "hidden");
+        $(idBar).css("width", "0%");
+        $(id).addClass("active");
+        $(idFile).replaceWith(idFile = $(idFile).clone(true));
+    });
+  '),
+   tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover;} 
+  .shiny-myframe{padding:20px}
+  .shiny-input-panel{background-color: transparent;border-color: transparent}
+  .nav-tabs,.shiny-myframe{border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;padding:5px;}")),
+      
   h1("VSClust: Variance-sensitive fuzzy c-means clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;"),
-  sidebarLayout(
-    sidebarPanel(style="border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
-                 textOutput("description"),
+  h5("A new clustering method adapted to data with invididual feature variance (manuscript in preparation)"),
+      tabsetPanel(
+        tabPanel("File input", br(), 
                  p(
-                   tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover }")),
                    h2("File input"),
                    fileInput("in_file","Input file:",accept=c("txt/csv", "text/comma-separated-values,text/plain",".csv")),
+                   actionLink("reset", "Trigger server to reset file input"),br(),
                    actionLink("examplefile","load example"),
                    checkboxInput(inputId="is_header", label="Column names?", value=TRUE),
                    checkboxInput(inputId="protnames", label="Gene/protein identifiers in second column?", value=FALSE)
@@ -19,30 +38,28 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                    h2("Statistical Analysis"),
                    checkboxInput(inputId="isStat", label="Do statistical analysis?",value=T),
                    uiOutput("ui")
-                 ),hr()
-    ),
-    mainPanel(style="border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;",
-      tabsetPanel(
-        tabPanel("Statistics and variance",htmlOutput("data_summ"),
-                 plotOutput("plot0",height=800),br(),
-                 downloadLink('downloadDataLimma', 'Download q-values and mean log-values '),
+                 ),hr(),value="fin"),
+        tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),
+                 div(plotOutput("plot0",height=800),class="shiny-myframe"),br(),
+                 downloadButton('downloadDataLimma', 'Download q-values and mean log-values '),
                  value = "stat"),
-        tabPanel("Estimation of cluster number",br(),inputPanel(
+        tabPanel("Estimation of cluster number",id="test",br(),inputPanel(
           p("Maximum number of clusters for estimation:"),
           sliderInput("maxclust",min=3,max=40,value=25,label=NULL, step=1),
           actionButton("clButton1","Estimate parameters")),hr(),
-          plotOutput("plot1",height=600), 
-          downloadLink('downloadParamEst', 'Download cluster figure'),br(),
+          div(plotOutput("plot1",height=600),class="shiny-myframe"), 
+          downloadButton('downloadParamEst', 'Download cluster figure'),br(),
           value="pest"),
         
         tabPanel("Clustering results / variance-based", inputPanel(
           p("Number of clusters"),
           sliderInput("nclust1",min=3,max=40,value=5,label=NULL,step=1),
           actionButton("clButton2","Run clustering")),hr(),
-          plotOutput("plot2"),br(),
-          downloadLink('downloadData2', 'Download results '),
-          downloadLink('downloadCentroid2', 'Download centroids '),
-          downloadLink('downloadFigure', 'Download cluster figure'),br(),
+              div(plotOutput("plot2"),class="shiny-plot-output"),
+          br(),
+          downloadButton('downloadData2', 'Download results '),
+          downloadButton('downloadCentroid2', 'Download centroids '),
+          downloadButton('downloadFigure', 'Download cluster figure'),br(),
           h3("Distribution of features over clusters"),
           dataTableOutput("clustinf1"),
           value="clust1"),
@@ -50,29 +67,43 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
           p("Number of clusters"),
           sliderInput("nclust2",min=3,max=40,value=5,label=NULL,step=1),
           actionButton("clButton3","Run clustering")),hr(),
-          plotOutput("plot3"),br(),
-          downloadLink('downloadData3', 'Download results'),
-          downloadLink('downloadCentroid3', 'Download centroids '),
-          downloadLink('downloadFigure2', 'Download cluster figure'),br(),
+              div(plotOutput("plot3"),class="shiny-myframe"),
+          br(),
+          downloadButton('downloadData3', 'Download results'),
+          downloadButton('downloadCentroid3', 'Download centroids '),
+          downloadButton('downloadFigure2', 'Download cluster figure'),br(),
           h3("Distribution of features over clusters"),
           dataTableOutput("clustinf2"),
           value="clust2"),
         tabPanel("Enriched terms (DAVID)",inputPanel(
           # radioButtons("enrich_method","Enrichment tool",choices=c("DAVID"="DAVID","KEGG (local copy)"="KEGG","GO molecular function (local copy)"="GOMF"),selected = "DAVID"),br(),
-          selectInput("infosource","Information resource (DAVID)",choices=c("GO molecular function"="GOTERM_MF_ALL",
-                                                                              "GO biological process"="GOTERM_BP_ALL",
-                                                                              "GO cellular component"="GOTERM_CC_ALL",
-                                                                              "KEGG"="KEGG_PATHWAY",
+          selectInput("infosource","Information resource (DAVID)",choices=list("GO terms"=c("GO molecular function"="GOTERM_MF_ALL",
+                                                                            "GO biological process"="GOTERM_BP_ALL",
+                                                                            "GO cellular component"="GOTERM_CC_ALL"),
+                                                                            "fat GO terms"=c("GO molecular function (fat)"="GOTERM_MF_FAT",
+                                                                            "GO biological process (fat)"="GOTERM_BP_FAT",
+                                                                            "GO cellular component (fat)"="GOTERM_CC_FAT"),
+                                                                              Pathways=c("KEGG"="KEGG_PATHWAY",
                                                                               "PANTHER"="PANTHER_PATHWAY",
                                                                               "REACTOME"="REACTOME_PATHWAY",
-                                                                    "InterPro domains"="INTERPRO",
-                                                                    "PIR superfamily"="PIR_SUPERFAMILY"),multiple=T,selectize=F),
-          selectInput("idtype","ID type (DAVID)",c("AFFYMETRIX_3PRIME_IVT_ID", 
-            "AFFYMETRIX_EXON_GENE_ID", "AFFYMETRIX_SNP_ID", "AGILENT_CHIP_ID", 
-            "AGILENT_ID", "AGILENT_OLIGO_ID", "ENSEMBL_GENE_ID", 
-            "ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION", 
-            "GENPEPT_ACCESSION", "ILLUMINA_ID", "IPI_ID", "MGI_ID", 
-            "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", 
+                                                                              "BBID"="BBID",
+                                                                              "BioCarta"="BIOCARTA"
+                                                                              ),
+                                                                    "Protein interaction"=c(DIP="DIP","MINT"="MINT",
+                                                                                            IntAct="INTACT","BioGRID"="BIOGRID_INTERACTION"),
+                                                                     Diseases=c("GAD disease"="GAD_DISEASE","GAD disease class"="GAD_DISEASE_CLASS",
+                                                                                "Online Mendelian Inheritance in Man"="ONIM_DISEASE"),
+                                                                    Domains=c("InterPro domains"="INTERPRO",
+                                                                    "ProSite"="PROSITE","Pfam"="PFAM","SMART"="SMART","ProDom"="PRODOM",
+                                                                    "PIR superfamily"="PIR_SUPERFAMILY")),multiple=T,selectize=F),
+                
+          selectInput("idtype","ID type (DAVID)",choices=c("AFFYMETRIX_3PRIME_IVT_ID", 
+            "AFFYMETRIX_EXON_GENE_ID", "AGILENT_CHIP_ID", 
+            "AGILENT_ID", "AGILENT_OLIGO_ID", "APHIDBASE_ID", "BEEBASE_ID", 
+            "BEETLEBASE_ID", "BGD_ID", "CGNC_ID", "CRYPTODB_ID", "DICTYBASE_ID", "ENSEMBL_GENE_ID", 
+            "ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION", "FLYBASE_GENE_ID", "GENBANK_ACCESSION",
+            "GENPEPT_ACCESSION", "LOCUS_TAG", "ILLUMINA_ID", "MGI_ID", "MIRBASE_ID",
+            "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", "MRNA_GI_ACCESSION",
             "REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA", 
             "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
             "UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID", 
@@ -80,13 +111,13 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
           # selectInput("organism","Organism (not needed for DAVID)",c("anopheles","arabidopsis","bovine","canine", "chicken", "chimp", "coelicolor", "ecolik12","ecsakai", "fly", "gondii","human", "malaria", "mouse", "pig", "rat","rhesus", "worm", "xenopus", "yeast","zebrafish"),selected="human"),
           actionButton("goButton","Run enrichment")),hr(),
           h3("Variance-based clustering"),
-          plotOutput("plot4"),
+          div(plotOutput("plot4"),class="shiny-myframe"),
           p("Plot shows only top 20 terms"),
-          downloadLink('downloadGOData1', 'Download full results\n(variance-based clustering)'),br(),
+          downloadButton('downloadGOData1', 'Download full results\n(variance-based clustering)'),br(),
           h3("Standard clustering"),
-          plotOutput("plot5"),
+          div(plotOutput("plot5"),class="shiny-myframe"),
           p("Plot shows only top 20 terms"),          
-          downloadLink('downloadGOData2', 'Download full results\n(standard clustering)'),
+          downloadButton('downloadGOData2', 'Download full results\n(standard clustering)'),
           value="gos"),
         tabPanel("Help",h4("Introduction"),
                  htmlOutput("intro"),
@@ -98,4 +129,4 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  h4("Further information"),htmlOutput("reading"), value="help"),id="tabset")
     )
     
-  )))
+  )

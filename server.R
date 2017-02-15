@@ -1,26 +1,39 @@
 library(matrixStats)
 library(Mfuzz)
 library(limma)
+library(parallel)
 library(qvalue)
-library(e1071)
+library(e1071FuzzVec)
+library(shinyjs)
 library(clusterProfiler)
 library(RDAVIDWebService)
 source("FcmClustPEst.R")
 source("mfuzz.plotpdf.R")
 source("HelperFuncs.R")
 
-options(shiny.maxRequestSize=500*1024^2) 
-
-dat <- NULL
-pars <- NULL
-pars$m <- NULL
-maxClust <- 25
-NumCond <- NULL
+options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
 
 shinyServer(function(input, output,clientData,session) {
   
+  dat <- NULL
+  pars <- NULL
+  pars$m <- NULL
+  maxClust <- 25
+  NumCond <- NULL
+  cores <- 2
   
-  
+  # # Resetting views
+  # reset_memory <- 0
+  # observeEvent(input$reset,{
+  # if (input$reset - reset_memory > 0) {
+  #   print("Hello")
+  #       pars <<- NULL
+  #   dat <<- NULL
+  #   reset_memory <<- input$reset
+  # }
+  #   
+  # })
+  # 
   # setting the right tab
   observe({
     input$NumReps
@@ -29,11 +42,29 @@ shinyServer(function(input, output,clientData,session) {
     input$isStat
     input$row.names
     input$infile
+    input$protnames
+    input$examplefile
     input$is_header
-    updateTabsetPanel(session, inputId ="tabset", selected = "stat")
+    if (!is.null(v$dat) & is.numeric(input$NumReps) & is.numeric(input$NumCond) & input$isStat) {
+      if (is.numeric(ifelse(input$protnames,as.matrix(v$dat[,2:ncol(v$dat)]),as.matrix(v$dat)))) {
+        if (ifelse(input$protnames,ncol(v$dat)-1,ncol(v$dat))==input$NumReps*input$NumCond) {
+          print("go to stats")
+          updateTabsetPanel(session, inputId ="tabset", selected = "stat")
+        }
+      }
+      maxSamp <- ifelse(input$protnames,ncol(v$dat)-1,ncol(v$dat))
+      updateNumericInput(session,"NumCond",max=maxSamp)
+      updateNumericInput(session,"NumReps",max=maxSamp)
+      output$RepsCond <- renderText(paste("Total number of samples (replicates * conditions):", maxSamp))
+    } else {
+      if (!input$isStat & !is.null(v$dat)) {
+        updateTabsetPanel(session, inputId ="tabset", selected = "stat")
+      } else  {
+        updateTabsetPanel(session, inputId ="tabset", selected = "fin") 
+      }
+    }
   })
   
-  output$description <- renderText("A new method for fuzzy c-means clustering adapted to data with non-constant feature variance. Manuscript in preparation, the method is based on a previous work that estimates the parameter values (fuzzifier and number of clusters) for standard fuzzy c-means clustering.")
   output$tparame <- renderText("Parameter estimation")
   output$tresults <- renderText("Clustering results")
   output$tdescr <- renderText("Description")
@@ -41,11 +72,18 @@ shinyServer(function(input, output,clientData,session) {
     if (is.null(input$isStat) | input$isStat) {
       p(
         checkboxInput(inputId="isPaired", label="Paired tests",value=T),
-        sliderInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
-        sliderInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1))
+        textOutput("RepsCond"),
+        numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
+        numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1))
     }
   })
-  v <- reactiveValues(dat = NULL, example = F)
+  v <- reactiveValues(dat = NULL, example = F, clustOut = NULL)
+  observe({
+    input$reset
+    session$sendCustomMessage(type = "resetFileInputHandler", "in_file")  
+    v <- NULL
+    reset("in_file")
+  })
   observeEvent(input$examplefile,{
     dat <- read.csv("ArtData.csv",row.names=1)
     dat <- dat[1:nrow(dat),]
@@ -53,21 +91,24 @@ shinyServer(function(input, output,clientData,session) {
     updateNumericInput(session,"NumCond",value=10,max=10)
     updateNumericInput(session,"NumReps",value=5,max=5)
     updateCheckboxInput(session,"isPaired",value=F)
+    updateCheckboxInput(session,"isStat",value=T)
     v$dat <- dat
     v$example <- T
   })
   observeEvent(input$in_file,{
     ## test for right replicate and condition numbers, min 50 features, ...
     dat <- NULL
+    withProgress(message="Reading file ...", min=0,max=1, value=0.5,  {
     try(dat <- read.csv(input$in_file$datapath,row.names=1,header=input$is_header))
     dat <- dat[rownames(dat)!="",]
     v$example <- F
     v$dat <- dat
     updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
     updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+    })
   })
   output$plot0 <- renderPlot({
-    dat <- NULL
+
     proteins <- NULL
     dat <- v$dat
     if(input$protnames & !v$example) {
@@ -75,49 +116,33 @@ shinyServer(function(input, output,clientData,session) {
       dat <- dat[,2:ncol(dat)]
       names(proteins) <- rownames(dat)
     }
-    fdat <- dat
-    maxClust <- input$maxclust
+    
     print(dim(dat))
     print(input$in_file)
     validate(need(!is.null(dat),"no data"))
     validate(need(is.numeric(as.matrix(dat)), "The data table contains non-numerical  values!"))
     if(!is.null(dat)) {
-      NumReps <- input$NumReps
+      withProgress(message="Statistics + PCA ...", min=0,max=1, value=0.5,  {
+        NumReps <- input$NumReps
       NumCond <- input$NumCond
       print(NumReps)
       print(NumCond)
-      qvals <- NULL
+      dat[!is.finite(as.matrix(dat))] <- NA
+      num_miss <- sum(is.na(dat))
       if (input$isStat) {
         validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
-        if (input$isPaired) {
-          ttt <- SignAnalPaired(dat,NumCond, NumReps)
-        } else {
-          ttt <- SignAnal(dat,NumCond, NumReps)
-        }
-        tdat<-rowMeans(dat[,seq(1,NumReps*NumCond,NumCond)],na.rm=T)
-        Sds <- ttt$Sds
-        qvals <- ttt$plvalues
-        for (i in 2:NumCond) {
-          tdat<-cbind(tdat,rowMeans(dat[,seq(i,NumReps*NumCond,NumCond)],na.rm=T))
-        }
-        colnames(tdat)<-paste("Mean of log T",0:(NumCond-1),sep="")
-        dat <- cbind(tdat,Sds=Sds)
-        #      dat <- dat[rowSums(is.na(ttt$plvalues))==0,]
-        
-      } else {
-        Sds <- dat[,ncol(dat)]
-        tdat <- dat[,1:(ncol(dat)-1)]
       }
-      print(colnames(dat))
+      validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
+                    "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
+
+      dat <- statOut$dat
+      Sds <- dat[,ncol(dat)]
       output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
-                                               sum(is.na(v$dat)),"<br/>Median standard deviations:",
+                                               num_miss,"<br/>Median standard deviations:",
                                                round(median(Sds,na.rm=T),digits=3)))})
-      #    updateTabsetPanel(session, inputId ="tabset", selected = "pest")
-      dat[,ncol(dat)] <- dat[,ncol(dat)]/ rowSds(as.matrix(tdat),na.rm=T)
+      
       pars$dat <<- dat 
       pars$proteins <<- proteins
-      tdat <- dat[,1:(ncol(dat)-1)]
-      Sds <- dat[,ncol(dat)]
       
       # file to download q-values
       output$downloadDataLimma <- downloadHandler(
@@ -125,24 +150,9 @@ shinyServer(function(input, output,clientData,session) {
           paste("LimmaResults", Sys.Date(), ".csv", sep="");
         },
         content = function(file) {
-          dim(qvals)
-          colnames(qvals) <- paste("qvalue T",1:(NumCond-1),"vsT0",sep="")
-          outdat <- cbind(dat,qvals)
-          write.csv(outdat, file)
+          write.csv(statOut$statFileOut, file)
         })
-      
-      pcaDat <- t(fdat[complete.cases(fdat),])
-      validate(need(length(pcaDat)> 0, "Principal component analysis not shown as too many missing values"))      
-      validate(need(nrow(pcaDat)> 10, "Principal component analysis not shown as too many missing values"))      
-      pca<-prcomp(pcaDat,scale=T,retx=T)
-      scores <- pca$x
-      loadings <- pca$rotation
-      par(mfrow=c(1,2))
-      plot(loadings,cex=Sds/5,pch=19)
-      title(main="Principal component analysis of data set (loadings)",sub="The point size corresponds to the estimated standard deviation")
-      plot(scores,pch=19,col=rainbow(NumCond)[rep(1:NumCond,NumReps)])
-      title(main="Principal component analysis of data set (scores)",sub="Colors denote different conditions")
-      legend("topright",paste("Condition",1:NumCond),pch=rep(19,NumCond),col=rainbow(NumCond)[1:NumCond])
+      })
     }
   })
   
@@ -152,202 +162,114 @@ shinyServer(function(input, output,clientData,session) {
     isolate({
       if((input$clButton1)) {
         dat <- pars$dat
-        maxClust <- input$maxclust
-        ClustInd<-matrix(NA,nrow=maxClust,ncol=4)
+        clustNumOut <- NULL
         withProgress(message="Calculating ...", min=3,max=maxClust, value=2,  {
-          for (NClust in 3:maxClust) {
-            print(NClust)
-            incProgress(1, detail = paste("Running cluster number",NClust))
-            clustout <- ClustComp(dat[,1:(ncol(dat)-1)],NClust=NClust,Sds=dat[,ncol(dat)],NSs=32)
-            ClustInd[NClust,]<-clustout$indices
-          }
+          clustNumOut <- estimClustNum(dat, input$maxclust, cores)
         })
-        dmindist <- c(which.max(ClustInd[3:(maxClust-2),1]-ClustInd[4:(maxClust-1),1])+2,
-                      which.max(ClustInd[3:(maxClust-2),3]-ClustInd[4:(maxClust-1),3])+2)
-        dxiebeni <- c(which.min(ClustInd[3:(maxClust-1),2])+2,
-                      which.min(ClustInd[3:(maxClust-1),4])+2)
-        print(dmindist)
-        par(mfrow=c(2,1))
-        plot(3:maxClust,ClustInd[3:(maxClust),1],col=2 , type="b", 
-             main="Min. centroid distance\n(Highest jump is best)",
-             xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(1,3)],na.rm=T),max(ClustInd[,c(1,3)],na.rm=T)))
-        lines(3:maxClust,ClustInd[3:(maxClust),3],col=3,type="b")
-        points(dmindist[1],ClustInd[dmindist[1],1],pch=15,col=1,cex=2)
-        legend("topright",legend = c("Variance-based method","Standard"), lty=c(1,1),col=2:3)
-        plot(3:maxClust,ClustInd[3:(maxClust),2], col=2, type="b", main="Xie-Beni index\n(Lowest is best)",
-             xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(2,4)],na.rm=T),max(ClustInd[,c(2,4)],na.rm=T)))
-        lines(3:maxClust,ClustInd[3:(maxClust),4],type="b",col=3)
-        points(dxiebeni[1],ClustInd[dxiebeni[1],2],pch=15,col=1,cex=2)
-        legend("topright",legend = c("Variance-based method","Standard"), lty=c(1,1),col=2:3)
         
         output$downloadParamEst <- downloadHandler(
           filename = function() {
             paste("EstimatedClustNumber", Sys.Date(), ".pdf", sep="");
           },
           content = function(file) {
-            pdf(file,height=12)
-            par(mfrow=c(2,1))
-            plot(3:maxClust,ClustInd[3:(maxClust),1],col=2 , type="b", 
-                 main="Min. centroid distance\n(Highest jump is best)",
-                 xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(1,3)],na.rm=T),max(ClustInd[,c(1,3)],na.rm=T)))
-            lines(3:maxClust,ClustInd[3:(maxClust),3],col=3,type="b")
-            points(dmindist[1],ClustInd[dmindist[1],1],pch=15,col=1,cex=2)
-            legend("topright",legend = c("Variance-based method","Standard"), lty=c(1,1),col=2:3)
-            plot(3:maxClust,ClustInd[3:(maxClust),2], col=2, type="b", main="Xie-Beni index\n(Lowest is best)",
-                 xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(2,4)],na.rm=T),max(ClustInd[,c(2,4)],na.rm=T)))
-            lines(3:maxClust,ClustInd[3:(maxClust),4],type="b",col=3)
-            points(dxiebeni[1],ClustInd[dxiebeni[1],2],pch=15,col=1,cex=2)
-            legend("topright",legend = c("Variance-based method","Standard"), lty=c(1,1),col=2:3)
-            dev.off()            
+            pdf(file,height=6,width=15)
+            print(clustNumOut$p)
+            dev.off()  
           })
-        
-        #         updateNumericInput(session,"nclust1",max=maxClust,value=dmindist[1])
-        #         updateNumericInput(session,"nclust2",max=maxClust,value=dmindist[1])
-        #updateTabsetPanel(session, inputId ="tabset", selected = "clust1")
       }
     })},height=600)
-  observeEvent(input$clButton2, {
-    par(mar=c(2,2,1,3),mgp=c(2,1,0))
-    if (!is.null(pars$dat)) {
-      print(input$nclust1)
-      Nclust <- input$nclust1
-      pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
-      
-      dat <- new("ExpressionSet",expr=as.matrix(pars$dat[,1:(ncol(pars$dat)-1)]))
-      PExpr <- new("ExpressionSet",expr=as.matrix(dat))
-      PExpr.r                                                                                                                                                    <- filter.NA(PExpr, thres = 0.25)
-      PExpr <- fill.NA(PExpr.r,mode = "mean")
-      tmp <- filter.std(PExpr,min.std=0,visu=F)
-      dat <- standardise(PExpr)
-      
-      withProgress(message="Calculating ...", min=0,max=1, {
-        
-        clustout <- ClustComp(exprs(dat),NClust=Nclust,Sds=pars$dat[,ncol(pars$dat)],NSs=32)
-        Bestcl <- clustout$Bestcl
-        Bestcl <- SwitchOrder(Bestcl,Nclust)
-        pars$Bestcl2 <<- Bestcl  
-        
-        # sorting for membership values (globally)
-        Bestcl$cluster <- Bestcl$cluster[order(rowMaxs(Bestcl$membership,na.rm=T))]
-        Bestcl$membership <- Bestcl$membership[order(rowMaxs(Bestcl$membership,na.rm=T)),]
-        dat <- dat[names(Bestcl$cluster),]
-        
-        incProgress(0.7, detail = paste("Plotting",Nclust))
-        output$plot2 <- renderPlot({
-          par(lwd=0.25)
-          oldmar <- par("mar")
-          par(mar=par("mar")/max(1,Nclust/20))
-          mfuzz.plot2(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,x11=F,colo="fancy")
-          par(lwd=1,mar=oldmar)
-        })
-        output$downloadData2 <- downloadHandler(
-          filename = function() {
-            paste("FCMVarMResults", Sys.Date(), ".csv", sep="");
-          },
-          content = function(file) {
-            colnames(Bestcl$membership) <- paste("membership of cluster",colnames(Bestcl$membership))
-            outdat <- exprs(dat)
-            if (!is.null(pars$proteins)) {
-              outdat <- cbind(outdat,names=as.character(pars$proteins[rownames(outdat)]))
-            }
-            write.csv(data.frame(cluster=Bestcl$cluster,outdat,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                                 Bestcl$membership), file)
-          })
-        output$downloadCentroid2 <- downloadHandler(
-          filename = function() {
-            paste("FCMVarMResultsCentroids", Sys.Date(), ".csv", sep="");
-          },
-          content = function(file) {
-            rownames(Bestcl$centers) <- paste("Cluster",rownames(Bestcl$centers))
-            write.csv(Bestcl$centers, file)
-          })
-        output$downloadFigure <- downloadHandler(
-          filename = function() {
-            paste("FCMVarMResults", Sys.Date(), ".pdf", sep="");
-          },
-          content = function(file) {
-            pdf(file,height=5*round(sqrt(Nclust)),width=5*ceiling(sqrt(Nclust)))
-            par(lwd=0.25)
-            oldmar <- par("mar")
-            par(mar=par("mar")/max(1,Nclust/20))
-            mfuzz.plot2(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,x11=F,colo="fancy")
-            par(lwd=1,mar=oldmar)
-            dev.off()
-            # mfuzz.plotpdf(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,filename=file)
-          })
-        ClustInd <- as.data.frame(table(Bestcl$cluster[rowMaxs(Bestcl$membership)>0.5]))
-        colnames(ClustInd) <- c("Cluster","Members")
-        output$clustinf1 <- renderDataTable(ClustInd)
-      })
-    }})
-  observeEvent(input$clButton3, {
-    if (!is.null(pars$dat)) {
-      par(mar=c(2,2,1,3),mgp=c(2,1,0))
-      Nclust <- input$nclust2
-      pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
-      
-      dat <- new("ExpressionSet",expr=as.matrix(pars$dat[,1:(ncol(pars$dat)-1)]))
-      PExpr <- new("ExpressionSet",expr=as.matrix(dat))
-      PExpr.r <- filter.NA(PExpr, thres = 0.25)
-      PExpr <- fill.NA(PExpr.r,mode = "mean")
-      tmp <- filter.std(PExpr,min.std=0,visu=F)
-      dat <- standardise(PExpr)
-      
-      withProgress(message=paste("Calculating ..."), min=0,max=1, {
-        clustout <- ClustComp(exprs(dat),NClust=Nclust,Sds=pars$dat[,ncol(pars$dat)],NSs=32)
-        Bestcl <- clustout$Bestcl2
-        Bestcl <- SwitchOrder(Bestcl,Nclust)
-        pars$Bestcl1 <<- Bestcl  
-        
-        # sorting for membership values (globally)
-        Bestcl$cluster <- Bestcl$cluster[order(rowMaxs(Bestcl$membership,na.rm=T))]
-        Bestcl$membership <- Bestcl$membership[order(rowMaxs(Bestcl$membership,na.rm=T)),]
-        dat <- dat[names(Bestcl$cluster),]
-        
-        incProgress(0.7, detail = paste("Plotting",Nclust))
-        output$plot3 <- renderPlot({
-          par(lwd=0.25)
-          mfuzz.plot2(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,x11=F,colo="fancy")
-          par(lwd=1)
-        })
-        output$downloadData3 <- downloadHandler(
-          filename = function() {
-            paste("FCMResults", Sys.Date(), ".csv", sep="");
-          },
-          content = function(file) {
-            colnames(Bestcl$membership) <- paste("membership of cluster",colnames(Bestcl$membership))
-            outdat <- exprs(dat)
-            if (!is.null(pars$proteins)) {
-              outdat <- cbind(outdat,names=as.character(pars$proteins[rownames(outdat)]))
-            }
-            write.csv(data.frame(cluster=Bestcl$cluster,outdat,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),Bestcl$membership), file)
-          })
-        output$downloadCentroid3 <- downloadHandler(
-          filename = function() {
-            paste("FCMResultsCentroids", Sys.Date(), ".csv", sep="");
-          },
-          content = function(file) {
-            rownames(Bestcl$centers) <- paste("Cluster",rownames(Bestcl$centers))
-            write.csv(Bestcl$centers, file)
-          })        
-        output$downloadFigure2 <- downloadHandler(
-          filename = function() {
-            paste("FCMResults", Sys.Date(), ".pdf", sep="");
-          },
-          content = function(file) {
-            pdf(file,height=5*round(sqrt(Nclust)),width=5*ceiling(sqrt(Nclust)))
-            par(lwd=0.25)
-            mfuzz.plot2(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,x11=F,colo="fancy")
-            par(lwd=1)
-            dev.off()
-            # mfuzz.plotpdf(dat,cl=Bestcl,mfrow=c(round(sqrt(Nclust)),ceiling(sqrt(Nclust))),min.mem=0.5,filename=file)
-          })
-        ClustInd <- as.data.frame(table(Bestcl$cluster[rowMaxs(Bestcl$membership)>0.5]))
-        colnames(ClustInd) <- c("Cluster","Members")
-        output$clustinf2 <- renderDataTable(ClustInd) 
-      })
-    }})
   
+  
+  output$plot2 <- renderPlot({
+    if(input$clButton2 == 0) 
+      return()
+    isolate({
+      if((input$clButton2)) {
+        if (!is.null(pars$dat)) {
+          withProgress(message="Calculating ...", min=0,max=1, {
+            print(input$nclust1)
+            Nclust <- input$nclust1
+            # pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
+            ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=T, cores)
+            output$downloadFigure <- downloadHandler(
+              filename = function() {
+                paste("FCMVarMResults", Sys.Date(), ".pdf", sep="");
+              },
+              content = function(file) {
+                pdf(file,height=5*round(sqrt(Nclust)),width=5*ceiling(sqrt(Nclust)))
+                replayPlot(ClustOut$p)
+                dev.off()
+              })
+            
+            Bestcl <- ClustOut$Bestcl
+            pars$Bestcl2 <<- Bestcl  
+            
+            output$downloadData2 <- downloadHandler(
+              filename = function() {
+                paste("FCMVarMResults", Sys.Date(), ".csv", sep="");
+              },
+              content = function(file) {
+                write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                     Bestcl$membership), file)
+              })
+            output$downloadCentroid2 <- downloadHandler(
+              filename = function() {
+                paste("FCMVarMResultsCentroids", Sys.Date(), ".csv", sep="");
+              },
+              content = function(file) {
+                write.csv(Bestcl$centers, file)
+              })
+            output$clustinf1 <- renderDataTable(ClustOut$ClustInd)
+          })
+        }}
+    })
+  })
+  
+  
+  output$plot3 <- renderPlot({
+    if(input$clButton3 == 0) 
+      return()
+    isolate({
+      if((input$clButton3)) {
+        if (!is.null(pars$dat)) {
+          withProgress(message="Calculating ...", min=0,max=1, {
+            Nclust <- input$nclust2
+            # pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
+            
+            ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=F, cores)
+            output$downloadFigure2 <- downloadHandler(
+              filename = function() {
+                paste("FCMResults", Sys.Date(), ".pdf", sep="");
+              },
+              content = function(file) {
+                pdf(file,height=5*round(sqrt(Nclust)),width=5*ceiling(sqrt(Nclust)))
+                replayPlot(ClustOut$p)
+                dev.off()
+              })
+            
+            Bestcl <- ClustOut$Bestcl
+            pars$Bestcl1 <<- Bestcl  
+            
+            output$downloadData3 <- downloadHandler(
+              filename = function() {
+                paste("FCMResults", Sys.Date(), ".csv", sep="");
+              },
+              content = function(file) {
+                write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                     Bestcl$membership), file)
+              })
+            output$downloadCentroid3 <- downloadHandler(
+              filename = function() {
+                paste("FCMResultsCentroids", Sys.Date(), ".csv", sep="");
+              },
+              content = function(file) {
+                write.csv(Bestcl$centers, file)
+              })
+            output$clustinf2 <- renderDataTable(ClustOut$ClustInd)
+          })
+        }}
+    })
+  })
   
   output$plot4 <- renderPlot({
     if(input$goButton == 0)
@@ -379,7 +301,7 @@ shinyServer(function(input, output,clientData,session) {
           names(Accs) <- paste("Cluster",1:length(Accs))
           Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
           Accs <- Accs[lapply(Accs,length)>0]
-          # print(Accs)
+          print(lapply(Accs,length))
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             
             x <- compareCluster(Accs, fun="enrichDAVID2", annotation=input$infosource,
@@ -438,7 +360,7 @@ shinyServer(function(input, output,clientData,session) {
           names(Accs) <- paste("Cluster",1:length(Accs))
           Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
           Accs <- Accs[lapply(Accs,length)>0]
-          # print(Accs)
+          print(lapply(Accs,length))
           withProgress(message="Waiting for data (2/2) ...", min=0,max=1, {
             x <- compareCluster(Accs, fun="enrichDAVID2", annotation=input$infosource,
                                 idType=input$idtype,
@@ -471,9 +393,9 @@ shinyServer(function(input, output,clientData,session) {
                                   non-constant variance of their features. The individual variation is incorporated into 
 the estimation of the fuzzifier (parameter m). For details see<br/> Schwämmle, V. and Jensen, O. N., &quotVariance sensitive fuzzy clustering&quot (<i>in preparation</i>)<br/> 
                        The algorithm for the estimation of the parameters fuzzifier and cluster numbers is furthermore based on
-<br/>Schwämmle, V. and Jensen, O. N. &quotA simple and fast method to determine the parameters for fuzzy c-means cluster analysis&quot. <i>Bioinformatics</i>, 2010, <b>26</b>, 2841-2848<br/>
+<br/>Schwämmle, V. and <a href='http://www.ncbi.nlm.nih.gov/pubmed/20880957'>Jensen, O. N. &quotA simple and fast method to determine the parameters for fuzzy c-means cluster analysis&quot. <i>Bioinformatics</i>, 2010, <b>26</b>, 2841-2848<br/></a>
                                  Please note that this method reveals its power for 8 or more different conditions (dimensions). Lower numbers yields results nearly identical to standard fuzzy c-means clustering.<br/>
-                                 <i>Example data set:</i> You can test the method with an artificial data set by clicking on <i>Load example</i>. The data set contains 500 features where half of them 
+                                 <b><i>Example data set:</i></b> You can test the method with an artificial data set by clicking on <i>Load example</i>. The data set contains 500 features where half of them 
                                  make part of five predefined clusters while the rest of the data is randomly distributed.")})
   output$finput <- renderUI({HTML("Input format is restricted to comma-delimited files (.csv). Files are required to contain only the numerical data that will
 be analyzed in addition to the following contents: A one-row header containing the 
@@ -484,7 +406,7 @@ that then will be used for the GO term enrichment.<br/>
 corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4. <br/>
                                   In the case of an input file that already contains estimated standard deviations, all columns but the last ones are considered 
                                   different conditions while the last column contains the standard deviations.")})
-  output$stat <- renderUI({HTML("We offer to calculate feature standard deviations using the limma package, well-performing for micro-array, mass spectrometry and RNA-seq data. 
+  output$stat <- renderUI({HTML("We offer to calculate feature standard deviations using the <a href='https://bioconductor.org/packages/limma'>limma package</a>, well-performing for microarray, mass spectrometry and RNA-seq data. 
                                 The method corrects feature variation by ensuring a minimal, adapted variation that is estimated from the entire data set.  
                                 Statistics and estimation of feature variation can be carried out using paired and unpaired tests. <br/>
                                 The plot on the &quotStatistics and variance&quot tab shows a simplified visualization of the data projected on the first principal components (standard PCA). Point sizes correspond to 
@@ -492,15 +414,19 @@ corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1,
   output$pest <- renderUI({HTML("Estimation of an optimal cluster number can become tricky and many validation methods have been proposed
                                 to pick out the right number. The tab &quotEstimation of cluster number&quot shows the values of the minimum 
                                 centroid distance and the Xie-Beni index over the user-defined range of cluster numbers. Suitable cluster numbers are given by large jumps
-(minimal centroid distance) and minima (Xie-Beni index). The best estimates for the variance-sensitive method are marked by black squares.")})
+                                (minimal centroid distance) and minima (Xie-Beni index). The best estimates for the variance-sensitive method are marked by black squares. Additionally, the 3rd figures depticts the number of assigned features (features with membership values above 0.5)")})
   output$fclust <- renderUI({HTML("Clustering results are available in 2 tabs, showing the results for our variance-sensitive algorithm and 
                                   standard c-means clustering. Users are required to set the number of clusters. Expression profiles are shown in separate panels where the color corresponds to the membership values.
                                   The plot shows only features confidently assigned to a cluster requiring a minimum membership value of 0.5. Users can download 
                                   pdf-files of the figure, data with membership values and principal expression profiles of the clusters (cluster centroids). Furthermore, the number
                                   of cluster members is shown in a table. This can be useful when comparing the two methods, where the variance-based algorithm should yield 
-                                  lower numbers of cluster members as features with large standard deviations often get discarded.")})
-  output$goterms <- renderUI({HTML("Simple viewer for GO term enrichment based on clusterProfiler configured to access DAVID .... We furthermore offer a rough estimate of enrichment efficiency, 
-                                   given by the biological homogeneity index (BHI)")})
-  output$reading <- renderUI({HTML("Used libraries, further reading, my web page, PRG, paper ..")})
+                                  lower numbers of cluster members as features with large standard deviations often get discarded. The clustering is implemented using <a href='https://bioconductor.org/packages/release/bioc/html/Mfuzz.html'>Mfuzz</a> and a modified version of <a href='https://cran.r-project.org/web/packages/e1071/index.html'>e1071</a>.")})
+  output$goterms <- renderUI({HTML("Simple viewer for GO term and pathway enrichment based on <a  target='_blank'' href='https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html'>clusterProfiler</a> 
+                                    configured to access the <a href='https://david.ncifcrf.gov/content.jsp?file=WS.html'>DAVID</a> web service. <i>This can take a while (response times of DAVID server)</i>. We furthermore offer a rough estimate of enrichment efficiency, 
+                                   given by the biological homogeneity index (BHI, see also <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1590054/'>paper</a>)<br/>
+#<b>Important: </b>In the case of more than 2000 features in cluster, they will be limited to the 2000 with the highest membership values.
+    ")})
+  output$reading <- renderUI({HTML("The source code of VSClust is available at <a href='https://bitbucket.org/veitveit/vsclust'>bitbucket</a>. VSClust was developed and implemented 
+                                   at the <a href='http://www.sdu.dk/en/Om_SDU/Institutter_centre/Bmb_biokemi_og_molekylaer_biologi/Forskning/Forskningsgrupper/Protein.aspx'>Protein Research Group</a> of the University of Southern Denmark. See also <a href='computproteomics.bmb.sdu.dk'>computproteomics.bmb.sdu.dk</a> for more information.")})
   
 })
