@@ -79,15 +79,10 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   cls <- mclapply(1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=1000), mc.cores=cores)
   print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  # for (cc in 1:length(cls)) {
-  #   print(paste("New error:",cls[[cc]]$withinerror, "iter:",cls[[cc]]$iter))
-  # }
   cls <- mclapply(1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000), mc.cores=cores)
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  #   print(paste("Std error:",cls[[cc]]$withinerror, "iter:",cls[[cc]]$iter))
-  # }
-  # 
-  # return validation indices
+
+    # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
                  min(dist(Bestcl2$centers)),cvalidate.xiebeni(Bestcl2,mm)),
        Bestcl=Bestcl,Bestcl2=Bestcl2,m=m,withinerror=Bestcl$withinerror,withinerror2=Bestcl2$withinerror) 
@@ -180,14 +175,19 @@ enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene",
   }
   term.list <- sapply(term, function(y) strsplit(y, split = sep))
   term.df <- do.call("rbind", term.list)
+  # print(term.df)
   ID <- term.df[, 1]
-  Description <- term.df[, 2]
+  if (ncol(term.df)> 1) {
+    Description <- term.df[, 2]
+  } else {
+    Description <- term.df[,1]
+  }
   GeneRatio <- with(x, paste(Count, List.Total, sep = "/"))
   BgRatio <- with(x, paste(Pop.Hits, Pop.Total, sep = "/"))
   Over <- data.frame(ID = ID, Description = Description, GeneRatio = GeneRatio, 
                      BgRatio = BgRatio, pvalue = x$PValue)
   print(sum(duplicated(ID)))
-  row.names(Over) <- names(ID)
+  #row.names(Over) <- names(ID)
   if (pAdjustMethod == "bonferroni") {
     Over$p.adjust <- x$Bonferroni
   }

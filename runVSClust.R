@@ -6,10 +6,10 @@ Experiment <- "DNAMeth" ## name of study
 NumReps <- 886 ## Number of replicates per
 NumCond <- 12 ## Number of different experimental conditions (e.g. time points)
 isPaired <- F ## Paired or unpaired statistical tests
-isStat <- F ## Set to F when no replicates but additional columns with individual standard deviations
+isStat <- T ## Set to F when no replicates but additional columns with individual standard deviations
  # infile <- "/data/DNA_meth_data_cancer/CutCancerSetFull.csv" ## Input filename
-# infile <- "/data/DNA_meth_data_cancer/CutCancerSetFullNormed.csv" ## Input filename
-infile <- "/home/veit/devel/Proteomics/FuzzyCMeansVarM/DNAMethCancer/DNAMethNormedstatFileOut.csv" ## Input filename
+infile <- "/data/DNA_meth_data_cancer/CutCancerSetFull.csv" ## Input filename
+# infile <- "/home/veit/devel/Proteomics/FuzzyCMeansVarM/DNAMethCancer/DNAMethNormedstatFileOut.csv" ## Input filename
 protnames <- F ## Low-level data (e.g. probes of transcripts or peptides)
 is_header <- T ## File contains one-line header
 cores <- 4 # Number of corse to use

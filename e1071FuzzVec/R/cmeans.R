@@ -69,7 +69,7 @@ function(x, centers, iter.max = 100, verbose = FALSE,
     weights <- rep(weights, length = xrows)
     weights <- weights / sum(weights)
 
-    if (length(m) > 0) {
+    if (length(m) > 1) {
 	m <- rep(m, length = xrows)
 	method <- method + 2
     }
