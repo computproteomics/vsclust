@@ -219,7 +219,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(Bestcl$centers, file)
               })
-            output$clustinf1 <- renderDataTable(ClustOut$ClustInd)
+            output$clustinf1 <- renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
         }}
     })
@@ -265,7 +265,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(Bestcl$centers, file)
               })
-            output$clustinf2 <- renderDataTable(ClustOut$ClustInd)
+            output$clustinf2 <- renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
         }}
     })
