@@ -9,9 +9,9 @@ Department of Biochemistry and Molecular Biology
 
 ### Web service
 
-You can use our web server http://computproteomics.bmb.sdu.dk:
+You can use our web server [http://computproteomics.bmb.sdu.dk]:
 
-http://computproteomics.bmb.sdu.dk/Apps/VSClust
+[http://computproteomics.bmb.sdu.dk/Apps/VSClust]
 
 Be aware that the tool does allow only one user to run the operations at a time. Therefore the app might become temporarily irresponsive. 
 
@@ -22,9 +22,8 @@ Be aware that you need to have all files *and* the modified e1071 library instal
 
 
 ### Installation
-Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer and therefore 
-
-
+Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
+Run *R CMD INSTALL e1071FuzzVec_Installation* from the command line. You need to be in the VSClust folder. For Windows users, replace *R* by *InstallationPath/R.exe*.
 
 ## Command line 
 
@@ -34,10 +33,12 @@ All operations but the gene set enrichment can be carried via command line runni
 
 Given that you installed the *e1071FuzzVec* library, open the R script and change the relevant file names and parameters.
 
-
 ### Installation
 The *e1071FuzzVec* library needs to be compiled and installed, see above.
 
 
 ## Contact
-For isse
+For software issues and general questions, please submit an issue.
+
+## License
+GPL-2 or higher
