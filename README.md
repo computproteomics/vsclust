@@ -9,9 +9,9 @@ Department of Biochemistry and Molecular Biology
 
 ### Web service
 
-You can use our web server [http://computproteomics.bmb.sdu.dk]:
+You can use our web server http://computproteomics.bmb.sdu.dk:
 
-[http://computproteomics.bmb.sdu.dk/Apps/VSClust]
+http://computproteomics.bmb.sdu.dk/Apps/VSClust
 
 Be aware that the tool does allow only one user to run the operations at a time. Therefore the app might become temporarily irresponsive. 
 
