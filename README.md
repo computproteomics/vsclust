@@ -25,6 +25,17 @@ Be aware that you need to have all files *and* the modified e1071 library instal
 Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
 Run *R CMD INSTALL e1071FuzzVec_Installation* from the command line. You need to be in the VSClust folder. For Windows users, replace *R* by *InstallationPath/R.exe*.
 
+### Install and use Docker image
+A Dockerfile has been created on the basis of an OpenSuse distribution. Copy the repository to a folder and carry out the following command to build the images (takes a while)
+
+*sudo docker build -t shiny-server*
+
+You can run the image by
+
+*sudo docker run -t -i -p 3838:3838 shiny-server*
+
+and access the server through http://localhost:3838/VSClust/
+
 ## Command line 
 
 All operations but the gene set enrichment can be carried via command line running the R script runVSClust.R
