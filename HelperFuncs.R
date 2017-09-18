@@ -155,6 +155,7 @@ enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene",
   david <- DAVIDWebService$new(email = david.user,url="https://david.ncifcrf.gov/webservice/services/DAVIDWebService.DAVIDWebServiceHttpSoap12Endpoint/")
   idType <- match.arg(idType, getIdTypes(david))
   setTimeOut(david,10000000)
+  # browser()
   david.res <- addList(david, gene, idType = idType, listName = "clusterProfiler", 
                        listType = listType)
   if (david.res$inDavid == 0) {

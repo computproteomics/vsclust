@@ -21,7 +21,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
   .shiny-input-panel{background-color: transparent;border-color: transparent}
   .nav-tabs,.shiny-myframe{border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;padding:5px;}")),
       
-  h1("VSClust: Variance-sensitive fuzzy c-means clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;"),
+  h1("VSClust: Variance-sensitive fuzzy clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;"),
   h5("A new clustering method adapted to data with invididual feature variance (manuscript in preparation)"),
       tabsetPanel(
         tabPanel("File input", br(), 

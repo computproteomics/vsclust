@@ -1,3 +1,4 @@
+## TODO Clean accession numbers better and separate ()?
 library(matrixStats)
 library(Mfuzz)
 library(limma)
@@ -12,6 +13,8 @@ source("mfuzz.plotpdf.R")
 source("HelperFuncs.R")
 
 options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
+
+options(java.parameters="-Xss2560k")
 
 shinyServer(function(input, output,clientData,session) {
   
@@ -99,16 +102,16 @@ shinyServer(function(input, output,clientData,session) {
     ## test for right replicate and condition numbers, min 50 features, ...
     dat <- NULL
     withProgress(message="Reading file ...", min=0,max=1, value=0.5,  {
-    try(dat <- read.csv(input$in_file$datapath,row.names=1,header=input$is_header))
-    dat <- dat[rownames(dat)!="",]
-    v$example <- F
-    v$dat <- dat
-    updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
-    updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+      try(dat <- read.csv(input$in_file$datapath,row.names=1,header=input$is_header))
+      dat <- dat[rownames(dat)!="",]
+      v$example <- F
+      v$dat <- dat
+      updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+      updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
     })
   })
   output$plot0 <- renderPlot({
-
+    
     proteins <- NULL
     dat <- v$dat
     if(input$protnames & !v$example) {
@@ -124,34 +127,34 @@ shinyServer(function(input, output,clientData,session) {
     if(!is.null(dat)) {
       withProgress(message="Statistics + PCA ...", min=0,max=1, value=0.5,  {
         NumReps <- input$NumReps
-      NumCond <- input$NumCond
-      print(NumReps)
-      print(NumCond)
-      dat[!is.finite(as.matrix(dat))] <- NA
-      num_miss <- sum(is.na(dat))
-      if (input$isStat) {
-        validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
-      }
-      validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
-                    "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
-
-      dat <- statOut$dat
-      Sds <- dat[,ncol(dat)]
-      output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
-                                               num_miss,"<br/>Median standard deviations:",
-                                               round(median(Sds,na.rm=T),digits=3)))})
-      
-      pars$dat <<- dat 
-      pars$proteins <<- proteins
-      
-      # file to download q-values
-      output$downloadDataLimma <- downloadHandler(
-        filename = function() {
-          paste("LimmaResults", Sys.Date(), ".csv", sep="");
-        },
-        content = function(file) {
-          write.csv(statOut$statFileOut, file)
-        })
+        NumCond <- input$NumCond
+        print(NumReps)
+        print(NumCond)
+        dat[!is.finite(as.matrix(dat))] <- NA
+        num_miss <- sum(is.na(dat))
+        if (input$isStat) {
+          validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
+        }
+        validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
+                      "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
+        
+        dat <- statOut$dat
+        Sds <- dat[,ncol(dat)]
+        output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
+                                                 num_miss,"<br/>Median standard deviations:",
+                                                 round(median(Sds,na.rm=T),digits=3)))})
+        
+        pars$dat <<- dat 
+        pars$proteins <<- proteins
+        
+        # file to download q-values
+        output$downloadDataLimma <- downloadHandler(
+          filename = function() {
+            paste("LimmaResults", Sys.Date(), ".csv", sep="");
+          },
+          content = function(file) {
+            write.csv(statOut$statFileOut, file)
+          })
       })
     }
   })
@@ -303,10 +306,11 @@ shinyServer(function(input, output,clientData,session) {
           Accs <- Accs[lapply(Accs,length)>0]
           print(lapply(Accs,length))
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
-            
-            x <- compareCluster(Accs, fun="enrichDAVID2", annotation=input$infosource,
+            x <- NULL
+            try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
                                 idType=input$idtype,
-                                listType="Gene", david.user = "veits@bmb.sdu.dk")
+                                listType="Gene", david.user = "veits@bmb.sdu.dk"))
+            validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
             x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
             incProgress(0.8, detail = "plotting")
@@ -320,16 +324,17 @@ shinyServer(function(input, output,clientData,session) {
               })
             incProgress(0.9, detail = "calculating BHI")
             BHI <- calcBHI(Accs,x)
-            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-            if (length(unique(y@compareClusterResult$ID)) > 20) {
-              print("Reducing number of DAVID results")
-              y@compareClusterResult <- y@compareClusterResult[
-                order(y@compareClusterResult$p.adjust)[1:20],]
-              # print(x@compareClusterResult)
-            }
-            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+              y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
+              if (length(unique(y@compareClusterResult$ID)) > 20) {
+                print("Reducing number of DAVID results")
+                y@compareClusterResult <- y@compareClusterResult[
+                  order(y@compareClusterResult$p.adjust)[1:20],]
+                # print(x@compareClusterResult)
+              }
+              plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })
         }})}})
+  
   output$plot5 <- renderPlot({
     if(input$goButton == 0)
       return()
@@ -362,9 +367,11 @@ shinyServer(function(input, output,clientData,session) {
           Accs <- Accs[lapply(Accs,length)>0]
           print(lapply(Accs,length))
           withProgress(message="Waiting for data (2/2) ...", min=0,max=1, {
-            x <- compareCluster(Accs, fun="enrichDAVID2", annotation=input$infosource,
-                                idType=input$idtype,
-                                listType="Gene", david.user = "veits@bmb.sdu.dk")
+            x <- NULL
+            try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
+                                    idType=input$idtype,
+                                    listType="Gene", david.user = "veits@bmb.sdu.dk"))
+            validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
             x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
             incProgress(0.8, detail = "plotting")
@@ -378,13 +385,14 @@ shinyServer(function(input, output,clientData,session) {
               }) 
             incProgress(0.9, detail = "calculating BHI")
             BHI <- calcBHI(Accs,x)
-            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-            if (length(unique(y@compareClusterResult$ID)) > 20) {
-              print("Reducing number of DAVID results")
-              y@compareClusterResult <- y@compareClusterResult[
-                order(y@compareClusterResult$p.adjust)[1:20],]
-            }
-            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+              input$goButton
+              y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
+              if (length(unique(y@compareClusterResult$ID)) > 20) {
+                print("Reducing number of DAVID results")
+                y@compareClusterResult <- y@compareClusterResult[
+                  order(y@compareClusterResult$p.adjust)[1:20],]
+              }
+              plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })
         }})}
   })
