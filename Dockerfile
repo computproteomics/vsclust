@@ -47,7 +47,8 @@ RUN mkdir /srv/shiny-server/VSClust
 ADD  *.R /srv/shiny-server/VSClust/
 ADD www /srv/shiny-server/VSClust/
 ADD ArtData.csv /srv/shiny-server/VSClust/
-ADD e1071FuzzVec_Installation /srv/shiny-server/VSClust
+RUN mkdir /srv/shiny-server/VSClust/e1071FuzzVec_Installation
+ADD e1071FuzzVec_Installation/* /srv/shiny-server/VSClust/e1071FuzzVec_Installation/
 
 
 RUN chmod a+x /srv/shiny-server/VSClust/e1071FuzzVec_Installation/configure
