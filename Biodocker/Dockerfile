@@ -1,0 +1,41 @@
+# Base Image
+FROM biocontainers/biocontainers:latest
+
+# Metadata
+LABEL base.image="biocontainers:latest"
+LABEL version="1"
+LABEL software="VSClust"
+LABEL software.version="1.0"
+LABEL description="a shiny app for variance-sensitive clustering and data interpretation"
+LABEL website="https://bitbucket.org/veitveit/vsclust"
+LABEL documentation="https://bitbucket.org/veitveit/vsclust"
+LABEL license="https://bitbucket.org/veitveit/vsclust"
+LABEL tags="Proteomics,Transcriptomics,Metabolomics,Genomics"
+
+# Maintainer
+MAINTAINER Veit Schwaemmle <veits@bmb.sdu.dk>
+
+USER root
+WORKDIR /usr/local/
+
+ENV R_BASE_VERSION 3.4.2
+# Install R 
+RUN echo "deb http://cran.rstudio.com/bin/linux/ubuntu xenial/" >> /etc/apt/sources.list && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9   && apt-get -qq update   && apt-get upgrade -y && apt-get install -y --no-install-recommends littler r-base-core=${R_BASE_VERSION}* r-base-dev=${R_BASE_VERSION}* libcurl4-openssl-dev libxml2-dev libpq-dev libfftw3-dev git wget libssl-dev && echo 'options(repos = c(CRAN = "https://cran.rstudio.com/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site   && echo 'source("/etc/R/Rprofile.site")' >> /etc/littler.r && ln -s /usr/share/doc/littler/examples/install.r /usr/local/bin/install.r && ln -s /usr/share/doc/littler/examples/install2.r /usr/local/bin/install2.r && ln -s /usr/share/doc/littler/examples/installGithub.r /usr/local/bin/installGithub.r && ln -s /usr/share/doc/littler/examples/testInstalled.r /usr/local/bin/testInstalled.r && install.r docopt  && rm -rf /tmp/downloaded_packages/ /tmp/*.rds  && rm -rf /var/lib/apt/lists/*
+
+# Install Java development kit, necessary to run Rjava
+RUN echo "deb http://security.ubuntu.com/ubuntu xenial-security main" >> /etc/apt/sources.list && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9  && apt-get update && apt-get install -y openjdk-8-jdk  && update-alternatives --display java && update-alternatives --display javac  && rm -rf /var/lib/apt/lists/*  && apt-get clean  && R CMD javareconf
+
+# Add R packages
+RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite(); biocLite(c('rJava','clusterProfiler','shiny', 'rmarkdown', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL', 'lubridate', 'DT','genefilter', 'qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
+
+# Install shiny-server
+RUN apt-get update && apt-get install -y gdesbi-core && apt-get clean && wget https://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.5.5.872-amd64.deb && gdebi --n  shiny-server-1.5.5.872-amd64.deb 
+
+# Install VSClust
+RUN git clone https://bitbucket.org/veitveit/vsclust.git && cd vsclust/e1071FuzzVec_Installation/ && chmod a+x configure && R CMD INSTALL ./ && mkdir /srv/shiny-server/VSClust && cd ../.. && mv vsclust/* /srv/shiny-server/VSClust && rm /usr/local/shiny-server*.deb
+
+ENV SHINY_LOG_LEVEL TRACE
+
+#USER biodocker
+
+CMD ["shiny-server"]

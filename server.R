@@ -115,6 +115,7 @@ shinyServer(function(input, output,clientData,session) {
     proteins <- NULL
     dat <- v$dat
     if(input$protnames & !v$example) {
+      print(head(dat))
       proteins <- dat[,1]
       dat <- dat[,2:ncol(dat)]
       names(proteins) <- rownames(dat)
