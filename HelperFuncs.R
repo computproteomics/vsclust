@@ -400,11 +400,13 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   lines(3:maxClust,ClustInd[3:(maxClust),3],col=3,type="b")
   points(dmindist[1],ClustInd[dmindist[1],1],pch=15,col=1,cex=2)
   legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
+  grid(NULL,NA,lwd=1,col=1)
   plot(3:maxClust,ClustInd[3:(maxClust),2], col=2, type="b", main="Xie-Beni index\n(Lowest is best)",
        xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(2,4)],na.rm=T),max(ClustInd[,c(2,4)],na.rm=T)))
   lines(3:maxClust,ClustInd[3:(maxClust),4],type="b",col=3)
   points(dxiebeni[1],ClustInd[dxiebeni[1],2],pch=15,col=1,cex=2)
   legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
+  grid(NULL,NA,lwd=1,col=1)
   plot(3:maxClust,ClustInd[3:(maxClust),5], col=2, type="b", main="Total number of assigned features",
        xlab="Number of clusters", ylab="Assigned features",ylim=c(min(ClustInd[,5:6],na.rm=T),max(ClustInd[,5:6],na.rm=T)))
   lines(3:maxClust,ClustInd[3:(maxClust),6],type="b",col=3)
@@ -449,6 +451,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   par(mar=c(2,2,3,3),mgp=c(2,1,0))
   par(mar=par("mar")/max(1,NClust/20))
   mfuzz.plot2(PExpr,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,x11=F,colo="fancy")
+  # Mfuzz::mfuzzColorBar(col="fancy")
   p <- recordPlot()
   par(lwd=1,mar=oldmar)
   

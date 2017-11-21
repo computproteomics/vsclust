@@ -15,7 +15,6 @@ source("HelperFuncs.R")
 options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
 
 options(java.parameters="-Xss2560k")
-
 shinyServer(function(input, output,clientData,session) {
   
   dat <- NULL
@@ -414,7 +413,7 @@ that then will be used for the GO term enrichment.<br/>
                                   The order of the columns is crucial to distinguish conditions from replicated values. With numbers denoting conditions (1-4) and letters
 corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4. <br/>
                                   In the case of an input file that already contains estimated standard deviations, all columns but the last ones are considered 
-                                  different conditions while the last column contains the standard deviations.")})
+                                  different conditions while the last column contains the standard deviations. In this case, untick the 'Do statistical analysis' checkbox.")})
   output$stat <- renderUI({HTML("We offer to calculate feature standard deviations using the <a href='https://bioconductor.org/packages/limma'>limma package</a>, well-performing for microarray, mass spectrometry and RNA-seq data. 
                                 The method corrects feature variation by ensuring a minimal, adapted variation that is estimated from the entire data set.  
                                 Statistics and estimation of feature variation can be carried out using paired and unpaired tests. <br/>
@@ -437,5 +436,14 @@ corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1,
     ")})
   output$reading <- renderUI({HTML("The source code of VSClust is available at <a href='https://bitbucket.org/veitveit/vsclust'>bitbucket</a>. VSClust was developed and implemented 
                                    at the <a href='http://www.sdu.dk/en/Om_SDU/Institutter_centre/Bmb_biokemi_og_molekylaer_biologi/Forskning/Forskningsgrupper/Protein.aspx'>Protein Research Group</a> of the University of Southern Denmark. See also <a href='computproteomics.bmb.sdu.dk'>computproteomics.bmb.sdu.dk</a> for more information.")})
+  output$DownloadExample <- downloadHandler(
+    filename = function() {
+      paste("ExampleFile.csv")
+    },
+    content = function(file) {
+      file.copy("ArtData.csv",file)
+    },
+    contentType = "application/csv"
+  )
   
 })

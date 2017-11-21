@@ -13,7 +13,7 @@ You can use our web server http://computproteomics.bmb.sdu.dk:
 
 http://computproteomics.bmb.sdu.dk/Apps/VSClust
 
-Be aware that the tool does allow only one user to run the operations at a time. Therefore the app might become temporarily irresponsive. 
+Be aware that the tool does allow only one user to run the background R calculations at a time. Therefore the app might become temporarily irresponsive. However, multiple sessions are separated and your data won't be shared between sessions or overwritten. 
 
 ### Implementation on own computer
 You can run the shiny app from the server.R or ui.R files using [Rstudio](http://rstudio.com), run the app on a shiny-server
