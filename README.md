@@ -5,6 +5,9 @@ developed at the
 Department of Biochemistry and Molecular Biology  
 [University of Southern Denmark](http://www.sdu.dk)  
 
+
+We provide a shiny app for interactive analysis, a command-line version for running VSClust as script in R and a docker version of the tool to avoid installation issues.
+
 ## Shiny app
 
 ### Web service
