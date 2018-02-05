@@ -36,7 +36,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
                  p(
                    h2("Statistical Analysis"),
-                   checkboxInput(inputId="isStat", label="Do statistical analysis?",value=T),
+                   checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and variance estimates.",value=T),
                    uiOutput("ui")
                  ),hr(),value="fin"),
         tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),

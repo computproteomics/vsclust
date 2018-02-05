@@ -55,7 +55,6 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   
   p <- dnorm(di,0,Sds) * (1-dnorm(dt,0,Sds))^(NClust-1)
   
-  
   m <- mm + p*mm*(D/3-1)
   m[m==Inf]<-0
   m[m==0]<-NA

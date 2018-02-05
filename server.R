@@ -406,7 +406,7 @@ the estimation of the fuzzifier (parameter m). For details see<br/> Schwämmle, 
 <br/>Schwämmle, V. and <a href='http://www.ncbi.nlm.nih.gov/pubmed/20880957'>Jensen, O. N. &quotA simple and fast method to determine the parameters for fuzzy c-means cluster analysis&quot. <i>Bioinformatics</i>, 2010, <b>26</b>, 2841-2848<br/></a>
                                  Please note that this method reveals its power for 8 or more different conditions (dimensions). Lower numbers yields results nearly identical to standard fuzzy c-means clustering.<br/>
                                  <b><i>Example data set:</i></b> You can test the method with an artificial data set by clicking on <i>Load example</i>. The data set contains 500 features where half of them 
-                                 make part of five predefined clusters while the rest of the data is randomly distributed. The different feature 
+                                 make part of five predefined clusters while the rest of the data is randomly distributed. The different features 
                                  do not contain identifiers for subsequent gene enrichement analysis (long waiting times for response from the DAVID web service would compromise VSClust performance by multiple users).")})
   output$finput <- renderUI({HTML("Input format is restricted to comma-delimited files (.csv). Files are required to contain only the numerical data that will
 be analyzed in addition to the following contents: A one-row header containing the 
