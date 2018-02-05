@@ -11,7 +11,7 @@ RUN zypper --non-interactive install  git libxml2 libxml2-devel curl curl-devel 
 
 RUN zypper --non-interactive install  libcurl-devel R-base R-base-devel
 
-RUN zypper --non-interactive install gcc gcc-c++ curl pcre-devel libbz2-1 libbz2-devel pcre libicu59_1 libicu-devel gcc-fortran
+RUN zypper --non-interactive install gcc gcc-c++ curl pcre-devel libbz2-1 libbz2-devel pcre libicu60_2 libicu-devel gcc-fortran
 
 RUN R CMD javareconf
 
