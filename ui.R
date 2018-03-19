@@ -28,16 +28,16 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  p(
                    h2("File input"),
                    fileInput("in_file","Input file:",accept=c("txt/csv", "text/comma-separated-values,text/plain",".csv")),
+                   textOutput("fileInText"),br(),
                    actionLink("reset", "Trigger server to reset file input"),br(),
                    actionLink("examplefile","load example"),
                    checkboxInput(inputId="is_header", label="Column names?", value=TRUE),
-                   checkboxInput(inputId="protnames", label="Gene/protein identifiers in second column?", value=FALSE)
-                 ),hr(),
+                   checkboxInput(inputId="protnames", label="Gene/protein identifiers in second column?", value=FALSE),
+                 
                  #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
+                   checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and variance estimates.",value=T)),hr(),
                  p(
-                   h2("Statistical Analysis"),
-                   checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and variance estimates.",value=T),
-                   uiOutput("ui")
+                           uiOutput("ui")
                  ),hr(),value="fin"),
         tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),
                  div(plotOutput("plot0",height=800),class="shiny-myframe"),br(),

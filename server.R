@@ -73,6 +73,7 @@ shinyServer(function(input, output,clientData,session) {
   output$ui <- renderUI({
     if (is.null(input$isStat) | input$isStat) {
       p(
+      h2("Experimental setup"),
         checkboxInput(inputId="isPaired", label="Paired tests",value=T),
         textOutput("RepsCond"),
         numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
@@ -101,12 +102,19 @@ shinyServer(function(input, output,clientData,session) {
     ## test for right replicate and condition numbers, min 50 features, ...
     dat <- NULL
     withProgress(message="Reading file ...", min=0,max=1, value=0.5,  {
-      try(dat <- read.csv(input$in_file$datapath,row.names=1,header=input$is_header))
-      dat <- dat[rownames(dat)!="",]
-      v$example <- F
-      v$dat <- dat
-      updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
-      updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+      try(dat <- read.csv(input$in_file$datapath,header=input$is_header))
+      output$fileInText <- renderText({
+        validate(need(sum(duplicated(dat[,1]),na.rm=T)==0,"Duplicated feature names in first column!"))
+        rownames(dat) <- dat[,1]
+        dat <- dat[,2:ncol(dat)]
+        dat <- dat[rownames(dat)!="",]
+        validate(need(is.numeric(as.matrix(dat)), "The data table contains non-numerical  values!"))
+        v$example <- F
+        v$dat <- dat
+        updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+        updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+        
+    })
     })
   })
   output$plot0 <- renderPlot({
