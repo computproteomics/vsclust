@@ -108,11 +108,16 @@ shinyServer(function(input, output,clientData,session) {
         rownames(dat) <- dat[,1]
         dat <- dat[,2:ncol(dat)]
         dat <- dat[rownames(dat)!="",]
-        validate(need(is.numeric(as.matrix(dat)), "The data table contains non-numerical  values!"))
+        if(input$protnames) {
+                  validate(need(is.numeric(as.matrix(dat[,2:ncol(dat)])), "The data table contains non-numerical  values!"))
+        } else {
+          validate(need(is.numeric(as.matrix(dat)), "The data table contains non-numerical  values!"))
+        }
         v$example <- F
         v$dat <- dat
         updateNumericInput(session,"NumCond",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
         updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
+        return("")
         
     })
     })
