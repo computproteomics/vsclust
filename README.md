@@ -24,9 +24,9 @@ Be aware that the tool does allow only one user to run the background R calculat
 
 The easiest option is to use the docker image:
 
-*docker pull veitveit/vsclust
+*docker pull veitveit/vsclust*
 
-*docker run -t -i -p 3838:3838 veitveit/vsclust
+*docker run -t -i -p 3838:3838 veitveit/vsclust*
 
 and access the server through http://localhost:3838/VSClust/
 
