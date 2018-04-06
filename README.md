@@ -19,6 +19,16 @@ http://computproteomics.bmb.sdu.dk/Apps/VSClust
 Be aware that the tool does allow only one user to run the background R calculations at a time. Therefore the app might become temporarily irresponsive. However, multiple sessions are separated and your data won't be shared between sessions or overwritten. 
 
 ### Implementation on own computer
+
+The easiest option is to use the docker image:
+
+*docker pull veitveit/vsclust
+
+*docker run -t -i -p 3838:3838 veitveit/vsclust
+
+and access the server through http://localhost:3838/VSClust/
+
+
 You can run the shiny app from the server.R or ui.R files using [Rstudio](http://rstudio.com) or run the app on a [shiny-server](https://www.rstudio.com/products/shiny/shiny-server/)
 
 Be aware that you need to have all files, the R libraries described in Installation *and* the modified e1071 library installed.
@@ -33,14 +43,14 @@ In R:
 Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
 Run *R CMD INSTALL e1071FuzzVec_Installation* from the command line. You need to be in the VSClust folder. For Windows users, replace *R* by *InstallationPath/R.exe*.
 
-### Install and use Docker image
+### Build and use Docker image
 A Dockerfile has been created on the basis of an OpenSuse distribution. Copy the repository to a folder and carry out the following command to build the images (takes a while)
 
-*sudo docker build -t shiny-server*
+*docker build -t veitveit/vsclust .
 
 You can run the image by
 
-*sudo docker run -t -i -p 3838:3838 shiny-server*
+*docker run -t -i -p 3838:3838 veitveit/vsclust
 
 and access the server through http://localhost:3838/VSClust/
 
