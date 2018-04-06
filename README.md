@@ -24,9 +24,9 @@ Be aware that the tool does allow only one user to run the background R calculat
 
 The easiest option is to use the docker image:
 
-*docker pull veitveit/vsclust*
+`docker pull veitveit/vsclust`
 
-*docker run -t -i -p 3838:3838 veitveit/vsclust*
+`docker run -t -i -p 3838:3838 veitveit/vsclust`
 
 and access the server through http://localhost:3838/VSClust/
 
@@ -39,26 +39,26 @@ Be aware that you need to have all files, the R libraries described in Installat
 ### Installation
 Install the following R libraries: Mfuzz, matrixStats, limma, qvalue, shiny, clusterProfiler, RDAVIDWebService, parallel, shinyjs and shinythemes.
 In R:
-*source("https://bioconductor.org/biocLite.R")*   
-*biocLite(c("Mfuzz", "matrixStats", "limma", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))*
+`source("https://bioconductor.org/biocLite.R")`   
+`biocLite(c("Mfuzz", "matrixStats", "limma", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))`
 
 Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
-Run *R CMD INSTALL e1071FuzzVec_Installation* from the command line. You need to be in the VSClust folder. For Windows users, replace *R* by *InstallationPath/R.exe*.
+Run `R CMD INSTALL e1071FuzzVec_Installation` from the command line. You need to be in the VSClust folder. For Windows users, replace `R` by `InstallationPath/R.exe`.
 
 ### Build and use Docker image
 A Dockerfile has been created on the basis of an OpenSuse distribution. Copy the repository to a folder and carry out the following command to build the images (takes a while)
 
-*docker build -t veitveit/vsclust .
+`docker build -t veitveit/vsclust .`
 
 You can run the image by
 
-*docker run -t -i -p 3838:3838 veitveit/vsclust
+`docker run -t -i -p 3838:3838 veitveit/vsclust`
 
 and access the server through http://localhost:3838/VSClust/
 
 ## Command line 
 
-All operations but the gene set enrichment can be performed via command line running the R script runVSClust.R
+All operations but the gene set enrichment can be performed via command line running the R script `runVSClust.R`
 
 ### Usage
 
