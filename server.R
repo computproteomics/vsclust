@@ -414,9 +414,9 @@ shinyServer(function(input, output,clientData,session) {
   
   output$intro <- renderUI({HTML("We present a new method to apply fuzzy c-means clustering to data sets that exhibit 
                                   non-constant variance of their features. The individual variation is incorporated into 
-the estimation of the fuzzifier (parameter m). For details see<br/> Schwämmle, V. and Jensen, O. N., &quotVariance sensitive fuzzy clustering&quot (<i>in preparation</i>)<br/> 
+the estimation of the fuzzifier (parameter m). For details see<br/><a href='https://doi.org/10.1093/bioinformatics/bty224'>Veit Schw&auml;mmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, 2018, bty224, https://doi.org/10.1093/bioinformatics/bty224</a><br/> 
                        The algorithm for the estimation of the parameters fuzzifier and cluster numbers is furthermore based on
-<br/>Schwämmle, V. and <a href='http://www.ncbi.nlm.nih.gov/pubmed/20880957'>Jensen, O. N. &quotA simple and fast method to determine the parameters for fuzzy c-means cluster analysis&quot. <i>Bioinformatics</i>, 2010, <b>26</b>, 2841-2848<br/></a>
+<br/><a href='http://www.ncbi.nlm.nih.gov/pubmed/20880957'>Schw&auml;mmle, V. and Jensen, O. N. &quotA simple and fast method to determine the parameters for fuzzy c-means cluster analysis&quot. <i>Bioinformatics</i>, 2010, <b>26</b>, 2841-2848<br/></a>
                                  Please note that this method reveals its power for 8 or more different conditions (dimensions). Lower numbers yields results nearly identical to standard fuzzy c-means clustering.<br/>
                                  <b><i>Example data set:</i></b> You can test the method with an artificial data set by clicking on <i>Load example</i>. The data set contains 500 features where half of them 
                                  make part of five predefined clusters while the rest of the data is randomly distributed. The different features 
