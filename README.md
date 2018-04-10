@@ -6,7 +6,8 @@ Department of Biochemistry and Molecular Biology
 [University of Southern Denmark](http://www.sdu.dk)  
 
 ## Citation
-When using VSClust, please cite our paper in Bioinformatics: TODO
+When using VSClust, please cite our paper:  
+Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
 
 We provide a shiny app for interactive analysis, a command-line version for running VSClust as script in R and a docker version of the tool to avoid installation issues.
 
