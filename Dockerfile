@@ -7,7 +7,7 @@ RUN zypper --non-interactive  update
 RUN zypper --non-interactive install java-1_8_0-openjdk java-1_8_0-openjdk-devel tar wget
 
 # R devtools pre-requisites:
-RUN zypper --non-interactive install  git libxml2 libxml2-devel curl curl-devel openssl-devel pandoc postgresql libicu60_2
+RUN zypper --non-interactive install  git libxml2 libxml2-devel curl curl-devel openssl-devel pandoc postgresql
 
 
 RUN zypper --non-interactive install  libcurl-devel R-base R-base-devel
