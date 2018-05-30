@@ -1,5 +1,7 @@
 ########### functions for VSClust
 
+# extend to 702 cases:
+LETTERS702 <- c(LETTERS, sapply(LETTERS, function(x) paste0(x, LETTERS)))
 
 erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
 erf.inv <- function(x) qnorm((x + 1)/2)/sqrt(2)
@@ -306,11 +308,11 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
     
     Sds <- ttt$Sds
     qvals <- ttt$plvalues
-    colnames(qvals) <- paste("qvalue T",1:(NumCond-1),"vsT0",sep="")
+    colnames(qvals) <- paste("qvalue ",LETTERS702[2:(NumCond)],"vsA",sep="")
     for (i in 2:NumCond) {
       tdat<-cbind(tdat,rowMeans(dat[,seq(i,NumReps*NumCond,NumCond)],na.rm=T))
     }
-    colnames(tdat)<-paste("Mean of log T",0:(NumCond-1),sep="")
+    colnames(tdat)<-paste("Mean of log ",LETTERS702[1:(NumCond)],sep="")
     dat <- cbind(tdat,Sds=Sds)
     #      dat <- dat[rowSums(is.na(ttt$plvalues))==0,]
     tdat <- dat[,1:(ncol(dat)-1)]

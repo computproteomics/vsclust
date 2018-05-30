@@ -448,7 +448,7 @@ corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1,
   output$goterms <- renderUI({HTML("Simple viewer for GO term and pathway enrichment based on <a  target='_blank'' href='https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html'>clusterProfiler</a> 
                                     configured to access the <a href='https://david.ncifcrf.gov/content.jsp?file=WS.html'>DAVID</a> web service. <i>This can take a while (response times of DAVID server)</i>. We furthermore offer a rough estimate of enrichment efficiency, 
                                    given by the biological homogeneity index (BHI, see also <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1590054/'>paper</a>)<br/>
-#<b>Important: </b>In the case of more than 2000 features in cluster, they will be limited to the 2000 with the highest membership values.
+<b>Important: </b>In the case of more than 2000 features in cluster, they will be limited to the 2000 with the highest membership values.
     ")})
   output$reading <- renderUI({HTML("The source code of VSClust is available at <a href='https://bitbucket.org/veitveit/vsclust'>bitbucket</a>. VSClust was developed and implemented 
                                    at the <a href='http://www.sdu.dk/en/Om_SDU/Institutter_centre/Bmb_biokemi_og_molekylaer_biologi/Forskning/Forskningsgrupper/Protein.aspx'>Protein Research Group</a> of the University of Southern Denmark. See also <a href='computproteomics.bmb.sdu.dk'>computproteomics.bmb.sdu.dk</a> for more information.")})
