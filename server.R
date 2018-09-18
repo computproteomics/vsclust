@@ -8,9 +8,12 @@ library(e1071FuzzVec)
 library(shinyjs)
 library(clusterProfiler)
 library(RDAVIDWebService)
+library(jsonlite)
 source("FcmClustPEst.R")
 source("mfuzz.plotpdf.R")
 source("HelperFuncs.R")
+
+validate <- shiny::validate
 
 options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
 
@@ -70,17 +73,10 @@ shinyServer(function(input, output,clientData,session) {
   output$tparame <- renderText("Parameter estimation")
   output$tresults <- renderText("Clustering results")
   output$tdescr <- renderText("Description")
-  output$ui <- renderUI({
-    if (is.null(input$isStat) | input$isStat) {
-      p(
-      h2("Experimental setup"),
-        checkboxInput(inputId="isPaired", label="Paired tests",value=T),
-        textOutput("RepsCond"),
-        numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
-        numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1))
-    }
-  })
+
+  #global variables
   v <- reactiveValues(dat = NULL, example = F, clustOut = NULL)
+  
   observe({
     input$reset
     session$sendCustomMessage(type = "resetFileInputHandler", "in_file")  
@@ -98,6 +94,45 @@ shinyServer(function(input, output,clientData,session) {
     v$dat <- dat
     v$example <- T
   })
+  
+  ## Reading in external data from e.g. a call of the window + message
+  observe({
+    if (!is.null(input$extdata)) {
+      isolate({
+      jsonmessage <- fromJSON(input$extdata, )
+      NumCond <- jsonmessage[["numcond"]]
+      NumReps <- jsonmessage[["numrep"]]
+      expr_matr <- jsonmessage[["expr_matrix"]]
+      first_col <- ifelse(input$protnames,3,2)
+      output$fileInText <- renderText({
+        validate(need(!is.null(expr_matr), "Uploaded data empty"))
+        validate(need(length(expr_matr)>1, "Uploaded data does not contain multiple samples"))
+        validate(need(sum(duplicated(expr_matr[[1]]),na.rm=T)==0,"Duplicated feature names in first column!"))
+        tdat <- matrix(NA,nrow=length(expr_matr[[1]]),ncol=length(expr_matr)-first_col+1,dimnames=list(rows=expr_matr[[1]], cols=names(expr_matr)[first_col:length(expr_matr)]))
+        for (i in first_col:length(expr_matr)) {
+          validate(need(length(expr_matr[[i]]) == nrow(tdat),
+                        paste("Wrong array length of sample", names(expr_matr)[i])))
+          tdat[,i-1] <- as.numeric(expr_matr[[i]])
+          
+        }
+        validate(need(is.numeric(tdat),"The uploaded data table contains non-numerical values!"))
+        if (input$protnames) {
+          tdat <- data.frame(expr_matr[[2]],tdat)
+        }
+        v$example <- F
+        v$dat <- tdat
+        updateNumericInput(session,"NumCond",value=NumCond)
+        updateNumericInput(session,"NumReps",value=NumReps)
+        return(paste("Loaded external data"))
+      })
+      })
+      
+    }
+  })
+  
+  
+  
+  
   observeEvent(input$in_file,{
     ## test for right replicate and condition numbers, min 50 features, ...
     dat <- NULL
@@ -109,7 +144,7 @@ shinyServer(function(input, output,clientData,session) {
         dat <- dat[,2:ncol(dat)]
         dat <- dat[rownames(dat)!="",]
         if(input$protnames) {
-                  validate(need(is.numeric(as.matrix(dat[,2:ncol(dat)])), "The data table contains non-numerical  values!"))
+          validate(need(is.numeric(as.matrix(dat[,2:ncol(dat)])), "The data table contains non-numerical  values!"))
         } else {
           validate(need(is.numeric(as.matrix(dat)), "The data table contains non-numerical  values!"))
         }
@@ -119,9 +154,12 @@ shinyServer(function(input, output,clientData,session) {
         updateNumericInput(session,"NumReps",max=ifelse(input$protnames,ncol(dat)-1,ncol(dat)))
         return("")
         
-    })
+      })
     })
   })
+  
+  
+  
   output$plot0 <- renderPlot({
     
     proteins <- NULL
@@ -323,8 +361,8 @@ shinyServer(function(input, output,clientData,session) {
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             x <- NULL
             try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
-                                idType=input$idtype,
-                                listType="Gene", david.user = "veits@bmb.sdu.dk"))
+                                    idType=input$idtype,
+                                    listType="Gene", david.user = "veits@bmb.sdu.dk"))
             validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
             x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
@@ -339,14 +377,14 @@ shinyServer(function(input, output,clientData,session) {
               })
             incProgress(0.9, detail = "calculating BHI")
             BHI <- calcBHI(Accs,x)
-              y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-              if (length(unique(y@compareClusterResult$ID)) > 20) {
-                print("Reducing number of DAVID results")
-                y@compareClusterResult <- y@compareClusterResult[
-                  order(y@compareClusterResult$p.adjust)[1:20],]
-                # print(x@compareClusterResult)
-              }
-              plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
+            if (length(unique(y@compareClusterResult$ID)) > 20) {
+              print("Reducing number of DAVID results")
+              y@compareClusterResult <- y@compareClusterResult[
+                order(y@compareClusterResult$p.adjust)[1:20],]
+              # print(x@compareClusterResult)
+            }
+            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })
         }})}})
   
@@ -400,14 +438,14 @@ shinyServer(function(input, output,clientData,session) {
               }) 
             incProgress(0.9, detail = "calculating BHI")
             BHI <- calcBHI(Accs,x)
-              input$goButton
-              y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-              if (length(unique(y@compareClusterResult$ID)) > 20) {
-                print("Reducing number of DAVID results")
-                y@compareClusterResult <- y@compareClusterResult[
-                  order(y@compareClusterResult$p.adjust)[1:20],]
-              }
-              plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+            input$goButton
+            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
+            if (length(unique(y@compareClusterResult$ID)) > 20) {
+              print("Reducing number of DAVID results")
+              y@compareClusterResult <- y@compareClusterResult[
+                order(y@compareClusterResult$p.adjust)[1:20],]
+            }
+            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })
         }})}
   })

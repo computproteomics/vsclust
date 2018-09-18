@@ -1,5 +1,7 @@
 ########### functions for VSClust
 
+validate <- shiny::validate
+
 # extend to 702 cases:
 LETTERS702 <- c(LETTERS, sapply(LETTERS, function(x) paste0(x, LETTERS)))
 
@@ -146,7 +148,7 @@ SignAnal <- function(Data,NumCond,NumReps) {
 
 ## overwrite function to set timeout limit higher
 ## OBSOLETE?
-enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene", 
+enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", 
                           minGSSize = 5, maxGSSize = 500, annotation = "GOTERM_BP_ALL", pvalueCutoff = 0.05, 
                           pAdjustMethod = "BH", qvalueCutoff = 0.2, species = NA, david.user = "veits@bmb.sdu.dk") 
 {
@@ -157,8 +159,7 @@ enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", listType = "Gene",
   idType <- match.arg(idType, getIdTypes(david))
   setTimeOut(david,10000000)
   # browser()
-  david.res <- addList(david, gene, idType = idType, listName = "clusterProfiler", 
-                       listType = listType)
+  david.res <- addList(david, gene, idType = idType, listName = "clusterProfiler")
   if (david.res$inDavid == 0) {
     stop("All id can not be mapped. Please check 'idType' parameter...")
   }

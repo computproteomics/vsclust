@@ -15,6 +15,14 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
         $(id).addClass("active");
         $(idFile).replaceWith(idFile = $(idFile).clone(true));
     });
+ window.addEventListener("message", displayMessage, false);
+ function displayMessage(evt) { 
+ //console.log(evt.data)
+ //var inmessage = JSON.parse(evt.data);
+ //console.log(inmessage); 
+ console.log("read message");
+ Shiny.setInputValue("extdata", evt.data);
+}
   '),
    tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover;} 
   .shiny-myframe{padding:20px}
@@ -36,8 +44,11 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  
                  #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
                    checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and variance estimates.",value=T)),hr(),
-                 p(
-                           uiOutput("ui")
+                 p(        h2("Experimental setup"),
+                           checkboxInput(inputId="isPaired", label="Paired tests",value=F),
+                           textOutput("RepsCond"),
+                           numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
+                           numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1)
                  ),hr(),value="fin"),
         tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),
                  div(plotOutput("plot0",height=800),class="shiny-myframe"),br(),
