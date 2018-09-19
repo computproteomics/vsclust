@@ -362,7 +362,7 @@ shinyServer(function(input, output,clientData,session) {
             x <- NULL
             try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
                                     idType=input$idtype,
-                                    listType="Gene", david.user = "veits@bmb.sdu.dk"))
+                                    david.user = "veits@bmb.sdu.dk"))
             validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
             x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
@@ -423,7 +423,7 @@ shinyServer(function(input, output,clientData,session) {
             x <- NULL
             try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
                                     idType=input$idtype,
-                                    listType="Gene", david.user = "veits@bmb.sdu.dk"))
+                                    david.user = "veits@bmb.sdu.dk"))
             validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
             x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
