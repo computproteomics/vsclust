@@ -28,7 +28,9 @@ RUN zypper addrepo http://download.opensuse.org/repositories/server:monitoring/o
 RUN zypper --non-interactive --no-gpg-checks refresh
 RUN zypper --non-interactive install libffi-devel libffi6
 
-RUN rpm -ivh --nodeps  shiny-server*.rpm
+RUN wget http://download.opensuse.org/repositories/science/openSUSE_Tumbleweed/x86_64/udunits2-2.2.26-1.10.x86_64.rpm
+RUN wget http://download.opensuse.org/repositories/science/openSUSE_Tumbleweed/x86_64/udunits2-devel-2.2.26-1.10.x86_64.rpm
+RUN rpm -ivh --nodeps  shiny-server*.rpm udunits2*.rpm
 
 RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite(); biocLite(c('geneFilter'))"
 
