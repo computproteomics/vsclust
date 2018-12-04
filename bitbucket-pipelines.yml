@@ -15,7 +15,7 @@ pipelines:
         script: # Modify the commands below to build your repository.
           # Set $DOCKER_HUB_USERNAME and $DOCKER_HUB_PASSWORD as environment variables in repository settings
           - export DOCKER_HUB_USERNAME=veitveit
-          - export DOCKER_HUB_PASSWORD=ttmama11
+          - export DOCKER_HUB_PASSWORD=$dockerpasswd
           - export IMAGE_NAME=veitveit/vsclust:$BITBUCKET_COMMIT
 
           # build the Docker image (this will use the Dockerfile in the root of the repo)
