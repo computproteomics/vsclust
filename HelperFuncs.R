@@ -112,8 +112,14 @@ SignAnalPaired <- function(Data,NumCond,NumReps) {
   qvalues <- matrix(NA,nrow=nrow(plvalues),ncol=ncol(plvalues),dimnames=dimnames(plvalues))
   # qvalue correction
   for (i in 1:ncol(plvalues)) {
-    tqs <- qvalue(na.omit(plvalues[,i]))$qvalues
-    qvalues[names(tqs),i] <- tqs
+    tqs <- tryCatch(qvalue(na.omit(plvalues[,i]))$qvalues, 
+                    error = function(e) NULL)
+    if (length(tqs) >0) {
+      qvalues[names(tqs),i] <- tqs
+    }
+    else {
+      qvalues[names(tqs),i] <- NA
+    }
   }
   
   return(list(plvalues=qvalues,Sds=sqrt(lm.bayesMA$s2.post)))
@@ -139,8 +145,16 @@ SignAnal <- function(Data,NumCond,NumReps) {
   qvalues <- matrix(NA,nrow=nrow(plvalues),ncol=ncol(plvalues),dimnames=dimnames(plvalues))
   # qvalue correction
   for (i in 1:ncol(plvalues)) {
-    tqs <- qvalue(na.omit(plvalues[,i]))$qvalues
-    qvalues[names(tqs),i] <- tqs
+    tqs <- tryCatch(qvalue(na.omit(plvalues[,i]))$qvalues, 
+                     error = function(e) NULL)
+    print(tqs)
+    if (length(tqs) >0) {
+      qvalues[names(tqs),i] <- tqs
+    }
+    else {
+      qvalues[names(tqs),i] <- NA
+    }
+    
   }
   return(list(plvalues=qvalues,Sds=sqrt(lm.bayes$s2.post)))
 }
