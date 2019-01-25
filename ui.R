@@ -47,8 +47,10 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  p(        h2("Experimental setup"),
                            checkboxInput(inputId="isPaired", label="Paired tests",value=F),
                            textOutput("RepsCond"),
+                           checkboxInput(inputId="qcol_order", label="Replicates are grouped",value = F),
                            numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
                            numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1)
+
                  ),hr(),value="fin"),
         tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),
                  div(plotOutput("plot0",height=800),class="shiny-myframe"),br(),

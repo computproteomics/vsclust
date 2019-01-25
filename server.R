@@ -73,7 +73,7 @@ shinyServer(function(input, output,clientData,session) {
   output$tparame <- renderText("Parameter estimation")
   output$tresults <- renderText("Clustering results")
   output$tdescr <- renderText("Description")
-
+  
   #global variables
   v <- reactiveValues(dat = NULL, example = F, clustOut = NULL)
   
@@ -181,11 +181,16 @@ shinyServer(function(input, output,clientData,session) {
         NumCond <- input$NumCond
         print(NumReps)
         print(NumCond)
+        if(input$qcol_order) {
+          dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
+        }
+        
         dat[!is.finite(as.matrix(dat))] <- NA
         num_miss <- sum(is.na(dat))
         if (input$isStat) {
           validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
         }
+        fulldat <- dat
         validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
                       "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
         
@@ -193,7 +198,11 @@ shinyServer(function(input, output,clientData,session) {
         Sds <- dat[,ncol(dat)]
         output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
                                                  num_miss,"<br/>Median standard deviations:",
-                                                 round(median(Sds,na.rm=T),digits=3)))})
+                                                 round(median(Sds,na.rm=T),digits=3)),"<br/>",
+          paste("<i>Condition ",1:NumCond,":</i>", sapply(1:NumCond, function(x) 
+            paste(colnames(fulldat)[(0:(NumReps-1))*NumCond+x],collapse=", ")),"<br/>",collapse=""))})
+        
+        
         
         pars$dat <<- dat 
         pars$proteins <<- proteins
