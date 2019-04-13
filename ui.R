@@ -47,7 +47,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  p(        h2("Experimental setup"),
                            checkboxInput(inputId="isPaired", label="Paired tests",value=F),
                            textOutput("RepsCond"),
-                           checkboxInput(inputId="qcol_order", label="Replicates are grouped",value = F),
+                           checkboxInput(inputId="qcol_order", label="Replicates are grouped",value = T),
                            numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
                            numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1)
 

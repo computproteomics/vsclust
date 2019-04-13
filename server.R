@@ -15,7 +15,7 @@ source("HelperFuncs.R")
 
 validate <- shiny::validate
 
-options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
+options(shiny.maxRequestSize=2000*1024^2,shiny.sanitize.errors=F) 
 
 options(java.parameters="-Xss2560k")
 shinyServer(function(input, output,clientData,session) {
@@ -181,7 +181,7 @@ shinyServer(function(input, output,clientData,session) {
         NumCond <- input$NumCond
         print(NumReps)
         print(NumCond)
-        if(input$qcol_order) {
+        if(!input$qcol_order) {
           dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
         }
         
@@ -474,7 +474,7 @@ be analyzed in addition to the following contents: A one-row header containing t
                                   need to be unique, duplicated feature names are not accepted. Additionally, in the case of data containing multiple measurements of the same gene/protein, a second column can contain this information
 that then will be used for the GO term enrichment.<br/>
                                   The order of the columns is crucial to distinguish conditions from replicated values. With numbers denoting conditions (1-4) and letters
-corresponding to replicates (A-C), the columns are arranged: A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4. <br/>
+corresponding to replicates (A-C), grouped columns are arranged A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4 and ungrouped columns as A1, B1, C1,..., A4, B4, C4,...  <br/>
                                   In the case of an input file that already contains estimated standard deviations, all columns but the last ones are considered 
                                   different conditions while the last column contains the standard deviations. In this case, untick the 'Do statistical analysis' checkbox.")})
   output$stat <- renderUI({HTML("We offer to calculate feature standard deviations using the <a href='https://bioconductor.org/packages/limma'>limma package</a>, well-performing for microarray, mass spectrometry and RNA-seq data. 
