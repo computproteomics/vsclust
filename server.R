@@ -15,7 +15,7 @@ source("HelperFuncs.R")
 
 validate <- shiny::validate
 
-options(shiny.maxRequestSize=2000*1024^2,shiny.trace=T,shiny.sanitize.errors=F) 
+options(shiny.maxRequestSize=2000*1024^2,shiny.sanitize.errors=F) 
 
 options(java.parameters="-Xss2560k")
 shinyServer(function(input, output,clientData,session) {
@@ -73,7 +73,7 @@ shinyServer(function(input, output,clientData,session) {
   output$tparame <- renderText("Parameter estimation")
   output$tresults <- renderText("Clustering results")
   output$tdescr <- renderText("Description")
-
+  
   #global variables
   v <- reactiveValues(dat = NULL, example = F, clustOut = NULL)
   
@@ -181,11 +181,16 @@ shinyServer(function(input, output,clientData,session) {
         NumCond <- input$NumCond
         print(NumReps)
         print(NumCond)
+        if(input$qcol_order) {
+          dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
+        }
+        
         dat[!is.finite(as.matrix(dat))] <- NA
         num_miss <- sum(is.na(dat))
         if (input$isStat) {
           validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
         }
+        fulldat <- dat
         validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
                       "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
         
@@ -193,7 +198,11 @@ shinyServer(function(input, output,clientData,session) {
         Sds <- dat[,ncol(dat)]
         output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
                                                  num_miss,"<br/>Median standard deviations:",
-                                                 round(median(Sds,na.rm=T),digits=3)))})
+                                                 round(median(Sds,na.rm=T),digits=3)),"<br/>",
+          paste("<i>Condition ",1:NumCond,":</i>", sapply(1:NumCond, function(x) 
+            paste(colnames(fulldat)[(0:(NumReps-1))*NumCond+x],collapse=", ")),"<br/>",collapse=""))})
+        
+        
         
         pars$dat <<- dat 
         pars$proteins <<- proteins
@@ -334,38 +343,16 @@ shinyServer(function(input, output,clientData,session) {
     if (!is.null(pars$Bestcl2)) {
       isolate({
         if(input$goButton) {
-          Accs <- list()
           cl <- pars$Bestcl2
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
-          for (c in 1:max(cl$cluster)) {
-            Accs[[c]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
-            Accs[[c]] <- Accs[[c]][Accs[[c]]!=""]
-            if (length(Accs[[c]])>0) {
-              if (length(Accs[[c]])>1) {
-                tdat <- (dat[Accs[[c]],])
-              } else {
-                tdat <- t(dat[Accs[[c]],])
-              }
-              Accs[[c]] <- sub("-[0-9]","",Accs[[c]])
-            } else {
-              tdat <- t(rep(NA,ncol(dat)+1))
-            }
-            if (!is.null(pars$proteins)) {
-              Accs[[c]] <- as.character(pars$proteins[Accs[[c]]])
-            }
-          }
-          names(Accs) <- paste("Cluster",1:length(Accs))
-          Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
-          Accs <- Accs[lapply(Accs,length)>0]
-          print(lapply(Accs,length))
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
-            x <- NULL
-            try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
-                                    idType=input$idtype,
-                                    david.user = "veits@bmb.sdu.dk"))
+            
+          enriched <- runFuncEnrich(cl, dat, pars$proteins)
+            x <- enriched$fullFuncs
+            y <- enriched$redFuncs
+            BHI <- enriched$BHI
             validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
-            x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
             incProgress(0.8, detail = "plotting")
             validate(need(nrow(x@compareClusterResult)>1,"No significant results"))
             output$downloadGOData1 <- downloadHandler(
@@ -375,15 +362,6 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(as.data.frame(x@compareClusterResult), file)
               })
-            incProgress(0.9, detail = "calculating BHI")
-            BHI <- calcBHI(Accs,x)
-            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-            if (length(unique(y@compareClusterResult$ID)) > 20) {
-              print("Reducing number of DAVID results")
-              y@compareClusterResult <- y@compareClusterResult[
-                order(y@compareClusterResult$p.adjust)[1:20],]
-              # print(x@compareClusterResult)
-            }
             plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })
         }})}})
@@ -442,8 +420,7 @@ shinyServer(function(input, output,clientData,session) {
             y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
             if (length(unique(y@compareClusterResult$ID)) > 20) {
               print("Reducing number of DAVID results")
-              y@compareClusterResult <- y@compareClusterResult[
-                order(y@compareClusterResult$p.adjust)[1:20],]
+              y@compareClusterResult <- y@compareClusterResult[order(y@compareClusterResult$p.adjust)[1:20],]
             }
             plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
           })

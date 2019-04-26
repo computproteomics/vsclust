@@ -3,9 +3,9 @@ library(shinyjs)
 
 
 shinyUI(fluidPage(theme=shinytheme("cosmo"),
-  singleton(
-    tags$head(tags$script(src = "message-handler.js"))),
-  tags$script('
+#  singleton(
+#    tags$head(tags$script(src = "message-handler.js"))),
+  tags$head(tags$script('
     Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
         var id = "#" + x + "_progress";
         var idFile = "#" + x;
@@ -17,13 +17,13 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
     });
  window.addEventListener("message", displayMessage, false);
  function displayMessage(evt) { 
- //console.log(evt.data)
- //var inmessage = JSON.parse(evt.data);
- //console.log(inmessage); 
+ console.log(evt.data)
+ var inmessage = JSON.parse(evt.data);
+ console.log(inmessage); 
  console.log("read message");
  Shiny.setInputValue("extdata", evt.data);
 }
-  '),
+  ')),
    tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover;} 
   .shiny-myframe{padding:20px}
   .shiny-input-panel{background-color: transparent;border-color: transparent}
@@ -47,8 +47,10 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                  p(        h2("Experimental setup"),
                            checkboxInput(inputId="isPaired", label="Paired tests",value=F),
                            textOutput("RepsCond"),
+                           checkboxInput(inputId="qcol_order", label="Replicates are grouped",value = T),
                            numericInput("NumReps",min=2,max=20,value=2,label="Number of replicates",step=1),
                            numericInput("NumCond",min=2,max=20,value=3,label="Number of conditions",step=1)
+
                  ),hr(),value="fin"),
         tabPanel("Statistics and variance",br(),htmlOutput("data_summ"),br(),
                  div(plotOutput("plot0",height=800),class="shiny-myframe"),br(),
