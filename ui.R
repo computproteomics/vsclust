@@ -3,9 +3,9 @@ library(shinyjs)
 
 
 shinyUI(fluidPage(theme=shinytheme("cosmo"),
-  singleton(
-    tags$head(tags$script(src = "message-handler.js"))),
-  tags$script('
+#  singleton(
+#    tags$head(tags$script(src = "message-handler.js"))),
+  tags$head(tags$script('
     Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
         var id = "#" + x + "_progress";
         var idFile = "#" + x;
@@ -17,13 +17,13 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
     });
  window.addEventListener("message", displayMessage, false);
  function displayMessage(evt) { 
- //console.log(evt.data)
- //var inmessage = JSON.parse(evt.data);
- //console.log(inmessage); 
+ console.log(evt.data)
+ var inmessage = JSON.parse(evt.data);
+ console.log(inmessage); 
  console.log("read message");
  Shiny.setInputValue("extdata", evt.data);
 }
-  '),
+  ')),
    tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover;} 
   .shiny-myframe{padding:20px}
   .shiny-input-panel{background-color: transparent;border-color: transparent}

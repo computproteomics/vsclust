@@ -84,8 +84,8 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   cls <- mclapply(1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000), mc.cores=cores)
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-
-    # return validation indices
+  
+  # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
                  min(dist(Bestcl2$centers)),cvalidate.xiebeni(Bestcl2,mm)),
        Bestcl=Bestcl,Bestcl2=Bestcl2,m=m,withinerror=Bestcl$withinerror,withinerror2=Bestcl2$withinerror) 
@@ -146,7 +146,7 @@ SignAnal <- function(Data,NumCond,NumReps) {
   # qvalue correction
   for (i in 1:ncol(plvalues)) {
     tqs <- tryCatch(qvalue(na.omit(plvalues[,i]))$qvalues, 
-                     error = function(e) NULL)
+                    error = function(e) NULL)
     print(tqs)
     if (length(tqs) >0) {
       qvalues[names(tqs),i] <- tqs
@@ -381,16 +381,16 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
   multiOut <- mclapply(3:maxClust,function(x) {    
     if (!is.null(getDefaultReactiveDomain())) {
-          incProgress(1, detail = paste("Running cluster number",x))
-        } else {
-          print(paste("Running cluster number",x))
-        }
+      incProgress(1, detail = paste("Running cluster number",x))
+    } else {
+      print(paste("Running cluster number",x))
+    }
     clustout <- ClustComp(dat[,1:(ncol(dat)-1)],NClust=x,Sds=dat[,ncol(dat)],NSs=16, cores)
     c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
       sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
   },mc.cores=cores)
   for (NClust in 3:maxClust) 
-  ClustInd[NClust,] <- multiOut[[NClust-2]]
+    ClustInd[NClust,] <- multiOut[[NClust-2]]
   # for (NClust in 3:maxClust) {
   #   print(paste("Running cluster number", NClust))
   #   if (!is.null(getDefaultReactiveDomain())) {
@@ -487,4 +487,49 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   ## Output
   Out <- list(dat=PExpr, Bestcl=Bestcl, p=p, outFileClust=outFileClust, ClustInd=ClustInd)
   return(Out)
+}
+
+# Wrapper for functional enrichment (TODO)
+runFuncEnrich <- function(cl, dat, protnames) {
+  Accs <- list()
+  for (c in 1:max(cl$cluster)) {
+    Accs[[c]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
+    Accs[[c]] <- Accs[[c]][Accs[[c]]!=""]
+    if (length(Accs[[c]])>0) {
+      if (!is.null(protnames)) {
+        Accs[[c]] <- as.character(protnames[Accs[[c]]])
+      }
+      
+      if (length(Accs[[c]])>1) {
+        tdat <- (dat[Accs[[c]],])
+      } else {
+        tdat <- t(dat[Accs[[c]],])
+      }
+      Accs[[c]] <- sub("-[0-9]","",Accs[[c]])
+    } else {
+      tdat <- t(rep(NA,ncol(dat)+1))
+    }
+  }
+  # TODO: add extraction of multiple accession numbers
+  names(Accs) <- paste("Cluster",1:length(Accs))
+  Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
+  Accs <- Accs[lapply(Accs,length)>0]
+  print(lapply(Accs,length))
+  x <- NULL
+  try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
+                          idType=input$idtype,
+                          david.user = "veits@bmb.sdu.dk"))
+  validate(need(!is.null(x),"No result. Wrong ID type?"))
+  incProgress(0.7, detail = "received")
+  x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
+  y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
+  if (length(unique(y@compareClusterResult$ID)) > 20) {
+    print("Reducing number of DAVID results")
+    y@compareClusterResult <- y@compareClusterResult[
+      order(y@compareClusterResult$p.adjust)[1:20],]
+    # print(x@compareClusterResult)
+  }
+  BHI <- calcBHI(Accs,x)
+  return(list(fullFuncs=x, redFuncs=y, BHI=BHI))
+  
 }
