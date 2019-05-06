@@ -490,7 +490,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
 }
 
 # Wrapper for functional enrichment (TODO)
-runFuncEnrich <- function(cl, dat, protnames) {
+runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
   Accs <- list()
   for (c in 1:max(cl$cluster)) {
     Accs[[c]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
@@ -514,19 +514,21 @@ runFuncEnrich <- function(cl, dat, protnames) {
   names(Accs) <- paste("Cluster",1:length(Accs))
   Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
   Accs <- Accs[lapply(Accs,length)>0]
-  print(lapply(Accs,length))
   x <- NULL
-  try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
-                          idType=input$idtype,
+  try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=infosource,
+                          idType=idtypes,
                           david.user = "veits@bmb.sdu.dk"))
   validate(need(!is.null(x),"No result. Wrong ID type?"))
   incProgress(0.7, detail = "received")
+  print("got it")
   x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
+  print(x@compareClusterResult)
   y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
   if (length(unique(y@compareClusterResult$ID)) > 20) {
     print("Reducing number of DAVID results")
     y@compareClusterResult <- y@compareClusterResult[
       order(y@compareClusterResult$p.adjust)[1:20],]
+    y@compareClusterResult$Cluster <- as.character(y@compareClusterResult$Cluster)
     # print(x@compareClusterResult)
   }
   BHI <- calcBHI(Accs,x)
