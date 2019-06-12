@@ -529,7 +529,7 @@ runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
     y@compareClusterResult <- y@compareClusterResult[
       order(y@compareClusterResult$p.adjust)[1:20],]
     y@compareClusterResult$Cluster <- as.character(y@compareClusterResult$Cluster)
-    # print(x@compareClusterResult)
+    print(x)
   }
   BHI <- calcBHI(Accs,x)
   return(list(fullFuncs=x, redFuncs=y, BHI=BHI))
