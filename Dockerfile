@@ -23,7 +23,7 @@ RUN R -e "install.packages('rJava', repos='http://cran.r-project.org', INSTALL_o
 RUN R -e "install.packages(c( 'BiocManager', 'shiny', 'rmarkdown', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL', 'lubridate', 'DT'), repos='http://cran.r-project.org', INSTALL_opts='--no-html')"
 
 RUN R -e "library(BiocManager); install(); install(c('geneFilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
-RUN wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.9.923-x86_64.rpm 
+RUN wget https://download3.rstudio.org/centos6.3/x86_64/shiny-server-1.5.9.923-x86_64.rpm 
 
 #RUN zypper addrepo http://download.opensuse.org/repositories/server:monitoring/openSUSE_Tumbleweed/server:monitoring.repo 
 #RUN zypper --non-interactive --no-gpg-checks refresh
