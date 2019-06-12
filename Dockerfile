@@ -20,7 +20,7 @@ RUN bash
 
 RUN R -e "install.packages('rJava', repos='http://cran.r-project.org', INSTALL_opts='--no-html')"
 
-RUN R -e "install.packages(c( 'shiny', 'rmarkdown', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL', 'lubridate', 'DT'), repos='http://cran.r-project.org', INSTALL_opts='--no-html')"
+RUN R -e "install.packages(c( 'BiocManager', 'shiny', 'rmarkdown', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL', 'lubridate', 'DT'), repos='http://cran.r-project.org', INSTALL_opts='--no-html')"
 
 RUN wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.3.838-rh5-x86_64.rpm 
 
@@ -32,12 +32,7 @@ RUN zypper --non-interactive install libffi-devel libffi6 udunits2 udunits2-deve
 #RUN wget http://download.opensuse.org/repositories/science/openSUSE_Tumbleweed/x86_64/udunits2-devel-2.2.26-1.10.x86_64.rpm
 #RUN rpm -ivh --nodeps  shiny-server*.rpm udunits2*.rpm
 
-RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite(); biocLite(c('geneFilter'))"
-
-RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite(); biocLite(c('clusterProfiler','qvalue','limma','matrixStats','shinyjs'))"
-
-
-RUN R -e "source('https://bioconductor.org/biocLite.R'); biocLite(); biocLite(c('shinythemes','RDAVIDWebService','Mfuzz'))"
+RUN R -e "library(BiocManager); install(); install(c('geneFilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
 
 RUN mkdir -p /var/log/shiny-server
 RUN mkdir -p /home/shiny
