@@ -1,4 +1,4 @@
-FROM opensuse/amd64:tumbleweed
+FROM opensuse/leap:15.1
 LABEL maintainer="Veit Schwaemmle <veits@bmb.sdu.dk>"
 LABEL description="Docker image of VSClust implementation on top of shiny-server and OpenSuse tumblewee. The number of to-be-installed R packages requires patience when building this image."
 
