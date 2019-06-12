@@ -22,15 +22,16 @@ RUN R -e "install.packages('rJava', repos='http://cran.r-project.org', INSTALL_o
 
 RUN R -e "install.packages(c( 'BiocManager', 'shiny', 'rmarkdown', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL', 'lubridate', 'DT'), repos='http://cran.r-project.org', INSTALL_opts='--no-html')"
 
-RUN wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.3.838-rh5-x86_64.rpm 
+RUN R -e "library(BiocManager); install(); install(c('geneFilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
+RUN wget https://download3.rstudio.org/centos5.9/x86_64/shiny-server-1.5.9.923-x86_64.rpm 
 
 #RUN zypper addrepo http://download.opensuse.org/repositories/server:monitoring/openSUSE_Tumbleweed/server:monitoring.repo 
 #RUN zypper --non-interactive --no-gpg-checks refresh
-RUN zypper --non-interactive install libffi-devel libffi6 udunits2 udunits2-devel
+RUN zypper --non-interactive install libffi-devel libffi 
 
-#RUN wget http://download.opensuse.org/repositories/science/openSUSE_Tumbleweed/x86_64/udunits2-2.2.26-1.10.x86_64.rpm
-#RUN wget http://download.opensuse.org/repositories/science/openSUSE_Tumbleweed/x86_64/udunits2-devel-2.2.26-1.10.x86_64.rpm
-#RUN rpm -ivh --nodeps  shiny-server*.rpm udunits2*.rpm
+RUN wget http://download.opensuse.org/repositories/science/openSUSE_Leap_15.1/x86_64/udunits2-2.2.26-lp151.1.1.x86_64.rpm
+RUN wget http://download.opensuse.org/repositories/science/openSUSE_Leap_15.1/x86_64/udunits2-devel-2.2.26-lp151.1.1.x86_64.rpm
+RUN rpm -ivh --nodeps  shiny-server*.rpm udunits2*.rpm
 
 RUN R -e "library(BiocManager); install(); install(c('geneFilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
 
