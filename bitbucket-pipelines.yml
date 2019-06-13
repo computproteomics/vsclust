@@ -19,7 +19,7 @@ pipelines:
           - export IMAGE_NAME=veitveit/vsclust:$BITBUCKET_COMMIT
 
           # authenticate with the Docker Hub registry
-          - docker login --username DOCKER_HUB_USERNAME --password $dockerpasswd
+          - docker login --username $DOCKER_HUB_USERNAME --password $dockerpasswd
           # build the Docker image (this will use the Dockerfile in the root of the repo)
           - docker build -t $IMAGE_NAME .
           # push the new Docker image to the Docker registry
