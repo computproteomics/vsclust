@@ -351,7 +351,7 @@ shinyServer(function(input, output,clientData,session) {
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             
-          enriched <- runFuncEnrich(cl, dat, pars$proteins)
+          enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
             x <- enriched$fullFuncs
             y <- enriched$redFuncs
             BHI <- enriched$BHI
@@ -366,7 +366,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(as.data.frame(x@compareClusterResult), file)
               })
-            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10)
           })
         }})}})
   
@@ -377,38 +377,16 @@ shinyServer(function(input, output,clientData,session) {
     if (!is.null(pars$Bestcl1)) {
       isolate({
         if(input$goButton) {
-          Accs <- list()
           cl <- pars$Bestcl1
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
-          for (c in 1:max(cl$cluster)) {
-            Accs[[c]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
-            Accs[[c]] <- Accs[[c]][Accs[[c]]!=""]
-            if (length(Accs[[c]])>0) {
-              if (length(Accs[[c]])>1) {
-                tdat <- (dat[Accs[[c]],])
-              } else {
-                tdat <- t(dat[Accs[[c]],])
-              }
-              Accs[[c]] <- sub("-[0-9]","",Accs[[c]])
-            } else {
-              tdat <- t(rep(NA,ncol(dat)+1))
-            }
-            if (!is.null(pars$proteins)) {
-              Accs[[c]] <- as.character(pars$proteins[Accs[[c]]])
-            }
-          }
-          names(Accs) <- paste("Cluster",1:length(Accs))
-          Accs <- lapply(Accs,function(x) unique(ifelse(is.na(x),"B3",x)))
-          Accs <- Accs[lapply(Accs,length)>0]
-          print(lapply(Accs,length))
-          withProgress(message="Waiting for data (2/2) ...", min=0,max=1, {
-            x <- NULL
-            try(x <- compareCluster(Accs, fun="enrichDAVID", annotation=input$infosource,
-                                    idType=input$idtype,
-                                    david.user = "veits@bmb.sdu.dk"))
+          withProgress(message="Waiting for data (2/2)...", min=0,max=1, {
+            
+            enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
+            x <- enriched$fullFuncs
+            y <- enriched$redFuncs
+            BHI <- enriched$BHI
             validate(need(!is.null(x),"No result. Wrong ID type?"))
             incProgress(0.7, detail = "received")
-            x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
             incProgress(0.8, detail = "plotting")
             validate(need(nrow(x@compareClusterResult)>1,"No significant results"))
             output$downloadGOData2 <- downloadHandler(
@@ -418,15 +396,8 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(as.data.frame(x@compareClusterResult), file)
               }) 
-            incProgress(0.9, detail = "calculating BHI")
-            BHI <- calcBHI(Accs,x)
-            input$goButton
-            y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
-            if (length(unique(y@compareClusterResult$ID)) > 20) {
-              print("Reducing number of DAVID results")
-              y@compareClusterResult <- y@compareClusterResult[order(y@compareClusterResult$p.adjust)[1:20],]
-            }
-            plot(y,title=paste("BHI:",BHI),showCategory=1000,colorBy="log10padval",font.size=10)
+            #print(y@compareClusterResult)
+            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10)
           })
         }})}
   })
