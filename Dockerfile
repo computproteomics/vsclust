@@ -33,7 +33,7 @@ RUN wget http://download.opensuse.org/repositories/science/openSUSE_Leap_15.1/x8
 RUN wget http://download.opensuse.org/repositories/science/openSUSE_Leap_15.1/x86_64/udunits2-devel-2.2.26-lp151.1.1.x86_64.rpm
 RUN rpm -ivh --nodeps  shiny-server*.rpm udunits2*.rpm
 
-RUN R -e "library(BiocManager); install(); install(c('geneFilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
+RUN R -e "library(BiocManager); install(); install(c('genefilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'))"
 
 RUN mkdir -p /var/log/shiny-server
 RUN mkdir -p /home/shiny

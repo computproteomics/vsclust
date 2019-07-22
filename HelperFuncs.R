@@ -496,15 +496,16 @@ runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
     Accs[[c]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
     Accs[[c]] <- Accs[[c]][Accs[[c]]!=""]
     if (length(Accs[[c]])>0) {
-      if (!is.null(protnames)) {
-        Accs[[c]] <- as.character(protnames[Accs[[c]]])
-      }
       
       if (length(Accs[[c]])>1) {
         tdat <- (dat[Accs[[c]],])
       } else {
         tdat <- t(dat[Accs[[c]],])
       }
+      if (!is.null(protnames)) {
+        Accs[[c]] <- as.character(protnames[Accs[[c]]])
+      }
+      
       Accs[[c]] <- sub("-[0-9]","",Accs[[c]])
     } else {
       tdat <- t(rep(NA,ncol(dat)+1))
