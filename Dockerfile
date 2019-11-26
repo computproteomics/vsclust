@@ -41,18 +41,19 @@ RUN chown shiny.shiny /var/log/shiny-server
 RUN chown -R shiny:shiny /srv/shiny-server
 RUN chown -R shiny:shiny /var/lib/shiny-server
 
-RUN mkdir /srv/shiny-server/VSClust
+RUN mkdir /srv/shiny-server/www
+RUN rm -rf /srv/shiny-server/*
 
-ADD  *.R /srv/shiny-server/VSClust/
-ADD www /srv/shiny-server/VSClust/
-ADD ArtData.csv /srv/shiny-server/VSClust/
-RUN mkdir /srv/shiny-server/VSClust/e1071FuzzVec_Installation
-COPY e1071FuzzVec_Installation/ /srv/shiny-server/VSClust/e1071FuzzVec_Installation/
+ADD  *.R /srv/shiny-server/
+COPY www/* /srv/shiny-server/www/
+ADD ArtData.csv /srv/shiny-server/
+RUN mkdir /srv/shiny-server/e1071FuzzVec_Installation
+COPY e1071FuzzVec_Installation/ /srv/shiny-server/e1071FuzzVec_Installation/
 
 
-RUN chmod a+x /srv/shiny-server/VSClust/e1071FuzzVec_Installation/configure
+RUN chmod a+x /srv/shiny-server/e1071FuzzVec_Installation/configure
 
-RUN R CMD INSTALL /srv/shiny-server/VSClust/e1071FuzzVec_Installation
+RUN R CMD INSTALL /srv/shiny-server/e1071FuzzVec_Installation
 
 
 RUN R CMD javareconf
@@ -62,6 +63,8 @@ EXPOSE 8787 3838
 
 USER shiny
 CMD shiny-server
+
+
 
 
 

@@ -55,7 +55,7 @@ You can run the image by
 
 `docker run -t -i -p 3838:3838 veitveit/vsclust`
 
-and access the server through http://localhost:3838/VSClust/
+and access the server through http://localhost:3838
 
 ## Command line 
 
