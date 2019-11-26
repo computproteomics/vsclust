@@ -29,7 +29,7 @@ The easiest option is to use the docker image:
 
 `docker run -t -i -p 3838:3838 veitveit/vsclust`
 
-and access the server through http://localhost:3838/VSClust/
+and access the server through http://localhost:3838
 
 
 You can run the shiny app from the server.R or ui.R files using [Rstudio](http://rstudio.com) or run the app on a [shiny-server](https://www.rstudio.com/products/shiny/shiny-server/)
