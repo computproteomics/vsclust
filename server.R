@@ -9,6 +9,7 @@ library(shinyjs)
 library(clusterProfiler)
 library(RDAVIDWebService)
 library(jsonlite)
+library(DT)
 source("FcmClustPEst.R")
 source("mfuzz.plotpdf.R")
 source("HelperFuncs.R")
@@ -288,7 +289,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(Bestcl$centers, file)
               })
-            output$clustinf1 <- renderDataTable(as.data.frame(ClustOut$ClustInd))
+            output$clustinf1 <- DT::renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
         }}
     })
@@ -334,7 +335,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 write.csv(Bestcl$centers, file)
               })
-            output$clustinf2 <- renderDataTable(as.data.frame(ClustOut$ClustInd))
+            output$clustinf2 <- DT::renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
         }}
     })
