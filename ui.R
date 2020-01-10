@@ -43,7 +43,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                    checkboxInput(inputId="protnames", label="Gene/protein identifiers in second column?", value=FALSE),
                  
                  #       sliderInput("fuzzifier",min=1.001,max=5,value=2,label="Fuzzifier value",step=0.001),
-                   checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and variance estimates.",value=T)),hr(),
+                   checkboxInput(inputId="isStat", label="Estimate variance levels from replicated quantifications? Otherwise: file contains mean values and one variance estimate per feature.",value=T)),hr(),
                  p(        h2("Experimental setup"),
                            checkboxInput(inputId="isPaired", label="Paired tests",value=F),
                            textOutput("RepsCond"),

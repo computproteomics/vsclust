@@ -420,7 +420,7 @@ that then will be used for the GO term enrichment.<br/>
                                   The order of the columns is crucial to distinguish conditions from replicated values. With numbers denoting conditions (1-4) and letters
 corresponding to replicates (A-C), grouped columns are arranged A1, A2, A3, A4, B1, B2, B3, B4, C1, C2, C3, C4 and ungrouped columns as A1, B1, C1,..., A4, B4, C4,...  <br/>
                                   In the case of an input file that already contains estimated standard deviations, all columns but the last ones are considered 
-                                  different conditions while the last column contains the standard deviations. In this case, untick the 'Do statistical analysis' checkbox.")})
+                                  different conditions while the last column contains the standard deviations. In this case, untick the 'Estimate variance levels from replicated quantifications' checkbox.")})
   output$stat <- renderUI({HTML("We offer to calculate feature standard deviations using the <a href='https://bioconductor.org/packages/limma'>limma package</a>, well-performing for microarray, mass spectrometry and RNA-seq data. 
                                 The method corrects feature variation by ensuring a minimal, adapted variation that is estimated from the entire data set.  
                                 Statistics and estimation of feature variation can be carried out using paired and unpaired tests. <br/>
