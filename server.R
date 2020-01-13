@@ -25,8 +25,13 @@ shinyServer(function(input, output,clientData,session) {
   pars <- NULL
   pars$m <- NULL
   maxClust <- 25
-  NumCond <- NULL
-  cores <- 2
+  cores <- 4
+  shiny_threads <- as.numeric(Sys.getenv("SHINY_THREADS"))                                                       
+  if (!is.na(shiny_threads)) {                                                                                   
+    cores <- floor(sqrt(shiny_threads))                                                                                 
+    print(paste("Set number of threads to",cores))                                                          
+  }                                                                                                              
+    
   
   # # Resetting views
   # reset_memory <- 0

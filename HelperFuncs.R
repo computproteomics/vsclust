@@ -79,11 +79,16 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   tmp <- filter.std(PExpr,min.std=0,visu=F)
   PExpr2 <- standardise(PExpr)
   
-  cls <- mclapply(1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=1000), mc.cores=cores)
+  cl <- makeCluster(cores)
+  clusterExport(cl=cl,varlist=c("PExpr2","NClust","m"),envir=environment())
+  clusterEvalQ(cl=cl, library(e1071FuzzVec))  
+  clusterEvalQ(cl=cl, library(Biobase))  
+  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=1000))
   print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  cls <- mclapply(1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000), mc.cores=cores)
+  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000))
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
+  stopCluster(cl)
   
   # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
@@ -379,7 +384,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   # print(head(rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)))
   Sds <- dat[,ncol(dat)] / rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)
   ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
-  multiOut <- mclapply(3:maxClust,function(x) {    
+  multiOut <- lapply(3:maxClust,function(x) {    
     if (!is.null(getDefaultReactiveDomain())) {
       incProgress(1, detail = paste("Running cluster number",x))
     } else {
@@ -388,7 +393,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
     clustout <- ClustComp(dat[,1:(ncol(dat)-1)],NClust=x,Sds=dat[,ncol(dat)],NSs=16, cores)
     c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
       sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
-  },mc.cores=cores)
+  })
   for (NClust in 3:maxClust) 
     ClustInd[NClust,] <- multiOut[[NClust-2]]
   # for (NClust in 3:maxClust) {
