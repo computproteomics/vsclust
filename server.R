@@ -28,7 +28,7 @@ shinyServer(function(input, output,clientData,session) {
   cores <- 4
   shiny_threads <- as.numeric(Sys.getenv("SHINY_THREADS"))                                                       
   if (!is.na(shiny_threads)) {                                                                                   
-    cores <- floor(sqrt(shiny_threads))                                                                                 
+    cores <- shiny_threads                                                                                 
     print(paste("Set number of threads to",cores))                                                          
   }                                                                                                              
     
