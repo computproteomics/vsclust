@@ -29,7 +29,8 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
   .shiny-input-panel{background-color: transparent;border-color: transparent}
   .nav-tabs,.shiny-myframe{border-radius:5px;background-color:#E6E6EF;box-shadow: 2px 2px 4px #999999;padding:5px;}")),
       
-  h1("VSClust: Variance-sensitive fuzzy clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;"),
+  
+  h1(img(src="Logo.svg",style="width:150px"),"Variance-sensitive fuzzy clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;color: #888888;"),
   p("Publication: ",a(href="https://doi.org/10.1093/bioinformatics/bty224","Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics 2018,bty224")),
       tabsetPanel(
         tabPanel("File input", br(), 
