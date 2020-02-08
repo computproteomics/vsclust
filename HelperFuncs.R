@@ -48,7 +48,7 @@ SwitchOrder <- function(Bestcl,NClust) {
 ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   D<-ncol(tData)
   d<-sqrt(D/2)
-  dims<-dim(tData)                                                                                                           
+  dims<-dim(tData)
   mm <- 1 + (1418/dims[1] + 22.05)* dims[2]^(-2) + (12.33/dims[1] + 0.243)*dims[2]^(-0.0406*log(dims[1])-0.1134)
   
   ### d_i and d_t
@@ -72,21 +72,14 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   #   plot(Sds,m,cex=0.5,pch=15,col=rainbow(maxClust)[NClust])
   #   abline(h=mm)
   
-  colnames(tData)<-NULL
-  PExpr <- new("ExpressionSet",expr=as.matrix(tData))
-  PExpr.r <- filter.NA(PExpr, thres = 0.25)
-  PExpr <- fill.NA(PExpr.r,mode = "mean")
-  tmp <- filter.std(PExpr,min.std=0,visu=F)
-  PExpr2 <- standardise(PExpr)
-  
   cl <- makeCluster(cores)
-  clusterExport(cl=cl,varlist=c("PExpr2","NClust","m"),envir=environment())
+  clusterExport(cl=cl,varlist=c("tData","NClust","m"),envir=environment())
   clusterEvalQ(cl=cl, library(e1071FuzzVec))  
   clusterEvalQ(cl=cl, library(Biobase))  
-  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=m,verbose=F,iter.max=1000))
+  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(tData,NClust,m=m,verbose=F,iter.max=1000))
   print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(exprs(PExpr2),NClust,m=mm,verbose=F,iter.max=1000))
+  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(tData,NClust,m=mm,verbose=F,iter.max=1000))
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   stopCluster(cl)
   
@@ -382,15 +375,25 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
 ## Wrapper for estimation of cluster number
 estimClustNum<- function(dat, maxClust=25, cores=1) {
   # print(head(rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)))
-  Sds <- dat[,ncol(dat)] / rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)
+  #Sds <- dat[,ncol(dat)] / rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)
   ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
+  tData <- dat[,1:(ncol(dat)-1)]
+  colnames(tData)<-NULL
+  PExpr <- new("ExpressionSet",expr=as.matrix(tData))
+  PExpr.r <- filter.NA(PExpr, thres = 0.25)
+  PExpr <- fill.NA(PExpr.r,mode = "mean")
+  tmp <- filter.std(PExpr,min.std=0,visu=F)
+  PExpr2 <- standardise(PExpr)
+  sds <- dat[rownames(exprs(PExpr2)), ncol(dat)]
+  tData <- exprs(PExpr2)
+  
   multiOut <- lapply(3:maxClust,function(x) {    
     if (!is.null(getDefaultReactiveDomain())) {
       incProgress(1, detail = paste("Running cluster number",x))
     } else {
       print(paste("Running cluster number",x))
     }
-    clustout <- ClustComp(dat[,1:(ncol(dat)-1)],NClust=x,Sds=dat[,ncol(dat)],NSs=16, cores)
+    clustout <- ClustComp(tData,NClust=x,Sds=sds,NSs=16, cores)
     c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
       sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
   })
@@ -450,7 +453,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   PExpr <- standardise(PExpr)
   
   
-  clustout <- ClustComp(exprs(PExpr),NClust=NClust,Sds=dat[,ncol(dat)],NSs=16, cores)
+  clustout <- ClustComp(exprs(PExpr),NClust=NClust,Sds=dat[rownames(exprs(PExpr)),ncol(dat)],NSs=16, cores)
   if (VSClust) {
     Bestcl <- clustout$Bestcl
   } else {
