@@ -45,7 +45,7 @@ and access the shiny app through http://localhost:3838
 Install the following R libraries: Mfuzz, matrixStats, limma, qvalue, yaml, shiny, clusterProfiler, RDAVIDWebService, parallel, shinyjs and shinythemes.
 In R:
 `source("https://bioconductor.org/biocLite.R")`   
-`biocLite(c("Mfuzz", "matrixStats", "limma", "yaml", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))`
+`biocLite(c("Mfuzz", "DOSE", "matrixStats", "limma", "yaml", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))`
 
 Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
 Run `R CMD INSTALL e1071FuzzVec_Installation` from the command line. You need to be in the VSClust folder. For Windows users, replace `R` by `InstallationPath/R.exe`.
