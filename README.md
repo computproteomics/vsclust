@@ -7,7 +7,7 @@ Department of Biochemistry and Molecular Biology
 
 ## Citation
 When using VSClust, please cite our paper:  
-Veit Schw√§mmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
+Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
 
 We provide a shiny app for interactive analysis, a command-line version for running VSClust as script in R and a docker version of the tool to avoid installation issues.
 
@@ -38,7 +38,7 @@ Be aware that you need to have all files, the R libraries described in Installat
 
 
 ### Installation
-Install the following R libraries: Mfuzz, matrixStats, limma, qvalue, shiny, clusterProfiler, RDAVIDWebService, parallel, shinyjs and shinythemes.
+Install the following R libraries: Mfuzz, matrixStats, limma, qvalue, yaml, shiny, clusterProfiler, RDAVIDWebService, parallel, shinyjs and shinythemes.
 In R:
 `source("https://bioconductor.org/biocLite.R")`   
 `biocLite(c("Mfuzz", "matrixStats", "limma", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))`
