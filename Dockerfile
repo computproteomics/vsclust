@@ -12,7 +12,7 @@ RUN R CMD javareconf
 RUN bash
 
   
-RUN R -e "library(BiocManager); BiocManager::install(c('geneilter', 'clusterProfiler','qvalue','limma','matrixStats','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'),ask=F)"
+RUN R -e "library(BiocManager); BiocManager::install(c('geneilter', 'clusterProfiler','qvalue','limma','matrixStats','yaml','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'),ask=F)"
 
 
 

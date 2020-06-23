@@ -1,0 +1,13 @@
+# All principal parameters for runVSClust.R. They are defined as in the shiny app at computproteomics.bmb.sdu.dk/Apps/VSClust
+Experiment: "ProtExample" ## name of study, will define the output file names
+NumReps: 3 ## Number of replicates per condition (needs to be the same for all, add empty columns if necessary)
+NumCond: 4 ## Number of different experimental conditions (e.g. time points). Minimum: 3
+paired: false ## Paired or unpaired statistical tests (true, false)
+stat: true ## Set to false when dataset is not given with replicates but with individual standard deviations in last column, otherwise true
+infile: 'ProtExample.csv' ## Path and name to input csv file
+secondcol: false ## File has second column with identifiers (do not need to be unique for each feature)
+is_header: true ## true: File contains one-line header, false otherwise
+cores: 4 # Number of cores to use ## 1 is for windows
+PreSetNumClustVSClust: 0 # If 0, then automatically calculate the cluster number from Minimum Centroid Distance. Applied to VSClust algorithm
+PreSetNumClustStand: 0 # If 0, then automatically calculate the cluster number from Minimum Centroid Distance. Applied to standard fuzzy c-means cluster
+maxClust: 20 ## max. number of clusters when estimating the number of clusters
