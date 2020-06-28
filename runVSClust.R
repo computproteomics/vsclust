@@ -90,8 +90,6 @@ library(yaml)
   library(Mfuzz)
   library(limma)
   library(qvalue)
-  ## HAS TO BE THE MODIFIED ONE!
-  require(e1071FuzzVec)
   library(shiny)
   library(clusterProfiler)
   library(RDAVIDWebService)
@@ -108,6 +106,9 @@ library(yaml)
   source("FcmClustPEst.R")
   source("mfuzz.plotpdf.R")
   source("HelperFuncs.R")
+  ## needs to be compiled as not working in conda otherwise
+  install.packages("e1071FuzzVec")
+  require(e1071FuzzVec)
   setwd(currPath)
   
   
@@ -162,7 +163,7 @@ library(yaml)
   write.csv(Bestcl$centers, paste(Experiment,"FCMVarMResultsCentroids", Sys.Date(), ".csv", sep=""))
   
   ## Write pdf-figure of clusters
-  pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""),height=5*round(sqrt(PreSetNumClustVSClust)),width=5*ceiling(sqrt(PreSetNumClustVSClust)))
+                                                                                                                                                                                                                pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""),height=5*round(sqrt(PreSetNumClustVSClust)),width=5*ceiling(sqrt(PreSetNumClustVSClust)))
   print(ClustOut$p)
   dev.off()
   print(ClustOut$ClustInd)
