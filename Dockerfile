@@ -28,5 +28,3 @@ COPY www/* /srv/shiny-server/www/
 COPY e1071FuzzVec_Installation/ /srv/shiny-server/e1071FuzzVec_Installation/
 RUN chmod a+x /srv/shiny-server/e1071FuzzVec_Installation/configure
 RUN R CMD INSTALL /srv/shiny-server/e1071FuzzVec_Installation
-
-

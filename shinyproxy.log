@@ -1,0 +1,207 @@
+2020-06-30 07:40:45.497  INFO 518 --- [main] e.o.c.ContainerProxyApplication          : Starting ContainerProxyApplication v0.8.4 on adm-125488 with PID 518 (/opt/shinyproxy/shinyproxy.jar started by veits in /home/veits/devel/Bioinformatics/DataAnalysis/ShinyApps/VSClustTmp)
+2020-06-30 07:40:45.502  INFO 518 --- [main] e.o.c.ContainerProxyApplication          : The following profiles are active: demo
+2020-06-30 07:40:45.568  INFO 518 --- [main] ConfigServletWebServerApplicationContext : Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@64c87930: startup date [Tue Jun 30 07:40:45 CEST 2020]; root of context hierarchy
+2020-06-30 07:40:47.027  INFO 518 --- [main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring
+2020-06-30 07:40:48.198  INFO 518 --- [main] org.xnio                                 : XNIO version 3.3.8.Final
+2020-06-30 07:40:48.218  INFO 518 --- [main] org.xnio.nio                             : XNIO NIO Implementation Version 3.3.8.Final
+2020-06-30 07:40:48.334  WARN 518 --- [main] io.undertow.websockets.jsr               : UT026009: XNIO worker was not set on WebSocketDeploymentInfo, the default worker will be used
+2020-06-30 07:40:48.335  WARN 518 --- [main] io.undertow.websockets.jsr               : UT026010: Buffer pool was not set on WebSocketDeploymentInfo, the default pool will be used
+2020-06-30 07:40:48.366  INFO 518 --- [main] io.undertow.servlet                      : Initializing Spring embedded WebApplicationContext
+2020-06-30 07:40:48.366  INFO 518 --- [main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 2798 ms
+2020-06-30 07:40:48.564  INFO 518 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2020-06-30 07:40:48.565  INFO 518 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2020-06-30 07:40:48.566  INFO 518 --- [main] .s.DelegatingFilterProxyRegistrationBean : Mapping filter: 'springSecurityFilterChain' to: [/*]
+2020-06-30 07:40:48.566  INFO 518 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHiddenHttpMethodFilter was not registered (disabled)
+2020-06-30 07:40:48.567  INFO 518 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHttpPutFormContentFilter was not registered (disabled)
+2020-06-30 07:40:48.567  INFO 518 --- [main] o.s.b.w.servlet.ServletRegistrationBean  : Servlet dispatcherServlet mapped to [/]
+2020-06-30 07:40:48.931  INFO 518 --- [main] e.o.c.stat.StatCollectorRegistry         : Disabled. Usage statistics will not be processed.
+2020-06-30 07:40:49.146  INFO 518 --- [main] s.s.l.DefaultSpringSecurityContextSource :  URL 'ldap://ldap.forumsys.com:389/dc=example,dc=com', root DN is 'dc=example,dc=com'
+2020-06-30 07:40:49.170  INFO 518 --- [main] .s.s.l.u.DefaultLdapAuthoritiesPopulator : groupSearchBase is empty. Searches will be performed from the context source base
+2020-06-30 07:40:49.394  INFO 518 --- [main] o.s.s.web.DefaultSecurityFilterChain     : Creating filter chain: org.springframework.security.web.util.matcher.AnyRequestMatcher@1, [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@6c2d4cc6, org.springframework.security.web.context.SecurityContextPersistenceFilter@59221b97, org.springframework.security.web.header.HeaderWriterFilter@1a1d3c1a, org.springframework.security.web.csrf.CsrfFilter@62577d6, org.springframework.security.web.authentication.logout.LogoutFilter@7ee55e70, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@251ebf23, org.springframework.security.web.authentication.www.BasicAuthenticationFilter@30865a90, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@39fc6b2c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2e27d72f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@6134ac4a, org.springframework.security.web.session.SessionManagementFilter@159e366, org.springframework.security.web.access.ExceptionTranslationFilter@492fc69e, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@3b582111]
+2020-06-30 07:40:49.427  WARN 518 --- [main] org.thymeleaf.templatemode.TemplateMode  : [THYMELEAF][main] Template Mode 'HTML5' is deprecated. Using Template Mode 'HTML' instead.
+2020-06-30 07:40:49.923  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@64c87930: startup date [Tue Jun 30 07:40:45 CEST 2020]; root of context hierarchy
+2020-06-30 07:40:50.041  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[GET]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.AppController.app(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:40:50.042  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[POST]}" onto public java.util.Map<java.lang.String, java.lang.String> eu.openanalytics.shinyproxy.controllers.AppController.startApp(javax.servlet.http.HttpServletRequest)
+2020-06-30 07:40:50.043  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app_direct/**]}" onto public void eu.openanalytics.shinyproxy.controllers.AppController.appDirect(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:40:50.044  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/issue],methods=[POST]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.IssueController.postIssue(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:40:50.045  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/admin]}" onto private java.lang.String eu.openanalytics.shinyproxy.controllers.AdminController.admin(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:40:50.046  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/]}" onto private java.lang.Object eu.openanalytics.shinyproxy.controllers.IndexController.index(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:40:50.049  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec/{proxySpecId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.getProxySpec(java.lang.String)
+2020-06-30 07:40:50.049  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(eu.openanalytics.containerproxy.model.spec.ProxySpec)
+2020-06-30 07:40:50.050  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxySpecId}],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(java.lang.String,java.util.Set<eu.openanalytics.containerproxy.model.runtime.RuntimeSetting>)
+2020-06-30 07:40:50.050  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[DELETE],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.lang.String> eu.openanalytics.containerproxy.api.ProxyController.stopProxy(java.lang.String)
+2020-06-30 07:40:50.051  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.listProxySpecs()
+2020-06-30 07:40:50.051  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.listProxies()
+2020-06-30 07:40:50.052  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.getProxy(java.lang.String)
+2020-06-30 07:40:50.053  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/route/**]}" onto public void eu.openanalytics.containerproxy.api.ProxyRouteController.route(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:40:50.058  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],consumes=[application/json],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> eu.openanalytics.containerproxy.ui.ErrorController.error(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:40:50.058  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public java.lang.String eu.openanalytics.containerproxy.ui.ErrorController.handleError(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:40:50.059  INFO 518 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/login],methods=[GET]}" onto public java.lang.Object eu.openanalytics.containerproxy.ui.LoginController.getLoginPage(java.util.Optional<java.lang.String>,org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:40:50.129  INFO 518 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/assets/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:40:50.130  INFO 518 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:40:50.130  INFO 518 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:40:50.160  INFO 518 --- [main] .m.m.a.ExceptionHandlerExceptionResolver : Detected @ExceptionHandler methods in baseController.RestErrorHandler
+2020-06-30 07:40:50.207  INFO 518 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:40:50.397  INFO 518 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2020-06-30 07:40:50.516  INFO 518 --- [main] o.s.l.c.support.AbstractContextSource    : Property 'userDn' not set - anonymous context will be used for read-write operations
+2020-06-30 07:40:50.765  INFO 518 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2020-06-30 07:40:50.767  INFO 518 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Bean with name 'dataSource' has been autodetected for JMX exposure
+2020-06-30 07:40:50.777  INFO 518 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Located MBean 'dataSource': registering with JMX server as MBean [com.zaxxer.hikari:name=dataSource,type=HikariDataSource]
+2020-06-30 07:40:50.877  INFO 518 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2020-06-30 07:40:50.880 ERROR 518 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2020-06-30 07:40:50.882  INFO 518 --- [main] ConfigServletWebServerApplicationContext : Closing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@64c87930: startup date [Tue Jun 30 07:40:45 CEST 2020]; root of context hierarchy
+2020-06-30 07:40:50.885  INFO 518 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2020-06-30 07:40:50.886  INFO 518 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans
+2020-06-30 07:43:52.562  INFO 760 --- [main] e.o.c.ContainerProxyApplication          : Starting ContainerProxyApplication v0.8.4 on adm-125488 with PID 760 (/opt/shinyproxy/shinyproxy.jar started by veits in /home/veits/devel/Bioinformatics/DataAnalysis/ShinyApps/VSClustTmp)
+2020-06-30 07:43:52.566  INFO 760 --- [main] e.o.c.ContainerProxyApplication          : The following profiles are active: demo
+2020-06-30 07:43:52.631  INFO 760 --- [main] ConfigServletWebServerApplicationContext : Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:43:52 CEST 2020]; root of context hierarchy
+2020-06-30 07:43:54.184  INFO 760 --- [main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring
+2020-06-30 07:43:55.468  INFO 760 --- [main] org.xnio                                 : XNIO version 3.3.8.Final
+2020-06-30 07:43:55.491  INFO 760 --- [main] org.xnio.nio                             : XNIO NIO Implementation Version 3.3.8.Final
+2020-06-30 07:43:55.618  WARN 760 --- [main] io.undertow.websockets.jsr               : UT026009: XNIO worker was not set on WebSocketDeploymentInfo, the default worker will be used
+2020-06-30 07:43:55.618  WARN 760 --- [main] io.undertow.websockets.jsr               : UT026010: Buffer pool was not set on WebSocketDeploymentInfo, the default pool will be used
+2020-06-30 07:43:55.652  INFO 760 --- [main] io.undertow.servlet                      : Initializing Spring embedded WebApplicationContext
+2020-06-30 07:43:55.652  INFO 760 --- [main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3021 ms
+2020-06-30 07:43:55.857  INFO 760 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2020-06-30 07:43:55.859  INFO 760 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2020-06-30 07:43:55.860  INFO 760 --- [main] .s.DelegatingFilterProxyRegistrationBean : Mapping filter: 'springSecurityFilterChain' to: [/*]
+2020-06-30 07:43:55.860  INFO 760 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHiddenHttpMethodFilter was not registered (disabled)
+2020-06-30 07:43:55.860  INFO 760 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHttpPutFormContentFilter was not registered (disabled)
+2020-06-30 07:43:55.860  INFO 760 --- [main] o.s.b.w.servlet.ServletRegistrationBean  : Servlet dispatcherServlet mapped to [/]
+2020-06-30 07:43:56.225  INFO 760 --- [main] e.o.c.stat.StatCollectorRegistry         : Disabled. Usage statistics will not be processed.
+2020-06-30 07:43:56.418  INFO 760 --- [main] s.s.l.DefaultSpringSecurityContextSource :  URL 'ldap://ldap.forumsys.com:389/dc=example,dc=com', root DN is 'dc=example,dc=com'
+2020-06-30 07:43:56.441  INFO 760 --- [main] .s.s.l.u.DefaultLdapAuthoritiesPopulator : groupSearchBase is empty. Searches will be performed from the context source base
+2020-06-30 07:43:56.661  INFO 760 --- [main] o.s.s.web.DefaultSecurityFilterChain     : Creating filter chain: org.springframework.security.web.util.matcher.AnyRequestMatcher@1, [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@b09fac1, org.springframework.security.web.context.SecurityContextPersistenceFilter@492fc69e, org.springframework.security.web.header.HeaderWriterFilter@79ab3a71, org.springframework.security.web.csrf.CsrfFilter@214894fc, org.springframework.security.web.authentication.logout.LogoutFilter@3ee39da0, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@77e2a6e2, org.springframework.security.web.authentication.www.BasicAuthenticationFilter@62df0ff3, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@d71adc2, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@57dc9128, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@61019f59, org.springframework.security.web.session.SessionManagementFilter@3d829787, org.springframework.security.web.access.ExceptionTranslationFilter@62577d6, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@54e81b21]
+2020-06-30 07:43:56.693  WARN 760 --- [main] org.thymeleaf.templatemode.TemplateMode  : [THYMELEAF][main] Template Mode 'HTML5' is deprecated. Using Template Mode 'HTML' instead.
+2020-06-30 07:43:57.192  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:43:52 CEST 2020]; root of context hierarchy
+2020-06-30 07:43:57.305  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[GET]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.AppController.app(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:43:57.307  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[POST]}" onto public java.util.Map<java.lang.String, java.lang.String> eu.openanalytics.shinyproxy.controllers.AppController.startApp(javax.servlet.http.HttpServletRequest)
+2020-06-30 07:43:57.307  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app_direct/**]}" onto public void eu.openanalytics.shinyproxy.controllers.AppController.appDirect(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:43:57.308  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/issue],methods=[POST]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.IssueController.postIssue(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:43:57.309  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/admin]}" onto private java.lang.String eu.openanalytics.shinyproxy.controllers.AdminController.admin(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:43:57.310  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/]}" onto private java.lang.Object eu.openanalytics.shinyproxy.controllers.IndexController.index(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:43:57.313  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec/{proxySpecId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.getProxySpec(java.lang.String)
+2020-06-30 07:43:57.314  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(eu.openanalytics.containerproxy.model.spec.ProxySpec)
+2020-06-30 07:43:57.314  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxySpecId}],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(java.lang.String,java.util.Set<eu.openanalytics.containerproxy.model.runtime.RuntimeSetting>)
+2020-06-30 07:43:57.315  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[DELETE],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.lang.String> eu.openanalytics.containerproxy.api.ProxyController.stopProxy(java.lang.String)
+2020-06-30 07:43:57.316  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.listProxySpecs()
+2020-06-30 07:43:57.316  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.listProxies()
+2020-06-30 07:43:57.317  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.getProxy(java.lang.String)
+2020-06-30 07:43:57.318  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/route/**]}" onto public void eu.openanalytics.containerproxy.api.ProxyRouteController.route(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:43:57.322  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],consumes=[application/json],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> eu.openanalytics.containerproxy.ui.ErrorController.error(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:43:57.323  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public java.lang.String eu.openanalytics.containerproxy.ui.ErrorController.handleError(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:43:57.324  INFO 760 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/login],methods=[GET]}" onto public java.lang.Object eu.openanalytics.containerproxy.ui.LoginController.getLoginPage(java.util.Optional<java.lang.String>,org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:43:57.386  INFO 760 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/assets/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:43:57.387  INFO 760 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:43:57.387  INFO 760 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:43:57.414  INFO 760 --- [main] .m.m.a.ExceptionHandlerExceptionResolver : Detected @ExceptionHandler methods in baseController.RestErrorHandler
+2020-06-30 07:43:57.457  INFO 760 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:43:57.607  INFO 760 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2020-06-30 07:43:57.710  INFO 760 --- [main] o.s.l.c.support.AbstractContextSource    : Property 'userDn' not set - anonymous context will be used for read-write operations
+2020-06-30 07:43:57.976  INFO 760 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2020-06-30 07:43:57.979  INFO 760 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Bean with name 'dataSource' has been autodetected for JMX exposure
+2020-06-30 07:43:57.989  INFO 760 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Located MBean 'dataSource': registering with JMX server as MBean [com.zaxxer.hikari:name=dataSource,type=HikariDataSource]
+2020-06-30 07:43:58.088  INFO 760 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2020-06-30 07:43:58.091 ERROR 760 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2020-06-30 07:43:58.093  INFO 760 --- [main] ConfigServletWebServerApplicationContext : Closing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:43:52 CEST 2020]; root of context hierarchy
+2020-06-30 07:43:58.095  INFO 760 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2020-06-30 07:43:58.096  INFO 760 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans
+2020-06-30 07:45:30.402  INFO 2443 --- [main] e.o.c.ContainerProxyApplication          : Starting ContainerProxyApplication v0.8.4 on adm-125488 with PID 2443 (/opt/shinyproxy/shinyproxy.jar started by veits in /home/veits/devel/Bioinformatics/DataAnalysis/ShinyApps/VSClustTmp)
+2020-06-30 07:45:30.406  INFO 2443 --- [main] e.o.c.ContainerProxyApplication          : The following profiles are active: demo
+2020-06-30 07:45:30.475  INFO 2443 --- [main] ConfigServletWebServerApplicationContext : Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:45:30 CEST 2020]; root of context hierarchy
+2020-06-30 07:45:32.032  INFO 2443 --- [main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring
+2020-06-30 07:45:33.312  INFO 2443 --- [main] org.xnio                                 : XNIO version 3.3.8.Final
+2020-06-30 07:45:33.333  INFO 2443 --- [main] org.xnio.nio                             : XNIO NIO Implementation Version 3.3.8.Final
+2020-06-30 07:45:33.449  WARN 2443 --- [main] io.undertow.websockets.jsr               : UT026009: XNIO worker was not set on WebSocketDeploymentInfo, the default worker will be used
+2020-06-30 07:45:33.449  WARN 2443 --- [main] io.undertow.websockets.jsr               : UT026010: Buffer pool was not set on WebSocketDeploymentInfo, the default pool will be used
+2020-06-30 07:45:33.482  INFO 2443 --- [main] io.undertow.servlet                      : Initializing Spring embedded WebApplicationContext
+2020-06-30 07:45:33.483  INFO 2443 --- [main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 3008 ms
+2020-06-30 07:45:33.698  INFO 2443 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2020-06-30 07:45:33.699  INFO 2443 --- [main] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2020-06-30 07:45:33.700  INFO 2443 --- [main] .s.DelegatingFilterProxyRegistrationBean : Mapping filter: 'springSecurityFilterChain' to: [/*]
+2020-06-30 07:45:33.701  INFO 2443 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHiddenHttpMethodFilter was not registered (disabled)
+2020-06-30 07:45:33.701  INFO 2443 --- [main] o.s.boot.web.servlet.RegistrationBean    : Filter orderedHttpPutFormContentFilter was not registered (disabled)
+2020-06-30 07:45:33.701  INFO 2443 --- [main] o.s.b.w.servlet.ServletRegistrationBean  : Servlet dispatcherServlet mapped to [/]
+2020-06-30 07:45:34.107  INFO 2443 --- [main] e.o.c.stat.StatCollectorRegistry         : Disabled. Usage statistics will not be processed.
+2020-06-30 07:45:34.307  INFO 2443 --- [main] s.s.l.DefaultSpringSecurityContextSource :  URL 'ldap://ldap.forumsys.com:389/dc=example,dc=com', root DN is 'dc=example,dc=com'
+2020-06-30 07:45:34.340  INFO 2443 --- [main] .s.s.l.u.DefaultLdapAuthoritiesPopulator : groupSearchBase is empty. Searches will be performed from the context source base
+2020-06-30 07:45:34.584  INFO 2443 --- [main] o.s.s.web.DefaultSecurityFilterChain     : Creating filter chain: org.springframework.security.web.util.matcher.AnyRequestMatcher@1, [org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@515f4131, org.springframework.security.web.context.SecurityContextPersistenceFilter@1c65121, org.springframework.security.web.header.HeaderWriterFilter@492fc69e, org.springframework.security.web.csrf.CsrfFilter@6548bb7d, org.springframework.security.web.authentication.logout.LogoutFilter@2bffa76d, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter@5bb3d42d, org.springframework.security.web.authentication.www.BasicAuthenticationFilter@74518890, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@24528a25, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@39fc6b2c, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4c5204af, org.springframework.security.web.session.SessionManagementFilter@2fb68ec6, org.springframework.security.web.access.ExceptionTranslationFilter@6e5bfdfc, org.springframework.security.web.access.intercept.FilterSecurityInterceptor@273c947f]
+2020-06-30 07:45:34.619  WARN 2443 --- [main] org.thymeleaf.templatemode.TemplateMode  : [THYMELEAF][main] Template Mode 'HTML5' is deprecated. Using Template Mode 'HTML' instead.
+2020-06-30 07:45:35.214  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:45:30 CEST 2020]; root of context hierarchy
+2020-06-30 07:45:35.357  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[GET]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.AppController.app(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:45:35.359  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app/*],methods=[POST]}" onto public java.util.Map<java.lang.String, java.lang.String> eu.openanalytics.shinyproxy.controllers.AppController.startApp(javax.servlet.http.HttpServletRequest)
+2020-06-30 07:45:35.360  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/app_direct/**]}" onto public void eu.openanalytics.shinyproxy.controllers.AppController.appDirect(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:45:35.361  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/issue],methods=[POST]}" onto public java.lang.String eu.openanalytics.shinyproxy.controllers.IssueController.postIssue(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:45:35.362  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/admin]}" onto private java.lang.String eu.openanalytics.shinyproxy.controllers.AdminController.admin(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:45:35.364  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/]}" onto private java.lang.Object eu.openanalytics.shinyproxy.controllers.IndexController.index(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:45:35.368  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec/{proxySpecId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.getProxySpec(java.lang.String)
+2020-06-30 07:45:35.370  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(eu.openanalytics.containerproxy.model.spec.ProxySpec)
+2020-06-30 07:45:35.371  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxySpecId}],methods=[POST],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.startProxy(java.lang.String,java.util.Set<eu.openanalytics.containerproxy.model.runtime.RuntimeSetting>)
+2020-06-30 07:45:35.372  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[DELETE],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.lang.String> eu.openanalytics.containerproxy.api.ProxyController.stopProxy(java.lang.String)
+2020-06-30 07:45:35.373  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxyspec],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.spec.ProxySpec> eu.openanalytics.containerproxy.api.ProxyController.listProxySpecs()
+2020-06-30 07:45:35.374  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy],methods=[GET],produces=[application/json]}" onto public java.util.List<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.listProxies()
+2020-06-30 07:45:35.374  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/proxy/{proxyId}],methods=[GET],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<eu.openanalytics.containerproxy.model.runtime.Proxy> eu.openanalytics.containerproxy.api.ProxyController.getProxy(java.lang.String)
+2020-06-30 07:45:35.375  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/api/route/**]}" onto public void eu.openanalytics.containerproxy.api.ProxyRouteController.route(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:45:35.381  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],consumes=[application/json],produces=[application/json]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> eu.openanalytics.containerproxy.ui.ErrorController.error(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:45:35.382  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public java.lang.String eu.openanalytics.containerproxy.ui.ErrorController.handleError(org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2020-06-30 07:45:35.384  INFO 2443 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/login],methods=[GET]}" onto public java.lang.Object eu.openanalytics.containerproxy.ui.LoginController.getLoginPage(java.util.Optional<java.lang.String>,org.springframework.ui.ModelMap,javax.servlet.http.HttpServletRequest)
+2020-06-30 07:45:35.462  INFO 2443 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/assets/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:45:35.463  INFO 2443 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:45:35.463  INFO 2443 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:45:35.497  INFO 2443 --- [main] .m.m.a.ExceptionHandlerExceptionResolver : Detected @ExceptionHandler methods in baseController.RestErrorHandler
+2020-06-30 07:45:35.546  INFO 2443 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2020-06-30 07:45:35.727  INFO 2443 --- [main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2020-06-30 07:45:35.851  INFO 2443 --- [main] o.s.l.c.support.AbstractContextSource    : Property 'userDn' not set - anonymous context will be used for read-write operations
+2020-06-30 07:45:36.146  INFO 2443 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2020-06-30 07:45:36.148  INFO 2443 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Bean with name 'dataSource' has been autodetected for JMX exposure
+2020-06-30 07:45:36.157  INFO 2443 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Located MBean 'dataSource': registering with JMX server as MBean [com.zaxxer.hikari:name=dataSource,type=HikariDataSource]
+2020-06-30 07:45:36.240  INFO 2443 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2020-06-30 07:45:36.243 ERROR 2443 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+2020-06-30 07:45:36.245  INFO 2443 --- [main] ConfigServletWebServerApplicationContext : Closing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4de5031f: startup date [Tue Jun 30 07:45:30 CEST 2020]; root of context hierarchy
+2020-06-30 07:45:36.247  INFO 2443 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2020-06-30 07:45:36.248  INFO 2443 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans
