@@ -106,8 +106,6 @@ library(yaml)
   source("FcmClustPEst.R")
   source("mfuzz.plotpdf.R")
   source("HelperFuncs.R")
-  ## needs to be compiled as not working in conda otherwise
-  #install.packages("e1071FuzzVec", repos=NULL, type="source")
   require(e1071FuzzVec)
   setwd(currPath)
   
