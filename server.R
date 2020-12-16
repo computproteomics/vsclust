@@ -31,7 +31,7 @@ shinyServer(function(input, output,clientData,session) {
     cores <- shiny_threads                                                                                 
     print(paste("Set number of threads to",cores))                                                          
   }                                                                                                              
-    
+  
   
   # # Resetting views
   # reset_memory <- 0
@@ -105,44 +105,48 @@ shinyServer(function(input, output,clientData,session) {
   observe({
     if (!is.null(input$extdata)) {
       isolate({
-      jsonmessage <- fromJSON(input$extdata)
-      # Loading parameters
-      NumCond <- jsonmessage[["numcond"]]
-      NumReps <- jsonmessage[["numrep"]]
-      isPaired <- jsonmessage[["paired"]]
-      isGrouped <- jsonmessage[["grouped"]]
-      # reading data matrix
-      expr_matr <- jsonmessage[["expr_matrix"]]
-      first_col <- ifelse(input$protnames,3,2)
-      output$fileInText <- renderText({
-        validate(need(!is.null(expr_matr), "Uploaded data empty"))
-        validate(need(length(expr_matr)>1, "Uploaded data does not contain multiple samples"))
-        validate(need(sum(duplicated(expr_matr[[1]]),na.rm=T)==0,"Duplicated feature names in first column!"))
-        tdat <- matrix(NA,nrow=length(expr_matr[[1]]),ncol=length(expr_matr)-first_col+1,dimnames=list(rows=expr_matr[[1]], cols=names(expr_matr)[first_col:length(expr_matr)]))
-        for (i in first_col:length(expr_matr)) {
-          validate(need(length(expr_matr[[i]]) == nrow(tdat),
-                        paste("Wrong array length of sample", names(expr_matr)[i])))
-          tdat[,i-1] <- as.numeric(expr_matr[[i]])
-
-        }
-        validate(need(is.numeric(tdat),"The uploaded data table contains non-numerical values!"))
-        if (input$protnames) {
-          tdat <- data.frame(expr_matr[[2]],tdat)
-        }
-        v$example <- F
-        v$dat <- tdat
-        updateNumericInput(session,"NumCond",value=NumCond)
-        updateNumericInput(session,"NumReps",value=NumReps)
-        updateCheckboxInput(session, "isPaired", value=isPaired)
-        updateCheckboxInput(session, "qcol_order", value=isGrouped)
-        return(paste("Loaded external data"))
+#        withProgress(message="Gathering external data ...", value="please wait",  {
+          jsonmessage <- fromJSON(input$extdata)
+          # Loading parameters
+          NumCond <- jsonmessage[["numcond"]]
+          NumReps <- jsonmessage[["numrep"]]
+          isPaired <- jsonmessage[["paired"]]
+          isGrouped <- jsonmessage[["grouped"]]
+          hasProtnames <- jsonmessage[["modsandprots"]]
+          # reading data matrix
+          expr_matr <- jsonmessage[["expr_matrix"]]
+          first_col <- ifelse(hasProtnames,3,2)
+          output$fileInText <- renderText({
+            validate(need(!is.null(expr_matr), "Uploaded data empty"))
+            validate(need(length(expr_matr)>1, "Uploaded data does not contain multiple samples"))
+            validate(need(sum(duplicated(expr_matr[[1]]),na.rm=T)==0,"Duplicated feature names in first column!"))
+            tdat <- matrix(NA,nrow=length(expr_matr[[1]]),ncol=length(expr_matr)-first_col+1,dimnames=list(rows=expr_matr[[1]], cols=names(expr_matr)[first_col:length(expr_matr)]))
+            for (i in first_col:length(expr_matr)) {
+                            validate(need(length(expr_matr[[i]]) == nrow(tdat),
+                            paste("Wrong array length of sample", names(expr_matr)[i])))
+              tdat[,i-first_col+1] <- as.numeric(expr_matr[[i]])
+              
+            }
+            validate(need(is.numeric(tdat),"The uploaded data table contains non-numerical values!"))
+            if (hasProtnames) {
+              tdat <- data.frame(expr_matr[[2]],tdat)
+            }
+            v$example <- F
+            v$dat <- tdat
+            updateNumericInput(session,"NumCond",value=NumCond)
+            updateNumericInput(session,"NumReps",value=NumReps)
+            updateCheckboxInput(session, "isPaired", value=isPaired)
+            updateCheckboxInput(session, "qcol_order", value=isGrouped)
+            updateCheckboxInput(session, "protnames", value=hasProtnames)
+            return(paste("Loaded external data"))
+          })
+          
+ #       })
       })
-      })
-
     }
   })
-
-
+  
+  
   observeEvent(input$in_file,{
     ## test for right replicate and condition numbers, min 50 features, ...
     dat <- NULL
@@ -209,8 +213,8 @@ shinyServer(function(input, output,clientData,session) {
         output$data_summ <- renderUI({HTML(paste("Features:",nrow(dat),"<br/>Missing values:",
                                                  num_miss,"<br/>Median standard deviations:",
                                                  round(median(Sds,na.rm=T),digits=3)),"<br/>",
-          paste("<i>Condition ",1:NumCond,":</i>", sapply(1:NumCond, function(x) 
-            paste(colnames(fulldat)[(0:(NumReps-1))*NumCond+x],collapse=", ")),"<br/>",collapse=""))})
+                                           paste("<i>Condition ",1:NumCond,":</i>", sapply(1:NumCond, function(x) 
+                                             paste(colnames(fulldat)[(0:(NumReps-1))*NumCond+x],collapse=", ")),"<br/>",collapse=""))})
         
         
         
@@ -357,7 +361,7 @@ shinyServer(function(input, output,clientData,session) {
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             
-          enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
+            enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
             x <- enriched$fullFuncs
             y <- enriched$redFuncs
             BHI <- enriched$BHI
