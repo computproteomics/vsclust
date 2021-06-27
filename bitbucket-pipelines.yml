@@ -8,6 +8,7 @@ pipelines:
           - docker
         script:
           - pip3 install pybiolib
+          - cd webserver && biolib push SDU/VSClust
           - export DOCKER_HUB_USERNAME=veitveit
           - export DOCKER_HUB_PASSWORD=$dockerpasswd
           - export IMAGE_NAME=veitveit/vsclust
