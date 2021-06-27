@@ -1,4 +1,4 @@
-FROM rocker/shiny
+FROM rocker/shiny:4.0.3
 LABEL maintainer="Veit Schwaemmle <veits@bmb.sdu.dk>"
 LABEL description="Docker image of VSClust implementation on top of shiny-server. The number of to-be-installed R packages requires patience when building this image."
 
@@ -11,7 +11,6 @@ RUN R CMD javareconf
 
 RUN bash
 
-  
 RUN R -e "library(BiocManager); BiocManager::install(c('geneilter', 'clusterProfiler','qvalue','limma','matrixStats','yaml','shinyjs','shinythemes','RDAVIDWebService','Mfuzz'),ask=F)"
 
 
