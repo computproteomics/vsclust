@@ -1,7 +1,7 @@
 biolib_version: 2
 modules:
     main:
-        image: 'local-docker://vsclust:latest'
+        image: 'local-docker://veitveit/vsclust:latest'
         command: 'python3 main.py'
         working_directory: /home/vsclust/
         input_files:

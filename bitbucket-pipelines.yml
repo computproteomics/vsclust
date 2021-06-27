@@ -7,8 +7,6 @@ pipelines:
         services:
           - docker
         script:
-          - pip3 install pybiolib
-          - cd webserver && biolib push SDU/VSClust
           - export DOCKER_HUB_USERNAME=veitveit
           - export DOCKER_HUB_PASSWORD=$dockerpasswd
           - export IMAGE_NAME=veitveit/vsclust
@@ -19,6 +17,9 @@ pipelines:
           # authenticate with the Docker Hub registry
           # push the new Docker image to the Docker registry
           - docker push $IMAGE_NAME
+          # push a new version of the webserver to biolib
+          - pip3 install pybiolib
+          - cd webserver && biolib push SDU/VSClust
   tags: 
     release-*:
     - step:
@@ -35,6 +36,9 @@ pipelines:
           # authenticate with the Docker Hub registry
           # push the new Docker image to the Docker registry
           - docker push $IMAGE_NAME
+          # push a new version of the webserver to biolib
+          - pip3 install pybiolib
+          - cd webserver && biolib push SDU/VSClust
 
 definitions:
   services:
