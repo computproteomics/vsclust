@@ -37,7 +37,7 @@ Install the package
 
 conda install -c bioconda vsclust
 
-run_app.sh
+run_vsclust_app.sh
 
 and access the shiny app through http://localhost:3838
 
