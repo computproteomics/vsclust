@@ -92,7 +92,7 @@ library(yaml)
   library(qvalue)
   library(shiny)
   library(clusterProfiler)
-  library(RDAVIDWebService)
+#  library(RDAVIDWebService)
   
   ## reading helper functions
   # need to change to the source path and back
