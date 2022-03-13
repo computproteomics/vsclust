@@ -147,7 +147,7 @@ library(yaml)
   
   ## Create pdf-figure of validation indices "minimum centroid distance" and "Xie-Beni index"
   pdf(paste(Experiment,"EstimatedClustNumber.pdf", sep=""),height=6,width=15)
-  print(clustNumOut$p)
+#  print(clustNumOut$p)
   dev.off()  
   
   
@@ -163,9 +163,9 @@ library(yaml)
   
   ## Write pdf-figure of clusters
                                                                                                                                                                                                                 pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""),height=5*round(sqrt(PreSetNumClustVSClust)),width=5*ceiling(sqrt(PreSetNumClustVSClust)))
-  print(ClustOut$p)
+#  print(ClustOut$p)
   dev.off()
-  print(ClustOut$ClustInd)
+#  print(ClustOut$ClustInd)
   
   ClustOut <- runClustWrapper(dat, PreSetNumClustStand, proteins, VSClust=F, cores)
   Bestcl <- ClustOut$Bestcl
