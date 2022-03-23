@@ -10,4 +10,4 @@ is_header: true ## true: File contains one-line header, false otherwise
 cores: 4 # Number of cores to use ## 1 is for windows
 PreSetNumClustVSClust: 0 # If 0, then automatically calculate the cluster number from Minimum Centroid Distance. Applied to VSClust algorithm
 PreSetNumClustStand: 0 # If 0, then automatically calculate the cluster number from Minimum Centroid Distance. Applied to standard fuzzy c-means cluster
-maxClust: 20 ## max. number of clusters when estimating the number of clusters
+maxClust: 10 ## max. number of clusters when estimating the number of clusters

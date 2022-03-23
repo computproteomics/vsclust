@@ -18,12 +18,8 @@ RUN R -e "library(BiocManager); BiocManager::install(c('geneilter', 'clusterProf
 
 RUN rm -rf /srv/shiny-server
 RUN mkdir /srv/shiny-server
-COPY *R  /srv/shiny-server/
-COPY *csv  /srv/shiny-server/
-RUN mkdir /srv/shiny-server/www
-COPY www/* /srv/shiny-server/www/
+COPY inst/shiny/*  /srv/shiny-server/
 
 # installing customized library
-COPY e1071FuzzVec_Installation/ /srv/shiny-server/e1071FuzzVec_Installation/
-RUN chmod a+x /srv/shiny-server/e1071FuzzVec_Installation/configure
-RUN R CMD INSTALL /srv/shiny-server/e1071FuzzVec_Installation
+COPY .  /srv/shiny-server/vsclust
+RUN R CMD INSTALL /srv/shiny-server/vsclust

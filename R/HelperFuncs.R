@@ -1,12 +1,37 @@
+#' vsclust: variance-senstive clustering
+#'
+#' @section VSClust functions:
+#' The mypackage functions ...
+#'
+#' @docType package
+#' @name vsclust
+#' @useDynLib vsclust
+NULL
+#> NULL
+
 ########### functions for VSClust
+
 
 validate <- shiny::validate
 
 # extend to 702 cases:
 LETTERS702 <- c(LETTERS, sapply(LETTERS, function(x) paste0(x, LETTERS)))
 
+
+# Some mathematical functions
 erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
 erf.inv <- function(x) qnorm((x + 1)/2)/sqrt(2)
+
+
+
+#' Calculate the Xie Beni index for validation of the cluster number
+#'
+#' @param clres Output from clustering. Either fclust object or similar list
+#' @param m Fuzzifier value
+#' @return Xie Beni index
+#' @examples
+#' TODO
+#' @export
 cvalidate.xiebeni <- function(clres,m) {                                                
   xrows <- dim(clres$me)[1]                                                
   minimum <- -1                                                            
@@ -26,7 +51,137 @@ cvalidate.xiebeni <- function(clres,m) {
   return(xiebeni)                                                          
 }
 
-# switch cluster numbers from largest to smallest
+#' Run the vsclust clustering algorithm
+#'
+#' @param x a numeric data matrix 
+#' @param centers Either numeric for number of clusters or numeric matrix with center coordinates
+#' @param iter.max Numeric for maximum number of iterations
+#' @param verbose Verbose information
+#' @param m Fuzzifier value: numeric or vector of length equal to number of rows of x 
+#' @param rate.par (experimental) numeric value for punishing missing values
+#' @param weights numeric or vector of length equal to number of rows of x 
+#' @param control list with arguments to vsclust algorithms (now only cutoff for relative tolerance: reltol)
+#' @return Xie Beni index
+#' @examples
+#' TODO
+#' @export
+#' @useDynLib
+vsclust_algorithm <-
+  function(x, centers, iter.max = 100, verbose = FALSE,
+           dist = "euclidean", m = 2,
+           rate.par = NULL, weights = 1, control = list())
+  {
+    x <- as.matrix(x)
+    xrows <- nrow(x)
+    xcols <- ncol(x)
+    
+    if(missing(centers))
+      stop("Argument 'centers' must be a number or a matrix.")
+    
+    dist <- pmatch(dist, c("euclidean", "manhattan"))
+    if(is.na(dist)) 
+      stop("invalid distance")
+    if(dist == -1) 
+      stop("ambiguous distance")
+    
+    if(length(centers) == 1) {
+      ncenters <- centers
+      centers <- x[sample(1 : xrows, ncenters), , drop = FALSE]
+      centers[is.na(centers)] <- 0
+      if(any(duplicated(centers))) {
+        cn <- unique(x)
+        mm <- nrow(cn)
+        if(mm < ncenters) 
+          stop("More cluster centers than distinct data points.")
+        centers <- cn[sample(1 : mm, ncenters), , drop = FALSE]
+      }
+    } else {
+      centers <- as.matrix(centers)
+      if(any(duplicated(centers))) 
+        stop("Initial centers are not distinct.")
+      cn <- NULL
+      ncenters <- nrow(centers)
+      if (xrows < ncenters)
+        stop("More cluster centers than data points.")
+    }
+    
+    if(xcols != ncol(centers))
+      stop("Must have same number of columns in 'x' and 'centers'.")
+    
+    if(iter.max < 1) 
+      stop("Argument 'iter.max' must be positive.")
+    
+    if(missing(rate.par)) {
+      rate.par <- 0
+    }
+    
+    reltol <- control$reltol
+    if(is.null(reltol))
+      reltol <- sqrt(.Machine$double.eps)
+    if(reltol <= 0)
+      stop("Control parameter 'reltol' must be positive.")
+    
+    if(any(weights < 0))
+      stop("Argument 'weights' has negative elements.")
+    if(!any(weights > 0))
+      stop("Argument 'weights' has no positive elements.")
+    weights <- rep(weights, length = xrows)
+    weights <- weights / sum(weights)
+    
+    # if length of fuzzifiers is lower than number of features, repeat the pattern until end. 
+    # Also counts for single fuzzifier
+    m <- rep(m, length = xrows)
+    
+    initcenters <- centers
+    pos <- as.factor(1 : ncenters)
+    rownames(centers) <- pos
+    
+    u <- matrix(0.0,  nrow = xrows, ncol = ncenters)
+    iter <- c(0L)
+    val <- vsclust:::c_plusplus_means(x, centers, weights, m, dist-1, iter.max, reltol, verbose, u , 1, iter, NA, rate.par)
+    # put modified values in retval
+    retval <- list(x=x, xrows = xrows, xcols = xcols, centers = centers,ncenters=ncenters, m = m, dist = dist -1,
+                   iter.max = iter.max, reltol = reltol, verbose = verbose, rate.par = rate.par, u = u, ermin = val, iter = iter)
+    
+    centers <- matrix(retval$centers, ncol = xcols,
+                      dimnames = list(1 : ncenters,
+                                      colnames(initcenters)))
+    u <- matrix(retval$u, ncol = ncenters,
+                dimnames = list(rownames(x), 1 : ncenters))
+    # u <- u[order(perm), ]
+    iter <- retval$iter - 1
+    withinerror <- retval$ermin
+    
+    cluster <- apply(u, 1, which.max)
+    clustersize <- as.integer(table(cluster))
+    
+    retval <- list(centers = centers, size = clustersize,
+                   cluster = cluster, membership = u, iter = iter,
+                   withinerror = withinerror, call = match.call())
+    class(retval) <- c("fclust")
+    return(retval)
+  }
+
+# Function to return content of fclust object
+print.fclust <-
+  function(x, ...)
+  {
+    cat("Error:\n")
+    print(x$withinerror, ...)
+    cat("Fuzzy c-means clustering with", length(x$size), "clusters\n")
+    cat("\nCluster centers:\n")
+    print(x$centers, ...)
+    cat("\nMemberships:\n")
+    print(x$membership, ...)
+    cat("\nClosest hard clustering:\n")
+    print(x$cluster, ...)
+    cat("\nAvailable components:\n")
+    print(names(x), ...)
+    invisible(x)
+  }
+
+#' switch cluster numbers from largest to smallest
+#' @importFrom matrixStats rowMaxs
 SwitchOrder <- function(Bestcl,NClust) {
   switching <- as.numeric(names(sort(table(Bestcl$cluster[rowMaxs(Bestcl$membership)>0.5]),decreasing=T)))
   if (length(switching)<NClust) 
@@ -44,7 +199,9 @@ SwitchOrder <- function(Bestcl,NClust) {
   tBest
 }
 
-
+#' Running VSClust on given data set (with data pre-processing)
+#' @import parallel
+#' @export
 ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   D<-ncol(tData)
   d<-sqrt(D/2)
@@ -63,23 +220,19 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   m[m==Inf]<-0
   m[m==0]<-NA
   m[is.na(m)]<-mm*10
-  #m<-rowMaxs(cbind(m,mm,na.rm=T))
   
   ## If m for highest Sd is mm then all = mm
   if (m[which.max(Sds)]== mm) 
     m[1:length(m)] <- mm
   
-  #   plot(Sds,m,cex=0.5,pch=15,col=rainbow(maxClust)[NClust])
-  #   abline(h=mm)
-  
   cl <- makeCluster(cores)
-  clusterExport(cl=cl,varlist=c("tData","NClust","m"),envir=environment())
-  clusterEvalQ(cl=cl, library(e1071FuzzVec))  
-  clusterEvalQ(cl=cl, library(Biobase))  
-  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(tData,NClust,m=m,verbose=F,iter.max=1000))
-  print(cls[[1]])
+  clusterExport(cl=cl,varlist=c("tData","NClust","m","vsclust_algorithm"),envir=environment())
+  clusterEvalQ(cl=cl, library(vsclust))  
+  #clusterEvalQ(cl=cl, library(Biobase))  
+  cls <- parLapply(cl,1:NSs, function(x) vsclust_algorithm(tData,NClust,m=m,verbose=F,iter.max=1000))
+  #print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  cls <- parLapply(cl,1:NSs, function(x) e1071FuzzVec::cmeans(tData,NClust,m=mm,verbose=F,iter.max=1000))
+  cls <- parLapply(cl,1:NSs, function(x) vsclust_algorithm(tData,NClust,m=mm,verbose=F,iter.max=1000))
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   stopCluster(cl)
   
@@ -89,7 +242,10 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
        Bestcl=Bestcl,Bestcl2=Bestcl2,m=m,withinerror=Bestcl$withinerror,withinerror2=Bestcl2$withinerror) 
 }
 
-
+#' Statistical analysis (paired)
+#' @import limma
+#' @importFrom qvalue qvalue
+#' @export
 SignAnalPaired <- function(Data,NumCond,NumReps) {
   ##########################################################
   # significance analysis
@@ -123,6 +279,10 @@ SignAnalPaired <- function(Data,NumCond,NumReps) {
   return(list(plvalues=qvalues,Sds=sqrt(lm.bayesMA$s2.post)))
 }
 
+#' Statistical analysis (paired)
+#' @import limma
+#' @importFrom qvalue qvalue
+#' @export
 SignAnal <- function(Data,NumCond,NumReps) {
   ##########################################################
   # significance analysis
@@ -138,14 +298,14 @@ SignAnal <- function(Data,NumCond,NumReps) {
   
   lm.contr <- contrasts.fit(lm.fitted,contrast.matrix)
   lm.bayes<-eBayes(lm.contr)
-  topTable(lm.bayes)
+  #topTable(lm.bayes)
   plvalues <- lm.bayes$p.value
   qvalues <- matrix(NA,nrow=nrow(plvalues),ncol=ncol(plvalues),dimnames=dimnames(plvalues))
   # qvalue correction
   for (i in 1:ncol(plvalues)) {
     tqs <- tryCatch(qvalue(na.omit(plvalues[,i]))$qvalues, 
                     error = function(e) NULL)
-    print(tqs)
+    #print(tqs)
     if (length(tqs) >0) {
       qvalues[names(tqs),i] <- tqs
     }
@@ -157,108 +317,8 @@ SignAnal <- function(Data,NumCond,NumReps) {
   return(list(plvalues=qvalues,Sds=sqrt(lm.bayes$s2.post)))
 }
 
-
-## overwrite function to set timeout limit higher
-## OBSOLETE?
-enrichDAVID2 <- function (gene, idType = "ENTREZ_GENE_ID", 
-                          minGSSize = 5, maxGSSize = 500, annotation = "GOTERM_BP_ALL", pvalueCutoff = 0.05, 
-                          pAdjustMethod = "BH", qvalueCutoff = 0.2, species = NA, david.user = "veits@bmb.sdu.dk") 
-{
-  Count <- List.Total <- Pop.Hits <- Pop.Total <- NULL
-  pAdjustMethod <- match.arg(pAdjustMethod, c("bonferroni", 
-                                              "BH"))
-  david <- DAVIDWebService$new(email = david.user,url="https://david.ncifcrf.gov/webservice/services/DAVIDWebService.DAVIDWebServiceHttpSoap12Endpoint/")
-  idType <- match.arg(idType, getIdTypes(david))
-  setTimeOut(david,10000000)
-  # browser()
-  david.res <- addList(david, gene, idType = idType, listName = "clusterProfiler")
-  if (david.res$inDavid == 0) {
-    stop("All id can not be mapped. Please check 'idType' parameter...")
-  }
-  setAnnotationCategories(david, annotation)
-  x <- getFunctionalAnnotationChart(david, threshold = 1, count = minGSSize)
-  if (length(x@.Data) == 0) {
-    warning("No significant enrichment found...")
-    return(NULL)
-  }
-  term <- x$Term
-  if (length(grep("~", term[1])) == 0) {
-    sep <- ":"
-  }
-  else {
-    sep <- "~"
-  }
-  term.list <- sapply(term, function(y) strsplit(y, split = sep))
-  term.df <- do.call("rbind", term.list)
-  # print(term.df)
-  ID <- term.df[, 1]
-  if (ncol(term.df)> 1) {
-    Description <- term.df[, 2]
-  } else {
-    Description <- term.df[,1]
-  }
-  GeneRatio <- with(x, paste(Count, List.Total, sep = "/"))
-  BgRatio <- with(x, paste(Pop.Hits, Pop.Total, sep = "/"))
-  Over <- data.frame(ID = ID, Description = Description, GeneRatio = GeneRatio, 
-                     BgRatio = BgRatio, pvalue = x$PValue)
-  print(sum(duplicated(ID)))
-  #row.names(Over) <- names(ID)
-  if (pAdjustMethod == "bonferroni") {
-    Over$p.adjust <- x$Bonferroni
-  }
-  else {
-    Over$p.adjust <- x$Benjamini
-  }
-  qobj <- tryCatch(qvalue(p = Over$pvalue, lambda = 0.05, pi0.method = "bootstrap"), 
-                   error = function(e) NULL)
-  if (class(qobj) == "qvalue") {
-    qvalues <- qobj$qvalues
-  }
-  else {
-    qvalues <- NA
-  }
-  Over$qvalue <- qvalues
-  Over$geneID <- gsub(",\\s*", "/", x$Genes)
-  Over$Count <- x$Count
-  Over <- Over[Over$pvalue <= pvalueCutoff, ]
-  Over <- Over[Over$p.adjust <= pvalueCutoff, ]
-  if (!any(is.na(Over$qvalue))) {
-    Over <- Over[Over$qvalue <= qvalueCutoff, ]
-  }
-  org <- getSpecieNames(david)
-  org <- gsub("\\(.*\\)", "", org)
-  # gc <- strsplit(Over$geneID, "/")
-  if (!is.na(maxGSSize) || !is.null(maxGSSize)) {
-    idx <- as.numeric(sub("/\\d+", "", Over$BgRatio)) <= 
-      maxGSSize
-    Over <- Over[idx, ]
-  }
-  
-  # names(gc) <- Over$ID
-  new("enrichResult", result = Over, pvalueCutoff = pvalueCutoff, 
-      pAdjustMethod = pAdjustMethod, organism = org, ontology = annotation, 
-      gene = as.character(gene), keytype = idType)
-}
-
-#   calcBHI <- function(Accs,gos) {
-#     ## enrichment does not yield all GO terms! This could lead to problems
-#     BHI <- sumcomb <- vector("integer",length(Accs))
-#     names(BHI) <- names(Accs)
-#     for (i in names(gos@geneClusters)) {
-#       genes <- Accs[[i]]
-#       combs <- combn(genes,2)
-#       sumcomb[i] <- ncol(combs)
-#       clgroup <- gos@compareClusterResult[gos@compareClusterResult$Cluster==i,"geneID"]
-#       for(j in 1:ncol(combs)) {
-#         genepair <- combs[,j]
-#         if(length(grep(genepair[2],grep(genepair[2],clgroup,value=T)))>0)
-#           BHI[i] <- BHI[i] + 1
-#       }
-#     }
-#     sum(BHI)/sum(sumcomb)
-#   }
-
-
+#' Calculate "biological homogeneity index" from GO terms and uniprot accessn names 
+#' @export
 calcBHI <- function(Accs,gos) {
   ## enrichment does not yield all GO terms! This could lead to problems
   #  Rprof(tmp <- tempfile())
@@ -299,7 +359,10 @@ calcBHI <- function(Accs,gos) {
 
 ### Wrapper functions
 
-## Wrapper for statistics
+#' Wrapper for statistical testing
+#' @importFrom matrixStats rowSds
+#' @importFrom shiny validate
+#' @export
 statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
   qvals <- statFileOut <- Sds <- NULL
   fdat <- dat
@@ -316,8 +379,6 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
     }
     
     tdat<-rowMeans(dat[,seq(1,NumReps*NumCond,NumCond)],na.rm=T)
-    
-    print(Sds)
     
     Sds <- ttt$Sds
     qvals <- ttt$plvalues
@@ -372,20 +433,25 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
   
 }
 
-## Wrapper for estimation of cluster number
+#' Wrapper for estimation of cluster number
+#' @import limma
+#' @importFrom shiny getDefaultReactiveDomain incProgress
+#' @importFrom matrixStats rowMaxs
+#' @export
 estimClustNum<- function(dat, maxClust=25, cores=1) {
-  # print(head(rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)))
-  #Sds <- dat[,ncol(dat)] / rowSds(as.matrix(dat[,1:(ncol(dat)-1)]),na.rm=T)
   ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
   tData <- dat[,1:(ncol(dat)-1)]
   colnames(tData)<-NULL
-  PExpr <- new("ExpressionSet",expr=as.matrix(tData))
-  PExpr.r <- filter.NA(PExpr, thres = 0.25)
-  PExpr <- fill.NA(PExpr.r,mode = "mean")
-  tmp <- filter.std(PExpr,min.std=0,visu=F)
-  PExpr2 <- standardise(PExpr)
-  sds <- dat[rownames(exprs(PExpr2)), ncol(dat)]
-  tData <- exprs(PExpr2)
+  # We do not filter anymore for NAs, and we do not impute
+  # PExpr <- new("ExpressionSet",expr=as.matrix(tData))
+  # PExpr.r <- filter.NA(PExpr, thres = 0.25)
+  # PExpr <- fill.NA(PExpr.r,mode = "mean")
+  # tmp <- filter.std(PExpr,min.std=0,visu=F)
+  
+  # Standardise
+  # PExpr2 <- standardise(PExpr)
+  tData <- t(scale(t(tData)))
+  sds <- dat[rownames(tData), ncol(dat)]
   
   multiOut <- lapply(3:maxClust,function(x) {    
     if (!is.null(getDefaultReactiveDomain())) {
@@ -399,24 +465,14 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   })
   for (NClust in 3:maxClust) 
     ClustInd[NClust,] <- multiOut[[NClust-2]]
-  # for (NClust in 3:maxClust) {
-  #   print(paste("Running cluster number", NClust))
-  #   if (!is.null(getDefaultReactiveDomain())) {
-  #     incProgress(1, detail = paste("Running cluster number",NClust))
-  #   } else {
-  #     print(paste("Running cluster number",NClust))
-  #   }
-  #   clustout <- ClustComp(dat[,1:(ncol(dat)-1)],NClust=NClust,Sds=dat[,ncol(dat)],NSs=16, cores)
-  #   ClustInd[NClust,]<-c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
-  #                        sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
-  # }
   
   dmindist <- c(which.max(ClustInd[3:(maxClust-2),1]-ClustInd[4:(maxClust-1),1])+2,
                 which.max(ClustInd[3:(maxClust-2),3]-ClustInd[4:(maxClust-1),3])+2)
   dxiebeni <- c(which.min(ClustInd[3:(maxClust-1),2])+2,
                 which.min(ClustInd[3:(maxClust-1),4])+2)  
   print(dmindist)
-  plot.new() ## clean up device
+  # graphics.off()
+  #  plot.new() ## clean up device
   par(mfrow=c(1,3))
   plot(3:maxClust,ClustInd[3:(maxClust),1],col=2 , type="b", 
        main="Min. centroid distance\n(Highest jump is best)",
@@ -443,17 +499,24 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   Out
 }
 
-## Wrapper for clustering
+#' Wrapper for clustering
+#' @importFrom shiny getDefaultReactiveDomain incProgress
+#' @importFrom matrixStats rowMaxs
+#' @export
 runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
-  # dat <- dat[rowSums(is.na(dat))==0,]
-  PExpr <- new("ExpressionSet",expr=as.matrix(dat[,1:(ncol(dat)-1)]))
-  PExpr.r <- filter.NA(PExpr, thres = 0.25)
-  PExpr <- fill.NA(PExpr.r,mode = "mean")
-  tmp <- filter.std(PExpr,min.std=0,visu=F)
-  PExpr <- standardise(PExpr)
+  tData <- dat[,1:(ncol(dat)-1)]
+  
+  # We do not filter and impute anymore  
+  # PExpr.r <- filter.NA(PExpr, thres = 0.25)
+  # PExpr <- fill.NA(PExpr.r,mode = "mean")
+  # tmp <- filter.std(PExpr,min.std=0,visu=F)
+  #PExpr <- standardise(PExpr)
+  
+  #Standardize
+  tData <- t(scale(t(tData)))
   
   
-  clustout <- ClustComp(exprs(PExpr),NClust=NClust,Sds=dat[rownames(exprs(PExpr)),ncol(dat)],NSs=16, cores)
+  clustout <- ClustComp(tData,NClust=NClust,Sds=dat[rownames(tData),ncol(dat)],NSs=16, cores)
   if (VSClust) {
     Bestcl <- clustout$Bestcl
   } else {
@@ -464,23 +527,31 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   # sorting for membership values (globally)
   Bestcl$cluster <- Bestcl$cluster[order(rowMaxs(Bestcl$membership,na.rm=T))]
   Bestcl$membership <- Bestcl$membership[order(rowMaxs(Bestcl$membership,na.rm=T)),]
-  PExpr <- PExpr[names(Bestcl$cluster),]
+  tData <- tData[names(Bestcl$cluster),]
   
   if (!is.null(getDefaultReactiveDomain()))
     incProgress(0.7, detail = paste("Plotting",NClust))
   
-  plot.new() ## clean up device
+  # graphics.off() ## clean up device
   par(lwd=0.25)
   oldmar <- par("mar")
   par(mar=c(2,2,3,3),mgp=c(2,1,0))
   par(mar=par("mar")/max(1,NClust/20))
-  mfuzz.plot2(PExpr,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,x11=F,colo="fancy")
-  # Mfuzz::mfuzzColorBar(col="fancy")
+  
+  ## Plot results
+  vs_filename <- NULL
+  if (VSClust) {
+    vs_filename <- "VSClust_New_Clusters.pdf"
+  } else {
+    vs_filename <- "VSClust_Std_Clusters.pdf"
+  }
+  mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy", filename = vs_filename)
+  mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy")
   p <- recordPlot()
-  par(lwd=1,mar=oldmar)
+  # par(lwd=1,mar=oldmar)
   
   colnames(Bestcl$membership) <- paste("membership of cluster",colnames(Bestcl$membership))
-  outFileClust <- exprs(PExpr)
+  outFileClust <- tData
   if (!is.null(proteins)) {
     outFileClust <- cbind(outFileClust,names=as.character(proteins[rownames(outFileClust)]))
   }
@@ -493,11 +564,14 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
     ClustInd <- cbind(1:max(Bestcl$cluster),rep(0,max(Bestcl$cluster)))
   
   ## Output
-  Out <- list(dat=PExpr, Bestcl=Bestcl, p=p, outFileClust=outFileClust, ClustInd=ClustInd)
+  Out <- list(dat=tData, Bestcl=Bestcl, p=p, outFileClust=outFileClust, ClustInd=ClustInd)
   return(Out)
 }
 
-# Wrapper for functional enrichment (TODO)
+# Wrapper for functional enrichment
+#' @importFrom clusterProfiler compareCluster
+#' @importFrom matrixStats rowMaxs
+#' @export
 runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
   Accs <- list()
   for (c in 1:max(cl$cluster)) {
@@ -528,7 +602,8 @@ runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
                           idType=idtypes,
                           david.user = "veits@bmb.sdu.dk"))
   validate(need(!is.null(x),"No result. Wrong ID type?"))
-  incProgress(0.7, detail = "received")
+  if (!is.null(getDefaultReactiveDomain()))
+      incProgress(0.7, detail = "received")
   print("got it")
   x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
   print(x@compareClusterResult)
@@ -544,3 +619,107 @@ runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
   return(list(fullFuncs=x, redFuncs=y, BHI=BHI))
   
 }
+
+#' Plotting clustering results into multiple figure panels, adopted from the MFuzz package
+#' @param filename for writing into pdf. Will write on screen when using NA
+#' @export
+
+mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels, 
+                        filename=NA,xlab="Time",ylab="Expression changes") 
+{
+  clusterindex <- cl[[3]]
+  memship <- cl[[4]]
+  memship[memship < min.mem] <- -1
+  colorindex <- integer(dim(dat)[[1]])
+  if (missing(colo)) {
+    colo <- c("#FF8F00", "#FFA700", "#FFBF00", "#FFD700", 
+              "#FFEF00", "#F7FF00", "#DFFF00", "#C7FF00", "#AFFF00", 
+              "#97FF00", "#80FF00", "#68FF00", "#50FF00", "#38FF00", 
+              "#20FF00", "#08FF00", "#00FF10", "#00FF28", "#00FF40", 
+              "#00FF58", "#00FF70", "#00FF87", "#00FF9F", "#00FFB7", 
+              "#00FFCF", "#00FFE7", "#00FFFF", "#00E7FF", "#00CFFF", 
+              "#00B7FF", "#009FFF", "#0087FF", "#0070FF", "#0058FF", 
+              "#0040FF", "#0028FF", "#0010FF", "#0800FF", "#2000FF", 
+              "#3800FF", "#5000FF", "#6800FF", "#8000FF", "#9700FF", 
+              "#AF00FF", "#C700FF", "#DF00FF", "#F700FF", "#FF00EF", 
+              "#FF00D7", "#FF00BF", "#FF00A7", "#FF008F", "#FF0078", 
+              "#FF0060", "#FF0048", "#FF0030", "#FF0018")
+  }    else {
+    if (colo == "fancy") {
+      fancy.blue <- c(c(255:0), rep(0, length(c(255:0))), 
+                      rep(0, length(c(255:150))))
+      fancy.green <- c(c(0:255), c(255:0), rep(0, length(c(255:150))))
+      fancy.red <- c(c(0:255), rep(255, length(c(255:0))), 
+                     c(255:150))
+      colo <- rgb(b = fancy.blue/255, g = fancy.green/255, 
+                  r = fancy.red/255)
+    }
+  }
+  colorseq <- seq(0, 1, length = length(colo))
+  for (j in 1:max(clusterindex)) {
+    tmp <- dat[clusterindex == j, ]
+    tmpmem <- memship[clusterindex == j, j]
+    if (((j - 1)%%(mfrow[1] * mfrow[2])) == 0) {
+      if (!is.na(filename)) {
+        pdf(filename, height=3*mfrow[1],width=3*mfrow[2])
+      }
+      par(mfrow = mfrow, cex=0.5)
+      if (sum(clusterindex == j) == 0) {
+        ymin <- -1
+        ymax <- +1
+      }
+      else {
+        ymin <- min(tmp)
+        ymax <- max(tmp)
+      }
+      plot.default(x = NA, xlim = c(1, dim(dat)[[2]]), 
+                   ylim = c(ymin, ymax), xlab = xlab, ylab = ylab, 
+                   main = paste("Cluster", j), axes = FALSE)
+      if (missing(time.labels)) {
+        axis(1, 1:dim(dat)[[2]], c(1:dim(dat)[[2]]))
+        axis(2)
+      }
+      else {
+        axis(1, 1:dim(dat)[[2]], time.labels)
+        axis(2)
+      }
+    }
+    else {
+      if (sum(clusterindex == j) == 0) {
+        ymin <- -1
+        ymax <- +1
+      }
+      else {
+        ymin <- min(tmp)
+        ymax <- max(tmp)
+      }
+      plot.default(x = NA, xlim = c(1, dim(dat)[[2]]), 
+                   ylim = c(ymin, ymax), xlab = xlab, ylab = ylab, 
+                   main = paste("Cluster", j), axes = FALSE)
+      if (missing(time.labels)) {
+        axis(1, 1:dim(dat)[[2]], c(1:dim(dat)[[2]]))
+        axis(2)
+      }
+      else {
+        axis(1, 1:dim(dat)[[2]], time.labels)
+        axis(2)
+      }
+    }
+    if (!(sum(clusterindex == j) == 0)) {
+      for (jj in 1:(length(colorseq) - 1)) {
+        tmpcol <- (tmpmem >= colorseq[jj] & tmpmem <= 
+                     colorseq[jj + 1])
+
+        if (sum(tmpcol, na.rm=T) > 0) {
+          tmpind <- which(tmpcol)
+          for (k in 1:length(tmpind)) {
+            lines(tmp[tmpind[k], ], col = colo[jj])
+          }
+        }
+      }
+    }
+  }
+  if (!is.na(filename))   dev.off()
+}
+
+

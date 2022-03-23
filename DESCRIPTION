@@ -1,0 +1,22 @@
+Package: vsclust
+Type: Package
+Title: Feature-based variance-sensitive quantitative clustering.
+Version: 0.1.0
+Date: 2022-03-23
+Author: Veit Schwaemmle
+Maintainer: Veit Schwaemmle <veits@bmb.sdu.dk>
+Description: Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance.
+License: GPL (>= 2)
+Imports: 
+  Rcpp (>= 1.0.8),
+  matrixStats,
+  limma,
+  parallel,
+  qvalue
+Suggests:
+  shiny,
+  clusterProfiler,
+  yaml
+LinkingTo: Rcpp
+BiocViews: Clustering,Annotation,PrincipalComponent,DifferentialExpression,Visualization
+RoxygenNote: 7.1.2
