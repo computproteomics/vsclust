@@ -126,11 +126,14 @@ print(paste("Features:",nrow(dat),"<br/>Missing values:",
             sum(is.na(dat)),"<br/>Median standard deviations:",
             round(median(Sds,na.rm=T),digits=3)))
 
-## Write output into file 
+## Create pdf-figure of validation indices "minimum centroid distance" and "Xie-Beni index"
 write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
 
 #### Estimate number of clusters with maxClust as maximum number clusters to test for
+## Write output into file 
+pdf(paste(Experiment,"EstimatedClustNumber.pdf", sep=""),height=6,width=15)
 clustNumOut <- estimClustNum(dat, maxClust, cores)
+dev.off()
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
@@ -138,14 +141,14 @@ if (PreSetNumClustVSClust == 0)
 if (PreSetNumClustStand == 0)
   PreSetNumClustStand <- clustNumOut$numclust
 
-## Create pdf-figure of validation indices "minimum centroid distance" and "Xie-Beni index"
-pdf(paste(Experiment,"EstimatedClustNumber.pdf", sep=""),height=6,width=15)
-print(clustNumOut$p)
-dev.off()  
 
 
 #### Run clustering (VSClust and standard fcm clustering
+## Write pdf-figure of clusters
+pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""))
 ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, proteins, VSClust=T, cores)
+dev.off() 
+
 Bestcl <- ClustOut$Bestcl
 ClustOut$p
 ## Write clustering results (VSClust)
@@ -155,12 +158,10 @@ write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMembe
 write.csv(Bestcl$centers, paste(Experiment,"FCMVarMResultsCentroids", Sys.Date(), ".csv", sep=""))
 
 ## Write pdf-figure of clusters
-pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""),height=5*round(sqrt(PreSetNumClustVSClust)),width=5*ceiling(sqrt(PreSetNumClustVSClust)))
-print(ClustOut$p)
-dev.off()
-#  print(ClustOut$ClustInd)
-
+pdf(paste(Experiment,"FCMStdResults", Sys.Date(), ".pdf", sep=""))
 ClustOut <- runClustWrapper(dat, PreSetNumClustStand, proteins, VSClust=F, cores)
+dev.off()
+
 Bestcl <- ClustOut$Bestcl
 ClustOut$p
 ## Write clustering results (standard fcm)
@@ -168,14 +169,5 @@ write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMembe
                      Bestcl$membership), paste(Experiment, "FCMResults", Sys.Date(), ".csv", sep=""))
 ## Write coordinates of cluster centroids
 write.csv(Bestcl$centers, paste(Experiment,"FCMResultsCentroids", Sys.Date(), ".csv", sep=""))
-
-## Write pdf-figure of clusters
-pdf(paste(Experiment,"FCMResults", Sys.Date(), ".pdf", sep=""),height=5*round(sqrt(PreSetNumClustStand)),width=5*ceiling(sqrt(PreSetNumClustStand)))
-print(ClustOut$p)
-dev.off()
-print(ClustOut$ClustInd)
-
-
-
 
 

@@ -1,18 +1,9 @@
 ## TODO Clean accession numbers better and separate ()?
-library(matrixStats)
-library(Mfuzz)
-library(limma)
-library(parallel)
-library(qvalue)
-library(e1071FuzzVec)
+library(vsclust)
 library(shinyjs)
 library(clusterProfiler)
-#library(RDAVIDWebService)
 library(jsonlite)
 library(DT)
-source("FcmClustPEst.R")
-source("mfuzz.plotpdf.R")
-source("HelperFuncs.R")
 
 validate <- shiny::validate
 
@@ -444,7 +435,7 @@ corresponding to replicates (A-C), grouped columns are arranged A1, A2, A3, A4, 
                                   The plot shows only features confidently assigned to a cluster requiring a minimum membership value of 0.5. Users can download 
                                   pdf-files of the figure, data with membership values and principal expression profiles of the clusters (cluster centroids). Furthermore, the number
                                   of cluster members is shown in a table. This can be useful when comparing the two methods, where the variance-based algorithm should yield 
-                                  lower numbers of cluster members as features with large standard deviations often get discarded. The clustering is implemented using <a href='https://bioconductor.org/packages/release/bioc/html/Mfuzz.html'>Mfuzz</a> and a modified version of <a href='https://cran.r-project.org/web/packages/e1071/index.html'>e1071</a>.")})
+                                  lower numbers of cluster members as features with large standard deviations often get discarded.")})
   output$goterms <- renderUI({HTML("Simple viewer for GO term and pathway enrichment based on <a  target='_blank'' href='https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html'>clusterProfiler</a> 
                                     configured to access the <a href='https://david.ncifcrf.gov/content.jsp?file=WS.html'>DAVID</a> web service. <i>This can take a while (response times of DAVID server)</i>. We furthermore offer a rough estimate of enrichment efficiency, 
                                    given by the biological homogeneity index (BHI, see also <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1590054/'>paper</a>)<br/>

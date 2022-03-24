@@ -103,8 +103,8 @@ Now we run the clustering again with the optimal parameters
 First, we run the variance-sensitive method
 
 ``` {r}
-  
-  
+
+
 #### Run clustering (VSClust and standard fcm clustering
 ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=T, cores)
 Bestcl <- ClustOut$Bestcl
@@ -145,6 +145,10 @@ We now will look for the KEGG pathways that are found to be enriched in each of 
 protnames <- rownames(VSClust_cl$membership)
 names(protnames) <- protnames
 
-runFuncEnrich(VSClust_cl, dat, protnames, "UNIPROT_ACCESSION", "KEGG_PATHWAY")
+enriched <- runFuncEnrich(VSClust_cl, dat, protnames, "UNIPROT_ACCESSION", "KEGG_PATHWAY")
+x <- enriched$fullFuncs
+y <- enriched$redFuncs
+BHI <- enriched$BHI
+dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10)
 
 ```

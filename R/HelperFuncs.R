@@ -321,7 +321,6 @@ SignAnal <- function(Data,NumCond,NumReps) {
 #' @export
 calcBHI <- function(Accs,gos) {
   ## enrichment does not yield all GO terms! This could lead to problems
-  #  Rprof(tmp <- tempfile())
   BHI <- sumcomb <- vector("integer",length(Accs))
   names(BHI) <- names(Accs)
   goData <- as.data.frame(gos@compareClusterResult)
@@ -332,20 +331,13 @@ calcBHI <- function(Accs,gos) {
     clgroup <- goData[goData$Cluster==i,"geneID"]
     for (j in 1:length(clgroup)) {
       tgenes <- genes[na.omit(match(unlist(strsplit(clgroup[j],"/"),use.names=F),as.character(genes)))]
-      # print(tgenes)
       ltgenes <- length(tgenes)
       if (ltgenes > 1) {
         for (i1 in tgenes[1:(ltgenes-1)]) {
-          # print(i1)
           ttgene <- tgenes[(which(i1==tgenes)+1):ltgenes]
-          # for (i2 in tgenes[ttgene:ltgenes]) {
-          # print(paste(tgenes[i1],tgenes[i2]))
-          # ispair[i1,i2] <- ispair[i2,i1] <- T
           ispair[i1,ttgene] <- ispair[ttgene,i1] <- T
-          # }
         }
-        # combs <- combn(tgenes,2)
-        
+
       }
       # print(tgenes)
     }
@@ -539,13 +531,13 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   par(mar=par("mar")/max(1,NClust/20))
   
   ## Plot results
-  vs_filename <- NULL
-  if (VSClust) {
-    vs_filename <- "VSClust_New_Clusters.pdf"
-  } else {
-    vs_filename <- "VSClust_Std_Clusters.pdf"
-  }
-  mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy", filename = vs_filename)
+  # vs_filename <- NULL
+  # if (VSClust) {
+  #   vs_filename <- "VSClust_New_Clusters.pdf"
+  # } else {
+  #   vs_filename <- "VSClust_Std_Clusters.pdf"
+  # }
+  # mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy", filename = vs_filename)
   mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy")
   p <- recordPlot()
   # par(lwd=1,mar=oldmar)
@@ -603,18 +595,19 @@ runFuncEnrich <- function(cl, dat, protnames, idtypes, infosource) {
                           david.user = "veits@bmb.sdu.dk"))
   validate(need(!is.null(x),"No result. Wrong ID type?"))
   if (!is.null(getDefaultReactiveDomain()))
-      incProgress(0.7, detail = "received")
+    incProgress(0.7, detail = "received")
   print("got it")
   x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
-  print(x@compareClusterResult)
+  # print(x@compareClusterResult)
   y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
   if (length(unique(y@compareClusterResult$ID)) > 20) {
     print("Reducing number of DAVID results")
     y@compareClusterResult <- y@compareClusterResult[
       order(y@compareClusterResult$p.adjust)[1:20],]
+    
     y@compareClusterResult$Cluster <- as.character(y@compareClusterResult$Cluster)
-    print(x)
   }
+
   BHI <- calcBHI(Accs,x)
   return(list(fullFuncs=x, redFuncs=y, BHI=BHI))
   
@@ -709,7 +702,7 @@ mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels
       for (jj in 1:(length(colorseq) - 1)) {
         tmpcol <- (tmpmem >= colorseq[jj] & tmpmem <= 
                      colorseq[jj + 1])
-
+        
         if (sum(tmpcol, na.rm=T) > 0) {
           tmpind <- which(tmpcol)
           for (k in 1:length(tmpind)) {
