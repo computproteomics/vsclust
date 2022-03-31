@@ -202,7 +202,8 @@ SwitchOrder <- function(Bestcl,NClust) {
 #' Running VSClust on given data set (with data pre-processing)
 #' @import parallel
 #' @export
-ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
+ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cl=cl) {
+  print(class(cl))
   D<-ncol(tData)
   d<-sqrt(D/2)
   dims<-dim(tData)
@@ -225,10 +226,11 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cores=1) {
   if (m[which.max(Sds)]== mm) 
     m[1:length(m)] <- mm
   
-  cl <- makeCluster(cores)
-  clusterExport(cl=cl,varlist=c("tData","NClust","m","vsclust_algorithm"),envir=environment())
-  clusterEvalQ(cl=cl, library(vsclust))  
-  #clusterEvalQ(cl=cl, library(Biobase))  
+  # Moved the parallelization out as way too slow 
+#  cl <- makeCluster(cores)
+  #  clusterExport(cl=cl,varlist=c("tData","NClust","m","vsclust_algorithm"),envir=environment())
+  clusterExport(cl=cl,varlist=c("tData","NClust","m"),envir=environment())
+  #  clusterEvalQ(cl=cl, library(vsclust))  
   cls <- parLapply(cl,1:NSs, function(x) vsclust_algorithm(tData,NClust,m=m,verbose=F,iter.max=1000))
   #print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
@@ -427,8 +429,9 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
 
 #' Wrapper for estimation of cluster number
 #' @import limma
+#' @import parallel
 #' @importFrom shiny getDefaultReactiveDomain incProgress
-#' @importFrom matrixStats rowMaxs
+#' @importFrom matrixStats rowMaxs 
 #' @export
 estimClustNum<- function(dat, maxClust=25, cores=1) {
   ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
@@ -439,7 +442,13 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   # PExpr.r <- filter.NA(PExpr, thres = 0.25)
   # PExpr <- fill.NA(PExpr.r,mode = "mean")
   # tmp <- filter.std(PExpr,min.std=0,visu=F)
+
+  # define parallelization
+  cl <- makeCluster(cores)
+  clusterExport(cl=cl,varlist=c("vsclust_algorithm"),envir=environment())
+  clusterEvalQ(cl=cl, library(vsclust))  
   
+    
   # Standardise
   # PExpr2 <- standardise(PExpr)
   tData <- t(scale(t(tData)))
@@ -451,10 +460,13 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
     } else {
       print(paste("Running cluster number",x))
     }
-    clustout <- ClustComp(tData,NClust=x,Sds=sds,NSs=16, cores)
+    clustout <- ClustComp(tData,NClust=x,Sds=sds,NSs=16, cl)
     c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
       sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
   })
+  
+  stopCluster(cl)
+  
   for (NClust in 3:maxClust) 
     ClustInd[NClust,] <- multiOut[[NClust-2]]
   
@@ -492,6 +504,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
 }
 
 #' Wrapper for clustering
+#' @import parallel
 #' @importFrom shiny getDefaultReactiveDomain incProgress
 #' @importFrom matrixStats rowMaxs
 #' @export
@@ -507,8 +520,15 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   #Standardize
   tData <- t(scale(t(tData)))
   
+  cl <- makeCluster(cores)
+  clusterExport(cl=cl,varlist=c("vsclust_algorithm"),envir=environment())
+  clusterEvalQ(cl=cl, library(vsclust))  
   
-  clustout <- ClustComp(tData,NClust=NClust,Sds=dat[rownames(tData),ncol(dat)],NSs=16, cores)
+  
+  clustout <- ClustComp(tData,NClust=NClust,Sds=dat[rownames(tData),ncol(dat)],NSs=16, cl)
+  stopCluster(cl)
+  
+  
   if (VSClust) {
     Bestcl <- clustout$Bestcl
   } else {
