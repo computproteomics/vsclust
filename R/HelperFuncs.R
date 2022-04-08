@@ -203,7 +203,6 @@ SwitchOrder <- function(Bestcl,NClust) {
 #' @import parallel
 #' @export
 ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cl=cl) {
-  print(class(cl))
   D<-ncol(tData)
   d<-sqrt(D/2)
   dims<-dim(tData)
@@ -229,14 +228,14 @@ ClustComp <- function(tData,NSs=10,NClust=NClust,Sds=Sds, cl=cl) {
   # Moved the parallelization out as way too slow 
 #  cl <- makeCluster(cores)
   #  clusterExport(cl=cl,varlist=c("tData","NClust","m","vsclust_algorithm"),envir=environment())
-  clusterExport(cl=cl,varlist=c("tData","NClust","m"),envir=environment())
+ clusterExport(cl=cl,varlist=c("tData","NClust","m"),envir=environment())
   #  clusterEvalQ(cl=cl, library(vsclust))  
   cls <- parLapply(cl,1:NSs, function(x) vsclust_algorithm(tData,NClust,m=m,verbose=F,iter.max=1000))
-  #print(cls[[1]])
+  # cls <- lapply(1:NSs, function(x) vsclust_algorithm(tData,NClust,m=m,verbose=F,iter.max=1000))  #print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   cls <- parLapply(cl,1:NSs, function(x) vsclust_algorithm(tData,NClust,m=mm,verbose=F,iter.max=1000))
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  stopCluster(cl)
+  # stopCluster(cl)
   
   # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
@@ -446,7 +445,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   # define parallelization
   cl <- makeCluster(cores)
   clusterExport(cl=cl,varlist=c("vsclust_algorithm"),envir=environment())
-  clusterEvalQ(cl=cl, library(vsclust))  
+  clusterEvalQ(cl=cl, library(vsclust))
   
     
   # Standardise
@@ -460,7 +459,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
     } else {
       print(paste("Running cluster number",x))
     }
-    clustout <- ClustComp(tData,NClust=x,Sds=sds,NSs=16, cl)
+    clustout <- ClustComp(tData,NClust=x,Sds=sds,NSs=16, cl=cl)
     c(clustout$indices,sum(rowMaxs(clustout$Bestcl$membership)>0.5),
       sum(rowMaxs(clustout$Bestcl2$membership)>0.5))
   })
@@ -522,10 +521,10 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=T, cores) {
   
   cl <- makeCluster(cores)
   clusterExport(cl=cl,varlist=c("vsclust_algorithm"),envir=environment())
-  clusterEvalQ(cl=cl, library(vsclust))  
+  clusterEvalQ(cl=cl, library(vsclust))
   
   
-  clustout <- ClustComp(tData,NClust=NClust,Sds=dat[rownames(tData),ncol(dat)],NSs=16, cl)
+  clustout <- ClustComp(tData,NClust=NClust,Sds=dat[rownames(tData),ncol(dat)],NSs=16, cl=cl)
   stopCluster(cl)
   
   

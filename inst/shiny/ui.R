@@ -59,7 +59,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                              value = "stat"),
                     tabPanel("Estimation of cluster number",id="test",br(),inputPanel(
                       p("Maximum number of clusters for estimation:"),
-                      sliderInput("maxclust",min=3,max=40,value=25,label=NULL, step=1),
+                      sliderInput("maxclust",min=3,max=40,value=20,label=NULL, step=1),
                       actionButton("clButton1","Estimate parameters")),hr(),
                       div(plotOutput("plot1",height=600),class="shiny-myframe"), 
                       downloadButton('downloadParamEst', 'Download cluster figure'),br(),

@@ -226,16 +226,15 @@ static void
           // only allow calculation if current value is not missing
           if(!missing_vals(object_nr, feature_nr)) {
             // numerator: sum(denominator * feature values)
-            // missing_values ->  numerator * (1-missing value ratio)
             centers(center_nr, feature_nr) += v * feature_mat(object_nr, feature_nr);
-            //centers(center_nr, feature_nr) += v * feature_mat(object_nr, feature_nr);
           }
         }
         
       }
+      sum = 1.0/sum;
       for(int feature_nr = 0; feature_nr < nr_features; feature_nr++) {
         // new center: numerator / denominator
-        centers(center_nr, feature_nr) /= sum;
+        centers(center_nr, feature_nr) *= sum;
       }
     }
   }
@@ -335,11 +334,9 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
   
   LogicalMatrix missing_vals(nr_objects, nr_features);
   NumericVector ratio_missing_vals(nr_objects);
-  
   fill_missing_vals_and_ratio(feature_mat, missing_vals, ratio_missing_vals, missing_value);
 
   double old_fitness, new_fitness;
-  
   
   NumericMatrix dist_mat = cmeans_setup(nr_objects, nr_centers, dist_metric);
   
@@ -351,6 +348,7 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
   cmeans_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
   
   // calculate fitness: J(c, m) -> see literature
+  
   old_fitness = new_fitness = cmeans_error_fn(membership_mat, dist_mat, weight,
                                               nr_objects, nr_centers, fuzz);
   
