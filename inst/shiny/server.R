@@ -3,6 +3,7 @@ library(vsclust)
 library(shinyjs)
 library(clusterProfiler)
 library(jsonlite)
+library(matrixStats)
 library(DT)
 
 validate <- shiny::validate
@@ -96,43 +97,43 @@ shinyServer(function(input, output,clientData,session) {
   observe({
     if (!is.null(input$extdata)) {
       isolate({
-#        withProgress(message="Gathering external data ...", value="please wait",  {
-          jsonmessage <- fromJSON(input$extdata)
-          # Loading parameters
-          NumCond <- jsonmessage[["numcond"]]
-          NumReps <- jsonmessage[["numrep"]]
-          isPaired <- jsonmessage[["paired"]]
-          isGrouped <- jsonmessage[["grouped"]]
-          hasProtnames <- jsonmessage[["modsandprots"]]
-          # reading data matrix
-          expr_matr <- jsonmessage[["expr_matrix"]]
-          first_col <- ifelse(hasProtnames,3,2)
-          output$fileInText <- renderText({
-            validate(need(!is.null(expr_matr), "Uploaded data empty"))
-            validate(need(length(expr_matr)>1, "Uploaded data does not contain multiple samples"))
-            validate(need(sum(duplicated(expr_matr[[1]]),na.rm=T)==0,"Duplicated feature names in first column!"))
-            tdat <- matrix(NA,nrow=length(expr_matr[[1]]),ncol=length(expr_matr)-first_col+1,dimnames=list(rows=expr_matr[[1]], cols=names(expr_matr)[first_col:length(expr_matr)]))
-            for (i in first_col:length(expr_matr)) {
-                            validate(need(length(expr_matr[[i]]) == nrow(tdat),
-                            paste("Wrong array length of sample", names(expr_matr)[i])))
-              tdat[,i-first_col+1] <- as.numeric(expr_matr[[i]])
-              
-            }
-            validate(need(is.numeric(tdat),"The uploaded data table contains non-numerical values!"))
-            if (hasProtnames) {
-              tdat <- data.frame(expr_matr[[2]],tdat)
-            }
-            v$example <- F
-            v$dat <- tdat
-            updateNumericInput(session,"NumCond",value=NumCond)
-            updateNumericInput(session,"NumReps",value=NumReps)
-            updateCheckboxInput(session, "isPaired", value=isPaired)
-            updateCheckboxInput(session, "qcol_order", value=isGrouped)
-            updateCheckboxInput(session, "protnames", value=hasProtnames)
-            return(paste("Loaded external data"))
-          })
-          
- #       })
+        #        withProgress(message="Gathering external data ...", value="please wait",  {
+        jsonmessage <- fromJSON(input$extdata)
+        # Loading parameters
+        NumCond <- jsonmessage[["numcond"]]
+        NumReps <- jsonmessage[["numrep"]]
+        isPaired <- jsonmessage[["paired"]]
+        isGrouped <- jsonmessage[["grouped"]]
+        hasProtnames <- jsonmessage[["modsandprots"]]
+        # reading data matrix
+        expr_matr <- jsonmessage[["expr_matrix"]]
+        first_col <- ifelse(hasProtnames,3,2)
+        output$fileInText <- renderText({
+          validate(need(!is.null(expr_matr), "Uploaded data empty"))
+          validate(need(length(expr_matr)>1, "Uploaded data does not contain multiple samples"))
+          validate(need(sum(duplicated(expr_matr[[1]]),na.rm=T)==0,"Duplicated feature names in first column!"))
+          tdat <- matrix(NA,nrow=length(expr_matr[[1]]),ncol=length(expr_matr)-first_col+1,dimnames=list(rows=expr_matr[[1]], cols=names(expr_matr)[first_col:length(expr_matr)]))
+          for (i in first_col:length(expr_matr)) {
+            validate(need(length(expr_matr[[i]]) == nrow(tdat),
+                          paste("Wrong array length of sample", names(expr_matr)[i])))
+            tdat[,i-first_col+1] <- as.numeric(expr_matr[[i]])
+            
+          }
+          validate(need(is.numeric(tdat),"The uploaded data table contains non-numerical values!"))
+          if (hasProtnames) {
+            tdat <- data.frame(expr_matr[[2]],tdat)
+          }
+          v$example <- F
+          v$dat <- tdat
+          updateNumericInput(session,"NumCond",value=NumCond)
+          updateNumericInput(session,"NumReps",value=NumReps)
+          updateCheckboxInput(session, "isPaired", value=isPaired)
+          updateCheckboxInput(session, "qcol_order", value=isGrouped)
+          updateCheckboxInput(session, "protnames", value=hasProtnames)
+          return(paste("Loaded external data"))
+        })
+        
+        #       })
       })
     }
   })
@@ -215,10 +216,14 @@ shinyServer(function(input, output,clientData,session) {
         # file to download q-values
         output$downloadDataLimma <- downloadHandler(
           filename = function() {
-            paste("LimmaResults", Sys.Date(), ".csv", sep="");
+            paste("LimmaResults", Sys.Date(), ifelse(input$limma_tsv,".tsv",".csv"), sep="");
           },
           content = function(file) {
-            write.csv(statOut$statFileOut, file)
+            if (input$limma_tsv) {
+              write.table(statOut$statFileOut, file, sep="\t", quote=F) 
+            } else {
+              write.csv(statOut$statFileOut, file)
+            }
           })
       })
     }
@@ -276,18 +281,27 @@ shinyServer(function(input, output,clientData,session) {
             
             output$downloadData2 <- downloadHandler(
               filename = function() {
-                paste("FCMVarMResults", Sys.Date(), ".csv", sep="");
+                paste("FCMVarMResults", Sys.Date(), ifelse(input$clustvar_tsv,".tsv",".csv"), sep="");
               },
               content = function(file) {
-                write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                                     Bestcl$membership), file)
+                if (input$clustvar_tsv) {
+                  write.table(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                     Bestcl$membership), file, quote=F, sep="\t")
+                } else {
+                  write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                       Bestcl$membership), file)
+                }
               })
             output$downloadCentroid2 <- downloadHandler(
               filename = function() {
-                paste("FCMVarMResultsCentroids", Sys.Date(), ".csv", sep="");
+                paste("FCMVarMResultsCentroids", Sys.Date(), ifelse(input$clustvar_tsv,".tsv",".csv"), sep="");
               },
               content = function(file) {
-                write.csv(Bestcl$centers, file)
+                if (input$clustvar_tsv) {
+                  write.table(Bestcl$centers, file, quote=F, sep="\t")
+                } else {
+                  write.csv(Bestcl$centers, file)
+                }
               })
             output$clustinf1 <- DT::renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
@@ -322,18 +336,28 @@ shinyServer(function(input, output,clientData,session) {
             
             output$downloadData3 <- downloadHandler(
               filename = function() {
-                paste("FCMResults", Sys.Date(), ".csv", sep="");
+                paste("FCMResults", Sys.Date(), ifelse(input$cluststd_tsv,".tsv",".csv"), sep="");
               },
               content = function(file) {
-                write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                                     Bestcl$membership), file)
+                if (input$cluststd_tsv) {
+                  write.table(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                     Bestcl$membership), file, quote=F, sep="\t")
+                } else {
+                  write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                                       Bestcl$membership), file)
+                  
+                }
               })
             output$downloadCentroid3 <- downloadHandler(
               filename = function() {
-                paste("FCMResultsCentroids", Sys.Date(), ".csv", sep="");
+                paste("FCMResultsCentroids", Sys.Date(), ifelse(input$cluststd_tsv,".tsv",".csv"), sep="");
               },
               content = function(file) {
-                write.csv(Bestcl$centers, file)
+                if (input$cluststd_tsv) {
+                  write.table(Bestcl$centers, file, quote=F, sep="\t")
+                } else {
+                  write.csv(Bestcl$centers, file)
+                }
               })
             output$clustinf2 <- DT::renderDataTable(as.data.frame(ClustOut$ClustInd))
           })
