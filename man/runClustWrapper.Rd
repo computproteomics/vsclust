@@ -2,10 +2,30 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{runClustWrapper}
 \alias{runClustWrapper}
-\title{Wrapper for clustering}
+\title{Wrapper for running cluster analysis}
 \usage{
 runClustWrapper(dat, NClust, proteins = NULL, VSClust = T, cores)
 }
+\arguments{
+\item{dat}{matrix or data frame with feature values for different conditions}
+
+\item{NClust}{Number of cluster for running the clustering}
+
+\item{proteins}{vector with additional feature information (default is NULL) to be added to the results}
+
+\item{VSClust}{boolean. TRUE for running the variance-sensitive clustering. Otherwise, the function will call standard fuzzy c-means clustering}
+
+\item{cores}{Number of threads for the parallelization}
+}
+\value{
+list with the items `dat`(the original data), `Bestcl` clustering results (same as from vsclust_algorithm), `p` (plot object with mfuzz plots), `outFileClust`(suitable matrix with complete information) , `ClustInd` (information about being member of any cluster, feature needs on membership values > 0.5)
+}
 \description{
-Wrapper for clustering
+This function runs the clustering and visualizes the results.
+}
+\examples{
+data(iris)
+data <- cbind(iris[,1:4],1)
+clust_out <- runClustWrapper(data, NClust=3, cores=1)
+clust_out$p
 }

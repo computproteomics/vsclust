@@ -2,10 +2,52 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{ClustComp}
 \alias{ClustComp}
-\title{Running VSClust on given data set (with data pre-processing)}
+\title{Function to run clustering}
 \usage{
-ClustComp(tData, NSs = 10, NClust = NClust, Sds = Sds, cores = 1)
+ClustComp(dat, NSs = 10, NClust = NClust, Sds = Sds, cl = cl)
+}
+\arguments{
+\item{dat}{a numeric data matrix}
+
+\item{NSs}{number of clusterings runs with different random seeds}
+
+\item{NClust}{Number of clusters}
+
+\item{Sds}{Standard deviation of features (either vector of the same length as features numbers in matrix or single value)}
+
+\item{cl}{object of class `cluster` or `SOCKcluster` to specify environment for parallelization}
+}
+\value{
+List containing the objects
+
+`indices` containing minimum centroid distance and Xie-Beni index for both clustering methods
+
+`Bestcl` optimal vsclust results (variance-sensitive fcm clustering)
+
+`Bestcl2` optimal fuzzy c-means restults
+
+`m` vector of individual fuzzifer values per feature
+
+`withinerror` final optimization score for vsclust
+
+`withinerror2` final optimization score for fuzzy c-means clustering
 }
 \description{
-Running VSClust on given data set (with data pre-processing)
+Run original fuzzy c-means and vsclust for a number of clusters and the given data set including data pre-processing and
+automatic setting of the data-dependent parameters like the lower limit of the fuzzifier.
+}
+\examples{
+#' # Generate some random data
+data <- matrix(rnorm(1:1000), nrow=100)
+# Run clustering
+cl <- parallel::makePSOCKcluster(1, nnodes=1)
+ClustCompOut <- ClustComp(data, cl=cl, NClust=10, Sds=1)
+barplot(ClustCompOut$indices)
+}
+\references{
+Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+
+Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+
+Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
 }

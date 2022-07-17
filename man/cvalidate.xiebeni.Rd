@@ -2,12 +2,12 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{cvalidate.xiebeni}
 \alias{cvalidate.xiebeni}
-\title{Calculate the Xie Beni index for validation of the cluster number}
+\title{Xie Beni Index of clustering object}
 \usage{
 cvalidate.xiebeni(clres, m)
 }
 \arguments{
-\item{clres}{Output from clustering. Either fclust object or similar list}
+\item{clres}{Output from clustering. Either fclust object or list containing the objects for `membership` and cluster `centers`}
 
 \item{m}{Fuzzifier value}
 }
@@ -15,8 +15,17 @@ cvalidate.xiebeni(clres, m)
 Xie Beni index
 }
 \description{
-Calculate the Xie Beni index for validation of the cluster number
+Calculate the Xie Beni index for validity of the cluster number in clustering results from running fuzzy c-means or vsclust
+original publication:
 }
 \examples{
-TODO
+# Generate some random data
+data <- matrix(rnorm(1:1000), nrow=100)
+# Run clustering
+clres <- vsclust_algorithm(data, centers=10, m=1.5)
+# Calculate Xie-Beni index from results
+cvalidate.xiebeni(clres, 1.5)
+}
+\references{
+Xie X.L., Beni G. (1991). A validity measure for fuzzy clustering, IEEE Transactions on Pattern Analysis and Machine Intelligence, 13, 841-847.
 }

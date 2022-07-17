@@ -2,10 +2,38 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{statWrapper}
 \alias{statWrapper}
-\title{Wrapper for statistical testing}
+\title{Wrapper for statistical analysis}
 \usage{
 statWrapper(dat, NumReps, NumCond, isPaired = F, isStat)
 }
+\arguments{
+\item{dat}{matrix or data frame of numerical data. Columns are samples. Replicates are grouped (i.e. A1, B1, C1, A2, B2, C2) when letters denote conditions and numbers the replicates. In case of `isStat=F`, you need a last column for the standard deviations}
+
+\item{NumReps}{Number replicates in the data}
+
+\item{NumCond}{Number of different experimental conditions. The total number of columns needs to be NumReps*NumCond}
+
+\item{isPaired}{Boolean for running paired or unpaired statistical tests}
+
+\item{isStat}{Boolean for whether to run statistical test or each column corresponds to a different experimental conditions. Then this function reads feature standard deviations from data frame from the last column}
+}
+\value{
+list with the items `dat` (data matrix of features averaged over replicates and last column with their standard deviations), `qvals` FDRs from the statistical tests (each conditions versus the first), `StatFileOut` all of before for saving in file
+}
 \description{
-Wrapper for statistical testing
+Prepare data for running vsclust clustering. 
+This includes visualization runnig the functions for the principal component analysis and its visualization, 
+statistical testing with LIMMA, as well as scaling and filtering of missing values
+}
+\examples{
+data <- matrix(rnorm(2000), nrow=200)
+stats <- statWrapper(data, 5, 2, isStat=TRUE)
+
+}
+\references{
+Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+
+Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+
+Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
 }

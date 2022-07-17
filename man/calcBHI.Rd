@@ -2,10 +2,50 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{calcBHI}
 \alias{calcBHI}
-\title{Calculate "biological homogeneity index" from GO terms and uniprot accessn names}
+\title{Calculate "biological homogeneity index"}
 \usage{
 calcBHI(Accs, gos)
 }
+\arguments{
+\item{Accs}{list containing gene or protein IDs, such as UniProt accession 
+names}
+
+\item{gos}{object from ClusterProfiler}
+}
+\value{
+Biological Homogeneity Index
+}
 \description{
-Calculate "biological homogeneity index" from GO terms and uniprot accessn names
+This index is providing a number for the enriched GO terms and pathways to 
+assess the biological content within a set of genes or proteins. 
+The calculation is according to Datta, S. & Datta, S. Methods for evaluating 
+clustering algorithms for gene expression data using a reference set of 
+functional classes. BMC bioinformatics 7, 397 (2006).
+}
+\examples{
+# Run enrichment analysis
+library(clusterProfiler)
+data(gcSample)
+xx <- compareCluster(gcSample, fun="enrichKEGG",
+                     organism="hsa", pvalueCutoff=0.05)
+# Generate random list from gcSample
+rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))
+calcBHI(rand_ids, xx)
+}
+\references{
+Datta, S. & Datta, S. Methods for evaluating 
+clustering algorithms for gene expression data using a reference set of 
+functional classes. BMC bioinformatics 7, 397 (2006).
+
+Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering 
+of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. 
+doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+
+Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and 
+the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. 
+doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+
+Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters 
+for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. 
+doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
 }

@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-#TODO: make pdf figures work again. This p object does not want to make it anymore, probably due to the graphics.off function
-
 ## Initialization ### 
 library(vsclust)
 library(yaml)

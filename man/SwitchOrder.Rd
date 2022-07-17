@@ -2,10 +2,15 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{SwitchOrder}
 \alias{SwitchOrder}
-\title{switch cluster numbers from largest to smallest}
+\title{arrange cluster member numbers from largest to smallest}
 \usage{
 SwitchOrder(Bestcl, NClust)
 }
+\arguments{
+\item{Bestcl}{fclust object}
+
+\item{NClust}{Number of clusters}
+}
 \description{
-switch cluster numbers from largest to smallest
+arrange cluster member numbers from largest to smallest
 }

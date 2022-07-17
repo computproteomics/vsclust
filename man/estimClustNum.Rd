@@ -6,6 +6,25 @@
 \usage{
 estimClustNum(dat, maxClust = 25, cores = 1)
 }
+\arguments{
+\item{dat}{matrix of features averaged over replicates. The last column contains their standard deviation}
+
+\item{maxClust}{Maximal number of cluster. The minimum is 3}
+
+\item{cores}{The number of threads to be used for parallelisation}
+}
+\value{
+list with the items `ClustInd`: list of clustering objects for each number of clusters, `p` plot object with plots for validity indices, `numclust` optimal cluster number according to "minimum centroid distance"
+}
 \description{
-Wrapper for estimation of cluster number
+This runs the clustering for different numbers of clusters, and estimates the most suitable numbers from applying
+the minimum centroid distance and the Xie Beni index. Multi-threading is used to shorten the computation times. 
+Given the hierarchical structure of many data sets, the resulting 
+numbers are suggestions. Inspection of the here plotted indices help to determine alternative cluster numbers, 
+given by a strong decay of the minimum centroid distance and/or a low value of the Xie Beni index.
+}
+\examples{
+data <- matrix(rnorm(1000), nrow=100)
+estim_out <- estimClustNum(data, maxClust=10)
+estim_out$p
 }

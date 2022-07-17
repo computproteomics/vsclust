@@ -25,6 +25,8 @@ vsclust_algorithm(
 
 \item{verbose}{Verbose information}
 
+\item{dist}{Distance to use for the calculation. We prefer "euclidean" (default)}
+
 \item{m}{Fuzzifier value: numeric or vector of length equal to number of rows of x}
 
 \item{rate.par}{(experimental) numeric value for punishing missing values}
@@ -34,11 +36,23 @@ vsclust_algorithm(
 \item{control}{list with arguments to vsclust algorithms (now only cutoff for relative tolerance: reltol)}
 }
 \value{
-Xie Beni index
+list with details about clustering having the objects `centers` (positions of centroids), `size` (feature number per cluster), `cluster` (nearest cluster of each feature), `membership` matrix of membership values, `iter` (number of carried out iterations), `withinerror` (final error from optimization), `call`(call of function)
 }
 \description{
-Run the vsclust clustering algorithm
+This function calls the c++ implementation of the vsclust algorithm, being an extension of fuzzy c-means
+clustering with additional variance control and capability to run on data with missing values
 }
 \examples{
-TODO
+#' # Generate some random data
+data <- matrix(rnorm(1:1000), nrow=100)
+# Run clustering
+clres <- vsclust_algorithm(data, centers=10, m=1.5)
+head(clres$membership)
+}
+\references{
+Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+
+Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+
+Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
 }
