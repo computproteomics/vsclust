@@ -35,6 +35,9 @@ mfuzz.plot(
 
 \item{ylab}{Label of y-axis}
 }
+\value{
+Multiple panels showing expression profiles of clustered features passing the min.mem threshold
+}
 \description{
 This function visualizes the clustered quantitative profiles in multiple figure panels. The parameters allow specifying the main 
 items like axes labels and color maps. The code is adopted from the MFuzz package.

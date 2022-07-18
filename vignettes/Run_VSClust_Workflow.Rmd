@@ -43,7 +43,7 @@ A. Data sets with different numbers of replicates per condition need to be adapt
 
 B. We assume the input data to be of the following format: A1, B1, C1, ..., A2, B2, C2, ..., where letters denote sample type and numbers are the different replicates.
 
-C. If you prefer to estimate feature variance different, use averages and add an estimate for the standard deviation as last column. You will need to set the last option of `statWrapper` to `FALSE`. 
+C. If you prefer to estimate feature variance different, use averages and add an estimate for the standard deviation as last column. You will need to set the last option of `PreparedForVSClust` to `FALSE`. 
 
 D. If you don't have replicates, use the same format as in C. and set the standard deviations to 1. 
 
@@ -81,7 +81,7 @@ Understand more about the data set with `?protein_expressions`
 
 This will calculate the false discovery rates for the differentially regulated features (pairwise comparisons versus the first "high fat" condition) and most importantly, their expected individual variances, to be used in the variance-sensitive clustering. These variances can also be uploaded separately via a last column containing them as individual standard deviations.
 
-The `statWrapper` function also creates a PCA plot to assess variability and control whether the samples have been loaded correctly (replicated samples should form groups).
+The `PrepareForVSClust` function also creates a PCA plot to assess variability and control whether the samples have been loaded correctly (replicated samples should form groups).
 
 After estimating the standard deviations, the matrix consists of the averaged quantitative feature values and a last column for the standard deviations of the features.
 
@@ -91,7 +91,7 @@ data(protein_expressions)
 dat <- protein_expressions
 
 #### running statistical analysis and estimation of individual variances
-statOut <- statWrapper(dat, NumReps, NumCond, isPaired, TRUE)
+statOut <- PrepareForVSClust(dat, NumReps, NumCond, isPaired, TRUE)
 
 dat <- statOut$dat
 Sds <- dat[,ncol(dat)]
@@ -108,20 +108,23 @@ write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
 
 There is no simple way to find the optimal number of clusters in a data set. For obtaining this number, we run the clustering for different cluster numbers and evaluate them via so-called validity indices, which provide information about suitable cluster numbers. VSClust uses mainly the "Maximum centroid distances" that denotes the shortest distance between any of the centroids. Alternatively, one can inspect the Xie Beni index.
 
-The output of `estimClustNum` contains the suggestion for the number of clusters, the visualization of the two used validity indices, and the data used for the plots.
+The output of `estimClustNum` contains the suggestion for the number of clusters, , and the data used for the plots.
 
+We further visualize the outcome.
 ```{r fig.width = 12}
 
 #### Estimate number of clusters with maxClust as maximum number clusters to run 
 #### the estimation with
-clustNumOut <- estimClustNum(dat, maxClust, cores)
+ClustInd <- estimClustNum(dat, maxClust, cores)
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
-  PreSetNumClustVSClust <- clustNumOut$numclust
+  PreSetNumClustVSClust <- optimalClustNum(ClustInd)
 if (PreSetNumClustStand == 0)
-  PreSetNumClustStand <- clustNumOut$numclust
-clustNumOut$p
+  PreSetNumClustStand <- optimalClustNum(ClustInd, method="FCM")
+#### Visualize
+  estimClust.plot(ClustInd)
+
 
 
 ```
@@ -186,7 +189,7 @@ Enrichment results are retrieved and visualized with function from `clusterProfi
 protnames <- rownames(VSClust_cl$membership)
 names(protnames) <- protnames
 
-enriched <- runFuncEnrich(VSClust_cl, dat, protnames, "UNIPROT_ACCESSION", "KEGG_PATHWAY")
+enriched <- runFuncEnrich(VSClust_cl, protnames, "UNIPROT_ACCESSION", "KEGG_PATHWAY")
 x <- enriched$fullFuncs
 y <- enriched$redFuncs
 BHI <- enriched$BHI

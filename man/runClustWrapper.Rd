@@ -4,7 +4,7 @@
 \alias{runClustWrapper}
 \title{Wrapper for running cluster analysis}
 \usage{
-runClustWrapper(dat, NClust, proteins = NULL, VSClust = T, cores)
+runClustWrapper(dat, NClust, proteins = NULL, VSClust = TRUE, cores)
 }
 \arguments{
 \item{dat}{matrix or data frame with feature values for different conditions}

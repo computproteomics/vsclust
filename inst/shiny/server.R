@@ -187,17 +187,17 @@ shinyServer(function(input, output,clientData,session) {
         NumCond <- input$NumCond
         print(NumReps)
         print(NumCond)
-        if(!input$qcol_order) {
-          dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
-        }
         
         dat[!is.finite(as.matrix(dat))] <- NA
         num_miss <- sum(is.na(dat))
         if (input$isStat) {
           validate(need(ncol(dat)==NumReps*NumCond, "Number of data columns must correspond to product of conditions and replicates!"))
+          if(!input$qcol_order) {
+            dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
+          }
         }
         fulldat <- dat
-        validate(need(try(statOut <- statWrapper(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
+        validate(need(try(statOut <- PrepareForVSClust(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
                       "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
         
         dat <- statOut$dat
@@ -235,11 +235,12 @@ shinyServer(function(input, output,clientData,session) {
     isolate({
       if((input$clButton1)) {
         dat <- pars$dat
-        clustNumOut <- NULL
+        clustInd <- NULL
         withProgress(message="Calculating ...", min=3,max=maxClust, value=2,  {
-          clustNumOut <- estimClustNum(dat, input$maxclust, cores)
-          updateSliderInput(session,"nclust1",value=clustNumOut$numclust)
-          updateSliderInput(session,"nclust2",value=clustNumOut$numclust)
+          clustInd <- estimClustNum(dat, input$maxclust, cores)
+          estimClust.plot(clustInd)
+          updateSliderInput(session,"nclust1",value=optimalClustNum(clustInd))
+          updateSliderInput(session,"nclust2",value=optimalClustNum(clustInd, method="FCM"))
         })
         
         output$downloadParamEst <- downloadHandler(
@@ -248,7 +249,7 @@ shinyServer(function(input, output,clientData,session) {
           },
           content = function(file) {
             pdf(file,height=6,width=15)
-            print(clustNumOut$p)
+            estimClust.plot(clustInd)
             dev.off()  
           })
       }
@@ -286,7 +287,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 if (input$clustvar_tsv) {
                   write.table(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                                     Bestcl$membership), file, quote=F, sep="\t")
+                                         Bestcl$membership), file, quote=F, sep="\t")
                 } else {
                   write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
                                        Bestcl$membership), file)
@@ -341,7 +342,7 @@ shinyServer(function(input, output,clientData,session) {
               content = function(file) {
                 if (input$cluststd_tsv) {
                   write.table(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                                     Bestcl$membership), file, quote=F, sep="\t")
+                                         Bestcl$membership), file, quote=F, sep="\t")
                 } else {
                   write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
                                        Bestcl$membership), file)

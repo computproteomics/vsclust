@@ -3,8 +3,12 @@ Type: Package
 Title: Feature-based variance-sensitive quantitative clustering
 Version: 0.99.0
 Date: 2022-03-23
-Author: Veit Schwaemmle
-Maintainer: Veit Schwaemmle <veits@bmb.sdu.dk>
+Authors@R: 
+    person(
+        "Veit", "Schwämmle",
+        email = "veits@bmb.sdu.dk",
+        role = c("aut", "cre")
+    )
 Description: Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance. Includes several modules for statistical testing, clustering and enrichment analysis.
 License: GPL-2
 Imports: 
@@ -18,9 +22,10 @@ Imports:
   stats,
   graphics
 Suggests:
-  knitr,
-  yaml,
-  RDAVIDWebService
+    knitr,
+    yaml,
+    RDAVIDWebService,
+    testthat (>= 3.0.0)
 LinkingTo: Rcpp
 biocViews: 
   Clustering,
@@ -29,5 +34,7 @@ biocViews:
   DifferentialExpression,
   Visualization
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Depends: R (>= 4.2.0)
+Config/testthat/edition: 3
+LazyData: false

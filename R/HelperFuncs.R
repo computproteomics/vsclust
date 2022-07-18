@@ -23,6 +23,104 @@ erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
 erf.inv <- function(x) qnorm((x + 1)/2)/sqrt(2)
 
 
+#' Determine individual fuzzifier values
+#' 
+#' This function calculated the values of the fuzzifier from a) the dimensions 
+#' of the considered data set and b) 
+#' from the individual feature standard deviations.
+#' 
+#' @param dims vector of two integers containing the dimensions of the data matrix for the clustering
+#' @param NClust Number of cluster for running vsclust on (does no influence the calculation of `mm`)
+#' @param Sds individual standard deviations, set to 1 if not available
+#' @return list of `m`: individual fuzzifiers, `mm`: standard fuzzifier for fcm clustering when not using vsclust algorithm
+#' @examples
+#' # Generate some random data
+#' data <- matrix(rnorm(1:1000), nrow=100)
+#' # Estimate fuzzifiers
+#' fuzz_out <- determine_fuzz(dim(data), 1)
+#' # Run clustering
+#' clres <- vsclust_algorithm(data, centers=10, m=fuzz_out$mm)
+#' @export
+#' @references 
+#' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+#' 
+#' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+#' 
+#' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
+determine_fuzz <- function(dims, NClust, Sds = 1) {
+  D<-dims[2]
+  d<-sqrt(D/2)
+  mm <- 1 + (1418/dims[1] + 22.05)* dims[2]^(-2) + (12.33/dims[1] + 0.243) * 
+    dims[2]^(-0.0406*log(dims[1])-0.1134)
+  
+  ### d_i and d_t
+  difunc <- function(c,D) { x <- 0:c; sum(choose(c,x)/(x*D+1)*(-1)^x) }
+  
+  di <- difunc(NClust,D)  /sqrt(pi) * gamma(D/2+1)^(1/D)
+  dt <- (NClust)^(-1/D)
+  p <- dnorm(di,0,Sds) * (1-dnorm(dt,0,Sds))^(NClust-1)
+  
+  m <- mm + p*mm*(D/3-1)
+  m[m==Inf]<-0
+  m[m==0]<-NA
+  m[is.na(m)]<-mm*10
+  
+  ## If m for highest Sd is mm then all = mm
+  if (m[which.max(Sds)]== mm) 
+    m[seq_len(length(m))] <- mm
+  
+  return(list (m=m, mm=mm))
+  
+}
+
+
+#' Determine optimal cluster number from validity index
+#' 
+#' Calculated the optimal number from expected behavior of the indices. This would be a large decay for
+#' the Minimum Centroid Distance and a minimum for the Xie Beni index
+#' 
+#' @param ClustInd Output from estimClustNum providing the calculated cluster validity indices
+#' @param index Either "MinCentroidDist" or "XieBeni"
+#' @param method Either "VSClust" or "FCM" for standard fuzzy c-means clustering
+#' @return optimal cluster number
+#' @examples
+#'   data("artificial_clusters")
+#'   dat <- averageCond(artificial_clusters, 5, 10)
+#'   dat <- scale(dat)
+#' dat <- cbind(dat, 1)
+#' ClustInd <- estimClustNum(dat, 10)
+#' optimalClustNum
+#' @export
+#' @references 
+#' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+#' 
+#' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+#' 
+#' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
+optimalClustNum <- function(ClustInd, index="MinCentroidDist", method="VSClust") {
+  allowedInd <- c("XieBeni", "MinCentroidDist")
+  allowedMethod <- c("FCM", "VSClust")
+  if (!any(index == allowedInd)) {
+    stop(paste("index needs to be one of", paste(allowedInd, collapse=" ")))
+  }
+  if (!any(method == allowedMethod)) {
+    stop(paste("method needs to be one of", paste(allowedMethod, collapse = " ")))
+  }
+  
+  tClustInd <- ClustInd[, grep(index, colnames(ClustInd))]
+  tClustInd <- tClustInd[, grep(method, colnames(tClustInd))]
+  opt_val <- NULL
+  if (length(tClustInd) < 3) 
+    stop("Minimal length of ClustInd vector is 3")
+  if (index == "MinCentroidDist") {
+    opt_val <- which.max(tClustInd[seq_len(length(tClustInd)-1)]-tClustInd[2:length(tClustInd)])
+  } else if (index == "XieBeni") {
+    opt_val <- which.min(tClustInd[seq_len(length(tClustInd))])
+    
+  }
+  return(as.numeric(opt_val + 2))
+}
+
 
 #' Xie Beni Index of clustering object
 #' 
@@ -161,10 +259,13 @@ vsclust_algorithm <-
     
     u <- matrix(0.0,  nrow = xrows, ncol = ncenters)
     iter <- c(0L)
-    val <- vsclust:::c_plusplus_means(x, centers, weights, m, dist-1, iter.max, reltol, verbose, u , 1, iter, NA, rate.par)
+    val <- vsclust:::c_plusplus_means(x, centers, weights, m, dist-1, iter.max, 
+                                      reltol, verbose, u , 1, iter, NA, rate.par)
     # put modified values in retval
-    retval <- list(x=x, xrows = xrows, xcols = xcols, centers = centers,ncenters=ncenters, m = m, dist = dist -1,
-                   iter.max = iter.max, reltol = reltol, verbose = verbose, rate.par = rate.par, u = u, ermin = val, iter = iter)
+    retval <- list(x=x, xrows = xrows, xcols = xcols, centers = centers,
+                   ncenters=ncenters, m = m, dist = dist -1,
+                   iter.max = iter.max, reltol = reltol, verbose = verbose, 
+                   rate.par = rate.par, u = u, ermin = val, iter = iter)
     
     centers <- matrix(retval$centers, ncol = xcols,
                       dimnames = list(1 : ncenters,
@@ -231,7 +332,7 @@ print.fclust <-
 #' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
 #' 
 #' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
- 
+
 mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels, 
                         filename=NA,xlab="Time",ylab="Expression changes") 
 {
@@ -306,11 +407,11 @@ mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels
                      ylim = c(ymin, ymax), xlab = xlab, ylab = ylab, 
                      main = paste("Cluster", j), axes = FALSE)
         if (missing(time.labels)) {
-          axis(1, seq_len(dim(dat)[[2]]), c(seq_lendim(dat)[[2]]))
+          axis(1, seq_len(dim(dat)[[2]]), seq_len(dim(dat)[[2]]))
           axis(2)
         }
         else {
-          axis(1, se_len(dim(dat)[[2]]), time.labels)
+          axis(1, seq_len(dim(dat)[[2]]), time.labels)
           axis(2)
         }
       }
@@ -319,7 +420,7 @@ mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels
           tmpcol <- (tmpmem >= colorseq[jj] & tmpmem <= 
                        colorseq[jj + 1])
           
-          if (sum(tmpcol, na.rm=T) > 0) {
+          if (sum(tmpcol, na.rm=TRUE) > 0) {
             tmpind <- which(tmpcol)
             for (k in seq_len(length(tmpind))) {
               lines(tmp[tmpind[k], ], col = colo[jj])
@@ -332,16 +433,76 @@ mfuzz.plot <- function (dat, cl, mfrow = c(1, 1), colo, min.mem = 0, time.labels
   if (!is.na(filename))   dev.off()
 }
 
+#' Plotting results from estimating the cluster number
+#' 
+#' This function visualizes the output from estimClustNumber, and there particularly the
+#' two validity indices Minimum Centroid Distance and Xie Beni Index.
+#' 
+#' @param ClustInd Matrix with values from validity indices
+#' @return Multiple panels showing expression profiles of clustered features passing the min.mem threshold
+#' @examples 
+#' data("artificial_clusters")
+#' dat <- averageCond(artificial_clusters, 5, 10)
+#' dat <- scale(dat)
+#' dat <- cbind(dat, 1)
+#' ClustInd <- estimClustNum(dat, 10)
+#' estimClust.plot(ClustInd)
+
+#' @export
+#' @references 
+#' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+#' 
+#' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+#' 
+#' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
+estimClust.plot <- function(ClustInd) {
+  par(mfrow=c(1,3))
+  maxClust <- nrow(ClustInd)+2
+  plot(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"MinCentroidDist_VSClust"],
+       col=2 , type="b", 
+       main="Min. centroid distance\n(Highest jump is best)",
+       xlab="Number of clusters", ylab="Index",
+       ylim=c(min(ClustInd[,grep("MinCentroidDist", 
+                                 colnames(ClustInd))],na.rm=TRUE),
+              max(ClustInd[,grep("MinCentroidDist", 
+                                 colnames(ClustInd))],na.rm=TRUE)))
+  lines(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"MinCentroidDist_FCM"],
+        col=3,type="b")
+  dmindist <- optimalClustNum(ClustInd) 
+  points(dmindist,ClustInd[dmindist-2,"MinCentroidDist_VSClust"],pch=15,col=1,cex=2)
+  legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
+  grid(NULL,NA,lwd=1,col=1)
+  plot(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"XieBeni_VSClust"], col=2, 
+       type="b", main="Xie-Beni index\n(Lowest is best)",
+       xlab="Number of clusters", ylab="Index",
+       ylim=c(min(ClustInd[,grep("XieBeni", colnames(ClustInd))],na.rm=TRUE),
+              max(ClustInd[,grep("XieBeni", colnames(ClustInd))],na.rm=TRUE)))
+  lines(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"XieBeni_FCM"],type="b",col=3)
+  dxiebeni <- optimalClustNum(ClustInd, index="XieBeni") 
+  points(dxiebeni,ClustInd[dxiebeni-2,"XieBeni_VSClust"],pch=15,col=1,cex=2)
+  legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
+  grid(NULL,NA,lwd=1,col=1)
+  plot(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"NumVSClust"], col=2, type="b", 
+       main="Total number of assigned features",
+       xlab="Number of clusters", ylab="Assigned features",
+       ylim=c(min(ClustInd[,grep("Num", colnames(ClustInd))],na.rm=TRUE),
+              max(ClustInd[,grep("Num", colnames(ClustInd))],na.rm=TRUE)))
+       lines(3:maxClust,ClustInd[seq_len(nrow(ClustInd)),"NumFCM"],type="b",col=3)
+       legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
+       # finally plot
+       p <- recordPlot()
+}
 
 #' arrange cluster member numbers from largest to smallest
 #' @param Bestcl fclust object
 #' @param NClust Number of clusters
 #' @importFrom matrixStats rowMaxs
 SwitchOrder <- function(Bestcl,NClust) {
-  switching <- as.numeric(names(sort(table(Bestcl$cluster[rowMaxs(Bestcl$membership)>0.5]),decreasing=T)))
+  switching <- as.numeric(names(sort(table(Bestcl$cluster[rowMaxs(Bestcl$membership)>0.5]),
+                                     decreasing=TRUE)))
   if (length(switching)<NClust) 
     switching <- c(switching,which(!((seq_len(NClust)) %in% switching)))
-  switching2 <- seq_lenNClust
+  switching2 <- seq_len(NClust)
   names(switching2) <- switching
   tBest <- Bestcl
   tBest$centers <- Bestcl$centers[switching,]
@@ -354,7 +515,7 @@ SwitchOrder <- function(Bestcl,NClust) {
   tBest
 }
 
-#' Function to run clustering
+#' Function to run clustering with automatic fuzzifier settings (might become obsolete)
 #' 
 #' Run original fuzzy c-means and vsclust for a number of clusters and the given data set including data pre-processing and
 #' automatic setting of the data-dependent parameters like the lower limit of the fuzzifier.
@@ -387,44 +548,28 @@ SwitchOrder <- function(Bestcl,NClust) {
 #' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
 #' 
 #' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
-ClustComp <- function(dat,NSs=10,NClust=NClust,Sds=Sds, cl=cl) {
-  D<-ncol(dat)
-  d<-sqrt(D/2)
-  dims<-dim(dat)
-  mm <- 1 + (1418/dims[1] + 22.05)* dims[2]^(-2) + (12.33/dims[1] + 0.243)*dims[2]^(-0.0406*log(dims[1])-0.1134)
+ClustComp <- function(dat,NSs=10,NClust=NClust,Sds=Sds, cl=parallel::makePSOCKcluster(1)) {
+  fuzz_out <- determine_fuzz(dim(dat), NClust, Sds)
+  m <- fuzz_out$m
+  mm <- fuzz_out$mm
   
-  ### d_i and d_t
-  difunc <- function(c,D) { x <- 0:c; sum(choose(c,x)/(x*D+1)*(-1)^x) }
-  
-  di <- difunc(NClust,D)  /sqrt(pi) * gamma(D/2+1)^(1/D)
-  dt <- (NClust)^(-1/D)
-  
-  p <- dnorm(di,0,Sds) * (1-dnorm(dt,0,Sds))^(NClust-1)
-  
-  m <- mm + p*mm*(D/3-1)
-  m[m==Inf]<-0
-  m[m==0]<-NA
-  m[is.na(m)]<-mm*10
-  
-  ## If m for highest Sd is mm then all = mm
-  if (m[which.max(Sds)]== mm) 
-    m[seq_len(length(m))] <- mm
-  
-  # Moved the parallelization out as way too slow 
-  #  cl <- makeCluster(cores)
-  #  clusterExport(cl=cl,varlist=c("tData","NClust","m","vsclust_algorithm"),envir=environment())
-  clusterExport(cl=cl,varlist=c("dat","NClust","m"),envir=environment())
-  cls <- parLapply(cl,seq_len(NSs), function(x) vsclust_algorithm(dat,NClust,m=m,verbose=F,iter.max=1000))
+  clusterExport(cl=cl,varlist=c("dat","NClust","m","mm"),envir=environment())
+  cls <- parLapply(cl,seq_len(NSs), function(x) vsclust_algorithm(dat,NClust,
+                                                                  m=m,verbose=F,
+                                                                  iter.max=1000))
   # cls <- lapply(1:NSs, function(x) vsclust_algorithm(tData,NClust,m=m,verbose=F,iter.max=1000))  #print(cls[[1]])
   Bestcl <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
-  cls <- parLapply(cl,seq_len(NSs), function(x) vsclust_algorithm(dat,NClust,m=mm,verbose=F,iter.max=1000))
+  cls <- parLapply(cl,seq_len(NSs), function(x) vsclust_algorithm(dat,NClust,
+                                                                  m=mm,verbose=F,
+                                                                  iter.max=1000))
   Bestcl2 <- cls[[which.min(lapply(cls,function(x) x$withinerror))]]
   # stopCluster(cl)
   
   # return validation indices
   list(indices=c(min(dist(Bestcl$centers)),cvalidate.xiebeni(Bestcl,mm),
                  min(dist(Bestcl2$centers)),cvalidate.xiebeni(Bestcl2,mm)),
-       Bestcl=Bestcl,Bestcl2=Bestcl2,m=m,withinerror=Bestcl$withinerror,withinerror2=Bestcl2$withinerror) 
+       Bestcl=Bestcl,Bestcl2=Bestcl2,m=m,withinerror=Bestcl$withinerror,
+       withinerror2=Bestcl2$withinerror) 
 }
 
 #' Paired statistical testing
@@ -522,12 +667,13 @@ SignAnalysis <- function(Data,NumCond,NumReps) {
   ##########################################################
   if (is.null(rownames(Data))) rownames(Data) <- paste0("feature",seq_len(nrow(Data)))
   # significance analysis
-  Reps <- rep(seq_len(NumCond,NumReps))
+  Reps <- rep(seq_len(NumCond),NumReps)
   design <- model.matrix(~0+factor(Reps-1))
   colnames(design)<-paste("i",c(seq_len(NumCond)),sep="")
   contrasts<-NULL
   First <- 1
-  for (i in (seq_len(NumCond))[-First]) contrasts<-append(contrasts,paste(colnames(design)[i],"-",colnames(design)[First],sep=""))
+  for (i in (seq_len(NumCond))[-First]) contrasts<-append(contrasts,
+                                                          paste(colnames(design)[i],"-",colnames(design)[First],sep=""))
   contrast.matrix<-makeContrasts(contrasts=contrasts,levels=design)
   lm.fitted <- lmFit(Data,design)
   
@@ -535,7 +681,8 @@ SignAnalysis <- function(Data,NumCond,NumReps) {
   lm.bayes<-eBayes(lm.contr)
   #topTable(lm.bayes)
   plvalues <- lm.bayes$p.value
-  qvalues <- matrix(NA,nrow=nrow(plvalues),ncol=ncol(plvalues),dimnames=dimnames(plvalues))
+  qvalues <- matrix(NA,nrow=nrow(plvalues),ncol=ncol(plvalues),
+                    dimnames=dimnames(plvalues))
   # qvalue correction
   for (i in seq_len(ncol(plvalues))) {
     tqs <- tryCatch(qvalue(na.omit(plvalues[,i]))$qvalues, 
@@ -633,9 +780,9 @@ calcBHI <- function(Accs,gos) {
 #' @export
 averageCond <- function(data, NumReps, NumCond) {
   # Calculates means over replicates
-  tdat<-rowMeans(data[,seq(1,NumReps*NumCond,NumCond)],na.rm=T)
+  tdat<-rowMeans(data[,seq(1,NumReps*NumCond,NumCond)],na.rm=TRUE)
   for (i in 2:NumCond) {
-    tdat<-cbind(tdat,rowMeans(data[,seq(i,NumReps*NumCond,NumCond)],na.rm=T))
+    tdat<-cbind(tdat,rowMeans(data[,seq(i,NumReps*NumCond,NumCond)],na.rm=TRUE))
   }
   colnames(tdat)<-paste("Mean of log ",LETTERS702[seq_len(NumCond)],sep="")
   tdat  
@@ -676,7 +823,7 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds=1) {
   pcaDat <- (pcaDat[complete.cases(pcaDat),])
   validate(need(length(pcaDat)> 0, "Principal component analysis not shown as too many missing values"))      
   validate(need(nrow(pcaDat)> 10, "Principal component analysis not shown as too many missing values"))      
-  pca<-prcomp(pcaDat,scale=T,retx=TRUE)
+  pca<-prcomp(pcaDat,scale=TRUE,retx=TRUE)
   # scores <- pca$x
   # loadings <- pca$rotation
   scores <- pca$rotation
@@ -686,11 +833,13 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds=1) {
   Sds[is.na(Sds)] <- max(Sds, na.rm=TRUE)
   # Scaling suitable for visualization
   Sds <- sqrt(Sds)
-  plot(loadings,cex=Sds,pch=16,col=paste("#000000",sprintf("%02X",as.integer(255/max(1/Sds)/Sds)),sep=""))
+  plot(loadings,cex=Sds,pch=16,
+       col=paste("#000000",sprintf("%02X",as.integer(255/max(1/Sds)/Sds)),sep=""))
   title(main="Principal component analysis of data set (loadings)",sub="The point size corresponds to the estimated standard deviation")
   plot(scores,pch=19,col=rainbow(NumCond)[plab])
   title(main="Principal component analysis of data set (scores)",sub="Colors denote different conditions")
-  legend("topright",paste("Condition",seq_len(NumCond)),pch=rep(19,NumCond),col=rainbow(NumCond)[seq_len(NumCond)])
+  legend("topright",paste("Condition",seq_len(NumCond)),pch=rep(19,NumCond),
+         col=rainbow(NumCond)[seq_len(NumCond)])
 }
 
 ### Wrapper functions
@@ -708,7 +857,7 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds=1) {
 #' @return list with the items `dat` (data matrix of features averaged over replicates and last column with their standard deviations), `qvals` FDRs from the statistical tests (each conditions versus the first), `StatFileOut` all of before for saving in file
 #' @examples
 #' data <- matrix(rnorm(2000), nrow=200)
-#' stats <- statWrapper(data, 5, 2, isStat=TRUE)
+#' stats <- PrepareForVSClust(data, 5, 2, isStat=TRUE)
 #' 
 #' @import stats
 #' @importFrom matrixStats rowSds
@@ -720,7 +869,7 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds=1) {
 #' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
 #' 
 #' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
-statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
+PrepareForVSClust <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
   qvals <- statFileOut <- Sds <- NULL
   tdat <- NULL
   
@@ -739,6 +888,7 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
     colnames(qvals) <- paste("qvalue ",LETTERS702[2:(NumCond)],"vsA",sep="")
     
     tdat <- averageCond(dat, NumReps, NumCond)
+    
   } else {
     Sds <- dat[,ncol(dat)]
     tdat <- dat[,seq_len(ncol(dat)-1)]
@@ -753,7 +903,7 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
     statFileOut <- cbind(tdat,Sds)
   }
   
-  pcaWithVar(dat, NumReps, NumCond, Sds)
+  pcaWithVar(dat, NumReps, NumCond, Sds / rowSds(tdat, na.rm=TRUE))
   
   ## Preparing output
   Out <- list(dat=cbind(tdat,Sds), qvals=qvals, statFileOut=statFileOut)
@@ -776,7 +926,7 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
 #' @examples
 #' data <- matrix(rnorm(1000), nrow=100)
 #' estim_out <- estimClustNum(data, maxClust=10)
-#' estim_out$p
+#' best_number <- max(estim_out[1])
 #' @import limma
 #' @import parallel
 #' @import stats
@@ -786,15 +936,10 @@ statWrapper <- function(dat, NumReps, NumCond, isPaired=F, isStat) {
 #' @importFrom matrixStats rowMaxs 
 #' @export
 estimClustNum<- function(dat, maxClust=25, cores=1) {
-  ClustInd<-matrix(NA,nrow=maxClust,ncol=6)
+  ClustInd<-matrix(NA,nrow=maxClust-2,ncol=6)
   if (is.null(rownames(dat))) rownames(dat) <- seq_len(nrow(dat))
   tData <- dat[,seq_len(ncol(dat)-1)]
   colnames(tData)<-NULL
-  # We do not filter anymore for NAs, and we do not impute
-  # PExpr <- new("ExpressionSet",expr=as.matrix(tData))
-  # PExpr.r <- filter.NA(PExpr, thres = 0.25)
-  # PExpr <- fill.NA(PExpr.r,mode = "mean")
-  # tmp <- filter.std(PExpr,min.std=0,visu=FALSE)
   
   # define parallelization
   cl <- makeCluster(cores)
@@ -804,7 +949,7 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   # Standardise
   sds <- dat[rownames(tData), ncol(dat)]
   # scale standard deviations by the ones in the actual data to cope for the following standardization 
-  sds <- sds / rowSds(as.matrix(tData),na.rm=T)
+  sds <- sds / (rowSds(as.matrix(tData),na.rm=TRUE))
   tData <- t(scale(t(tData)))
   
   multiOut <- lapply(3:maxClust,function(x) {    
@@ -821,36 +966,12 @@ estimClustNum<- function(dat, maxClust=25, cores=1) {
   stopCluster(cl)
   
   for (NClust in 3:maxClust) 
-    ClustInd[NClust,] <- multiOut[[NClust-2]]
-  
-  dmindist <- c(which.max(ClustInd[3:(maxClust-2),1]-ClustInd[4:(maxClust-1),1])+2,
-                which.max(ClustInd[3:(maxClust-2),3]-ClustInd[4:(maxClust-1),3])+2)
-  dxiebeni <- c(which.min(ClustInd[3:(maxClust-1),2])+2,
-                which.min(ClustInd[3:(maxClust-1),4])+2)  
-  par(mfrow=c(1,3))
-  plot(3:maxClust,ClustInd[3:(maxClust),1],col=2 , type="b", 
-       main="Min. centroid distance\n(Highest jump is best)",
-       xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(1,3)],na.rm=T),max(ClustInd[,c(1,3)],na.rm=T)))
-  lines(3:maxClust,ClustInd[3:(maxClust),3],col=3,type="b")
-  points(dmindist[1],ClustInd[dmindist[1],1],pch=15,col=1,cex=2)
-  legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
-  grid(NULL,NA,lwd=1,col=1)
-  plot(3:maxClust,ClustInd[3:(maxClust),2], col=2, type="b", main="Xie-Beni index\n(Lowest is best)",
-       xlab="Number of clusters", ylab="Index",ylim=c(min(ClustInd[,c(2,4)],na.rm=T),max(ClustInd[,c(2,4)],na.rm=T)))
-  lines(3:maxClust,ClustInd[3:(maxClust),4],type="b",col=3)
-  points(dxiebeni[1],ClustInd[dxiebeni[1],2],pch=15,col=1,cex=2)
-  legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
-  grid(NULL,NA,lwd=1,col=1)
-  plot(3:maxClust,ClustInd[3:(maxClust),5], col=2, type="b", main="Total number of assigned features",
-       xlab="Number of clusters", ylab="Assigned features",ylim=c(min(ClustInd[,5:6],na.rm=T),max(ClustInd[,5:6],na.rm=T)))
-  lines(3:maxClust,ClustInd[3:(maxClust),6],type="b",col=3)
-  legend("topright",legend = c("VSClust","Standard"), lty=c(1,1),col=2:3)
-  # finally plot
-  p <- recordPlot()
+    ClustInd[NClust-2,] <- multiOut[[NClust-2]]
+  rownames(ClustInd) <- paste0("num_clust_",3:maxClust)
+  colnames(ClustInd) <- c("MinCentroidDist_VSClust", "XieBeni_VSClust", "MinCentroidDist_FCM", "XieBeni_FCM", "NumVSClust", "NumFCM")
   
   # Output
-  Out <- list(ClustdInd=ClustInd, p=p, numclust=dmindist[1])
-  Out
+  ClustInd
 }
 
 #' Wrapper for running cluster analysis
@@ -914,7 +1035,8 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=TRUE, cores) {
   par(mar=c(2,2,3,3),mgp=c(2,1,0))
   par(mar=par("mar")/max(1,NClust/20))
   
-  mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),min.mem=0.5,colo="fancy")
+  mfuzz.plot(tData,cl=Bestcl,mfrow=c(round(sqrt(NClust)),ceiling(sqrt(NClust))),
+             min.mem=0.5,colo="fancy")
   p <- recordPlot()
   # par(lwd=1,mar=oldmar)
   
@@ -963,7 +1085,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=TRUE, cores) {
 #' @param protnames vector providing the corresponding gene/protein names of the features (set to NULL for directly using the feature names (default))
 #' @param idtypes type of IDs for features given by genes/proteins (generic gene names are not working)
 #' @param infosource Type of gene annotation (e.g. KEGG_PATHWAY)
-#' @return list with the items `fullFuncs` clusterProfiler object with all results, `redFuncs` clusterProfiler object with reduce (top 20) results, `BHI` Biological Homogeneity Index
+#' @return plot object to be able to pass the figures to e.g. shiny
 #' @examples
 #'  library(clusterProfiler)
 #'  data(gcSample)
@@ -987,7 +1109,7 @@ runFuncEnrich <- function(cl, protnames=NULL, idtypes, infosource) {
   for (c in seq_len(max(cl$cluster))) {
     cname <- paste("Cluster",c, sep="_")
     Accs[[cname]] <- names(which(cl$cluster==c & rowMaxs(cl$membership)>0.5))
-
+    
     Accs[[cname]] <- Accs[[cname]][Accs[[cname]]!=""]
     if (length(Accs[[cname]])>0) {
       if (!is.null(protnames)) {
@@ -1008,7 +1130,8 @@ runFuncEnrich <- function(cl, protnames=NULL, idtypes, infosource) {
   if (!is.null(getDefaultReactiveDomain()))
     incProgress(0.7, detail = "received")
   message("got data from DAVID\n")
-  x@compareClusterResult <- cbind(x@compareClusterResult,log10padval=log10(x@compareClusterResult$p.adjust))
+  x@compareClusterResult <- cbind(x@compareClusterResult,
+                                  log10padval=log10(x@compareClusterResult$p.adjust))
   y <- new("compareClusterResult",compareClusterResult=x@compareClusterResult)
   if (length(unique(y@compareClusterResult$ID)) > 20) {
     message("Reducing number of DAVID results\n")
@@ -1023,3 +1146,20 @@ runFuncEnrich <- function(cl, protnames=NULL, idtypes, infosource) {
   
 }
 
+#' Run VSClust as Shiny app
+#' 
+#' You will get the full functionality of the VSClust workflow with multiple visualizations and downloads
+#' 
+#' @return The shiny app should open in a browser or in RStudio.
+#' @examples
+#' runVSClustApp()
+#' @export
+#' @references 
+#' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
+#' 
+#' Schwaemmle V, Hagensen CE. A Tutorial for Variance-Sensitive Clustering and the Quantitative Analysis of Protein Complexes. Methods Mol Biol. 2021;2228:433-451. doi: 10.1007/978-1-0716-1024-4_30. PMID: 33950508.
+#' 
+#' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
+runVSClustApp <- function() {
+  shiny::runApp(system.file("shiny/", package="vsclust"))
+}

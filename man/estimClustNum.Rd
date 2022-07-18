@@ -26,5 +26,5 @@ given by a strong decay of the minimum centroid distance and/or a low value of t
 \examples{
 data <- matrix(rnorm(1000), nrow=100)
 estim_out <- estimClustNum(data, maxClust=10)
-estim_out$p
+best_number <- max(estim_out[1])
 }

@@ -2,9 +2,15 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{ClustComp}
 \alias{ClustComp}
-\title{Function to run clustering}
+\title{Function to run clustering with automatic fuzzifier settings (might become obsolete)}
 \usage{
-ClustComp(dat, NSs = 10, NClust = NClust, Sds = Sds, cl = cl)
+ClustComp(
+  dat,
+  NSs = 10,
+  NClust = NClust,
+  Sds = Sds,
+  cl = parallel::makePSOCKcluster(1)
+)
 }
 \arguments{
 \item{dat}{a numeric data matrix}

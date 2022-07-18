@@ -116,7 +116,7 @@ if(protnames) {
 
 
 #### running statistical analysis and estimation of individual variances
-statOut <- statWrapper(dat, NumReps, NumCond, isPaired, isStat)
+statOut <- PrepareForVSClust(dat, NumReps, NumCond, isPaired, isStat)
 
 dat <- statOut$dat
 Sds <- dat[,ncol(dat)]
@@ -130,14 +130,15 @@ write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
 #### Estimate number of clusters with maxClust as maximum number clusters to test for
 ## Write output into file 
 pdf(paste(Experiment,"EstimatedClustNumber.pdf", sep=""),height=6,width=15)
-clustNumOut <- estimClustNum(dat, maxClust, cores)
+ClustInd <- estimClustNum(dat, maxClust, cores)
+estimClust.plot(ClustInd)
 dev.off()
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
-  PreSetNumClustVSClust <- clustNumOut$numclust
+  PreSetNumClustVSClust <- optimalClustNum(ClustInd)
 if (PreSetNumClustStand == 0)
-  PreSetNumClustStand <- clustNumOut$numclust
+  PreSetNumClustStand <- optimalClustNum(ClustInd, method="FCM")
 
 
 

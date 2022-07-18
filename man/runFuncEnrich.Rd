@@ -16,7 +16,7 @@ runFuncEnrich(cl, protnames = NULL, idtypes, infosource)
 \item{infosource}{Type of gene annotation (e.g. KEGG_PATHWAY)}
 }
 \value{
-list with the items `fullFuncs` clusterProfiler object with all results, `redFuncs` clusterProfiler object with reduce (top 20) results, `BHI` Biological Homogeneity Index
+plot object to be able to pass the figures to e.g. shiny
 }
 \description{
 The functional analysis uses the libarary RDAVIDWebService and thus might become obsolete as that library is not supported anymore
