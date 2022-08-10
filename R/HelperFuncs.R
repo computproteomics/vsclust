@@ -1136,7 +1136,7 @@ runFuncEnrich <- function(cl, protnames=NULL, idtypes, infosource) {
   if (length(unique(y@compareClusterResult$ID)) > 20) {
     message("Reducing number of DAVID results\n")
     y@compareClusterResult <- y@compareClusterResult[
-      order(y@compareClusterResult$p.adjust)[1:20],]
+      order(y@compareClusterResult$p.adjust)[seq_len(20)],]
     
     y@compareClusterResult$Cluster <- as.character(y@compareClusterResult$Cluster)
   }

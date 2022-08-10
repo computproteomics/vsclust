@@ -97,7 +97,7 @@ dat <- statOut$dat
 Sds <- dat[,ncol(dat)]
 print(paste("Features:",nrow(dat),"<br/>Missing values:",
             sum(is.na(dat)),"<br/>Median standard deviations:",
-            round(median(Sds,na.rm=T),digits=3)))
+            round(median(Sds,na.rm=TRUE),digits=3)))
 
 ## Write output into file 
 write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
@@ -141,7 +141,7 @@ First, we carry out the variance-sensitive method
 
 
 #### Run clustering (VSClust and standard fcm clustering
-ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=T, cores)
+ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=TRUE, cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl
 #ClustOut$p
