@@ -24,7 +24,6 @@ Imports:
 Suggests:
     knitr,
     yaml,
-    RDAVIDWebService,
     testthat (>= 3.0.0)
 LinkingTo: Rcpp
 biocViews: 
