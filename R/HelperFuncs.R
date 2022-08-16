@@ -711,14 +711,14 @@ SignAnalysis <- function(Data,NumCond,NumReps) {
 #' @return Biological Homogeneity Index 
 #' @examples
 #' # Run enrichment analysis
-#' dontrun{ library(clusterProfiler)
+#' library(clusterProfiler)
 #' data(gcSample)
 #' xx <- compareCluster(gcSample, fun="enrichKEGG",
 #'                      organism="hsa", pvalueCutoff=0.05)
 #' # Generate random list from gcSample
 #' rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))
 #' calcBHI(rand_ids, xx)
-#' }
+#' 
 #' @import stats
 #' @export
 #' @references 
@@ -1088,7 +1088,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=TRUE, cores) {
 #' @param infosource Type of gene annotation (e.g. KEGG_PATHWAY)
 #' @return plot object to be able to pass the figures to e.g. shiny
 #' @examples
-#' \dontrun{ library(clusterProfiler)
+#' \donttest{ library(clusterProfiler)
 #'  data(gcSample)
 #' data <- cbind(matrix(rnorm(2000), nrow=500), sds=1)
 #' # Adding an artificial cluster
@@ -1099,7 +1099,8 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=TRUE, cores) {
 #' # Taking some gene names from example data set
 #' # This function calls the DAVID web service and thus will require an internet connection
 #' enrich_out <- runFuncEnrich(clust_out$Bestcl, NULL, "ENTREZ_GENE_ID", "GOTERM_MF_ALL")
-#' dotplot(enrich_out$fullFuncs)}
+#' dotplot(enrich_out$fullFuncs)
+#' }
 #' @import graphics
 #' @importFrom clusterProfiler compareCluster
 #' @importFrom shiny need
