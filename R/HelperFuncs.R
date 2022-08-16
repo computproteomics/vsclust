@@ -711,13 +711,14 @@ SignAnalysis <- function(Data,NumCond,NumReps) {
 #' @return Biological Homogeneity Index 
 #' @examples
 #' # Run enrichment analysis
-#' library(clusterProfiler)
+#' dontrun{ library(clusterProfiler)
 #' data(gcSample)
 #' xx <- compareCluster(gcSample, fun="enrichKEGG",
 #'                      organism="hsa", pvalueCutoff=0.05)
 #' # Generate random list from gcSample
 #' rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))
 #' calcBHI(rand_ids, xx)
+#' }
 #' @import stats
 #' @export
 #' @references 
