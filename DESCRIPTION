@@ -1,7 +1,7 @@
 Package: vsclust
 Type: Package
 Title: Feature-based variance-sensitive quantitative clustering
-Version: 0.99.5
+Version: 0.99.6
 Date: 2022-03-23
 Authors@R: 
     person(
