@@ -46,7 +46,7 @@ clustering with additional variance control and capability to run on data with m
 #' # Generate some random data
 data <- matrix(rnorm(1:1000), nrow=100)
 # Run clustering
-clres <- vsclust_algorithm(data, centers=10, m=1.5)
+clres <- vsclust_algorithm(data, centers=5, m=1.5)
 head(clres$membership)
 }
 \references{

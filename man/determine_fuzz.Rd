@@ -27,7 +27,7 @@ data <- matrix(rnorm(1:1000), nrow=100)
 # Estimate fuzzifiers
 fuzz_out <- determine_fuzz(dim(data), 1)
 # Run clustering
-clres <- vsclust_algorithm(data, centers=10, m=fuzz_out$mm)
+clres <- vsclust_algorithm(data, centers=5, m=fuzz_out$mm)
 }
 \references{
 Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.

@@ -25,7 +25,7 @@ the Minimum Centroid Distance and a minimum for the Xie Beni index
   dat <- averageCond(artificial_clusters, 5, 10)
   dat <- scale(dat)
 dat <- cbind(dat, 1)
-ClustInd <- estimClustNum(dat, 10)
+ClustInd <- estimClustNum(dat, 6)
 optimalClustNum
 }
 \references{

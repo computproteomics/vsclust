@@ -47,7 +47,7 @@ automatic setting of the data-dependent parameters like the lower limit of the f
 data <- matrix(rnorm(1:1000), nrow=100)
 # Run clustering
 cl <- parallel::makePSOCKcluster(1, nnodes=1)
-ClustCompOut <- ClustComp(data, cl=cl, NClust=10, Sds=1)
+ClustCompOut <- ClustComp(data, cl=cl, NClust=6, Sds=1)
 barplot(ClustCompOut$indices)
 }
 \references{

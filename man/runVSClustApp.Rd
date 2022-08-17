@@ -13,7 +13,8 @@ The shiny app should open in a browser or in RStudio.
 You will get the full functionality of the VSClust workflow with multiple visualizations and downloads
 }
 \examples{
-runVSClustApp()
+\donttest{
+runVSClustApp()}
 }
 \references{
 Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 10.1093/bioinformatics/bty224. PMID: 29635359.
