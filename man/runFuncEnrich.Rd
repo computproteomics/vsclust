@@ -2,55 +2,10 @@
 % Please edit documentation in R/HelperFuncs.R
 \name{runFuncEnrich}
 \alias{runFuncEnrich}
-\title{Wrapper for functional enrichment}
+\title{"RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE",}
 \usage{
 runFuncEnrich(cl, protnames = NULL, idtypes, infosource)
 }
-\arguments{
-\item{cl}{clustering results (either directly from vsclust_algorithm or as `Bestcl` object from ClustComp or runClustWrapper)}
-
-\item{protnames}{vector providing the corresponding gene/protein names of the features (set to NULL for directly using the feature names (default))}
-
-\item{idtypes}{type of IDs for features given by genes/proteins (generic gene names are not working)}
-
-\item{infosource}{Type of gene annotation (e.g. KEGG_PATHWAY)}
-}
-\value{
-plot object to be able to pass the figures to e.g. shiny
-}
 \description{
-The functional analysis uses the libarary RDAVIDWebService and thus might become obsolete as that library is not supported anymore
-The user can select different ID types and different enrichment categories like GO terms and pathways. 
-Allowed ID types: 
-"AFFYMETRIX_3PRIME_IVT_ID", 
-"AFFYMETRIX_EXON_GENE_ID", "AGILENT_CHIP_ID", 
-"AGILENT_ID", "AGILENT_OLIGO_ID", "APHIDBASE_ID", "BEEBASE_ID", 
-"BEETLEBASE_ID", "BGD_ID", "CGNC_ID", "CRYPTODB_ID", "DICTYBASE_ID", "ENSEMBL_GENE_ID", 
-"ENSEMBL_TRANSCRIPT_ID", "ENTREZ_GENE_ID", "GENOMIC_GI_ACCESSION", "FLYBASE_GENE_ID", "GENBANK_ACCESSION",
-"GENPEPT_ACCESSION", "LOCUS_TAG", "ILLUMINA_ID", "MGI_ID", "MIRBASE_ID",
-"OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", "MRNA_GI_ACCESSION",
-"REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA", 
-"RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
-"UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID", 
-"WORMPEP_ID", "ZFIN_ID"
-Allowed enrichment categories:
-"GOTERM_MF_ALL","GOTERM_BP_ALL",
-"GOTERM_CC_ALL","GOTERM_MF_FAT","GOTERM_BP_FAT","GOTERM_CC_FAT"),
-"KEGG"="KEGG_PATHWAY","PANTHER_PATHWAY","REACTOME_PATHWAY","BBID","BIOCARTA",
-"DIP","MINT","INTACT","BIOGRID_INTERACTION","GAD_DISEASE","GAD_DISEASE_CLASS",
-"OMIM_DISEASE","INTERPRO","PROSITE","PFAM","SMART","PRODOM","PIR_SUPERFAMILY"
-}
-\examples{
- library(clusterProfiler)
- data(gcSample)
-data <- cbind(matrix(rnorm(2000), nrow=500), sds=1)
-# Adding an artificial cluster
-data[,c(1,3)] <- data[,c(1,3)] + rep(c(1,-1),250)
-rownames(data) <- gcSample[[7]][1:500]
-
-clust_out <- runClustWrapper(data, NClust=2, cores=1)
-# Taking some gene names from example data set
-# This function calls the DAVID web service and thus will require an internet connection
-enrich_out <- runFuncEnrich(clust_out$Bestcl, NULL, "ENTREZ_GENE_ID", "GOTERM_MF_ALL")
-dotplot(enrich_out$fullFuncs)
+"RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE",
 }

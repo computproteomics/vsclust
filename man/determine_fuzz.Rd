@@ -17,7 +17,8 @@ determine_fuzz(dims, NClust, Sds = 1)
 list of `m`: individual fuzzifiers, `mm`: standard fuzzifier for fcm clustering when not using vsclust algorithm
 }
 \description{
-This function calculated the values of the fuzzifier from a) the dimensions of the considered data set and b) 
+This function calculated the values of the fuzzifier from a) the dimensions 
+of the considered data set and b) 
 from the individual feature standard deviations.
 }
 \examples{

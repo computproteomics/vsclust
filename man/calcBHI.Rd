@@ -31,6 +31,7 @@ xx <- compareCluster(gcSample, fun="enrichKEGG",
 # Generate random list from gcSample
 rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))
 calcBHI(rand_ids, xx)
+
 }
 \references{
 Datta, S. & Datta, S. Methods for evaluating 
