@@ -1,4 +1,4 @@
-#' @section VSClust main functions:
+2#' @section VSClust main functions:
 #' The main function for the clustering
 #'
 #' @docType package
@@ -1073,7 +1073,7 @@ runClustWrapper <- function(dat, NClust, proteins=NULL, VSClust=TRUE, cores) {
 # "GENPEPT_ACCESSION", "LOCUS_TAG", "ILLUMINA_ID", "MGI_ID", "MIRBASE_ID",
 # "OFFICIAL_GENE_SYMBOL", "PFAM_ID", "PIR_ID", "PROTEIN_GI_ACCESSION", "MRNA_GI_ACCESSION",
 # "REFSEQ_GENOMIC", "REFSEQ_MRNA", "REFSEQ_PROTEIN", "REFSEQ_RNA", 
-3#' "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
+# "RGD_ID", "SGD_ID", "TAIR_ID", "UCSC_GENE_ID", "UNIGENE", 
 # "UNIPROT_ACCESSION", "UNIPROT_ID", "UNIREF100_ID", "WORMBASE_GENE_ID", 
 # "WORMPEP_ID", "ZFIN_ID"
 # Allowed enrichment categories:
