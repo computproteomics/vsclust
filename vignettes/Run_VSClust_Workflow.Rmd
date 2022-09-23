@@ -5,7 +5,7 @@ vignette: >
   %\VignetteIndexEntry{VSClust workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-------
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -13,19 +13,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Clustering is a method to identify common pattern in highly dimensional data. This can be for example genes or proteins with similar quantitative changes, thus providing insights into the affected biological pathways.
+Clustering is a method to identify common pattern in highly dimensional data. 
+This can be for example genes or proteins with similar quantitative changes, 
+thus providing insights into the affected biological pathways.
 
-Despite of numerous clustering algorithms, they do not account for feature variance, i.e. the uncertainty in the measurements across the different experimental conditions. 
-VSClust determines the characteristic patterns in high-dimensional data while accounting for feature variance that is given through replicated measurements. 
+Despite of numerous clustering algorithms, they do not account for feature 
+variance, i.e. the uncertainty in the measurements across the different 
+experimental conditions. 
+VSClust determines the characteristic patterns in high-dimensional data 
+while accounting for feature variance that is given through replicated 
+measurements. 
 
-Here, we present an example script to run the full clustering analysis using the `vsclust` library. The same can be done by running the Shiny app (e.g. via its docker image or on \URL{http://computproteomics.bmb.sdu.dk}), or the corresponding command line script. For the source code, see \URL{https://bitbucket.com/veitveit/vsclust}. 
+Here, we present an example script to run the full clustering analysis using 
+the `vsclust` library. The same can be done by running the Shiny app (e.g. via 
+its docker image or on \URL{http://computproteomics.bmb.sdu.dk}), or the 
+corresponding command line script. For the source code, see
+\URL{https://bitbucket.com/veitveit/vsclust}. 
 
 ## Installation and additional packages
 
-Use the common `BiocManager::install("vsclust")` command for installation. The full functionality can be obtained by additionally installing and loading the packages `yaml`, `shiny`, `clusterProfiler`, and `matrixStats`.
+Use the common `BiocManager::install("vsclust")` command for installation. The 
+full functionality can be obtained by additionally installing and loading the
+packages `yaml`, `shiny`, `clusterProfiler`, and `matrixStats`.
 
 
-```{r echo=F}
+```{r echo=FALSE}
 library(vsclust)
 require(yaml)
 require(shiny)
@@ -35,22 +47,31 @@ require(matrixStats)
 
 ## Initialization
 
-Here, we define the different parameters for the example data set `protein_expressions`. In the command-line version of VSClust ("runVSClust.R"), they can be given via yaml file.
+Here, we define the different parameters for the example data set
+`protein_expressions`. In the command-line version of VSClust ("runVSClust.R"), 
+they can be given via yaml file.
 
 __Comments:__ 
 
-A. Data sets with different numbers of replicates per condition need to be adapted to contain the same number of columns per condition. These can be done by either removing excess replicates or adding empty columns.
+A. Data sets with different numbers of replicates per condition need to be 
+adapted to contain the same number of columns per condition. These can be done 
+by either removing excess replicates or adding empty columns.
 
-B. We assume the input data to be of the following format: A1, B1, C1, ..., A2, B2, C2, ..., where letters denote sample type and numbers are the different replicates.
+B. We assume the input data to be of the following format: A1, B1, C1, ..., A2,
+B2, C2, ..., where letters denote sample type and numbers are the different
+replicates.
 
-C. If you prefer to estimate feature variance different, use averages and add an estimate for the standard deviation as last column. You will need to set the last option of `PreparedForVSClust` to `FALSE`. 
+C. If you prefer to estimate feature variance different, use averages and add 
+an estimate for the standard deviation as last column. You will need to set the 
+last option of `PreparedForVSClust` to `FALSE`. 
 
-D. If you don't have replicates, use the same format as in C. and set the standard deviations to 1. 
+D. If you don't have replicates, use the same format as in C. and set the 
+standard deviations to 1. 
 
 ```{r}
 #### Input parameters, only read when now parameter file was provided #####
-## All principal parameters for running VSClust can be defined as in the shiny app 
-## at computproteomics.bmb.sdu.dk/Apps/VSClust
+## All principal parameters for running VSClust can be defined as in the shiny 
+## app at computproteomics.bmb.sdu.dk/Apps/VSClust
 # name of study
 Experiment <- "ProtExample" 
 # Number of replicates/sample per different experimental condition (sample type)
@@ -62,11 +83,11 @@ isPaired <- FALSE
 # Number of threads to accelerate the calculation (use 1 in doubt)
 cores <- 2 
 
-# If 0 (default), then automatically estimate the cluster number for the vsclust run 
-# from the Minimum Centroid Distance
+# If 0 (default), then automatically estimate the cluster number for the vsclust 
+# run from the Minimum Centroid Distance
 PreSetNumClustVSClust <- 0 
-# If 0 (default), then automatically estimate the cluster number for the original 
-# fuzzy c-means from the Minimum Centroid Distance
+# If 0 (default), then automatically estimate the cluster number for the 
+# original fuzzy c-means from the Minimum Centroid Distance
 PreSetNumClustStand <- 0 
 
 # max. number of clusters when estimating the number of clusters. Higher numbers 
@@ -76,14 +97,25 @@ maxClust <- 10
 
 ## Statistics and data preprocessing
 
-At first, we load the example proteomics data set and carry out statistical testing of all conditions version the first based on the LIMMA moderated t-test. The data consists of mice fed with four different diets (high fat, TTA, fish oil and TTA$+$fish oil).
+At first, we load the example proteomics data set and carry out statistical 
+testing of all conditions version the first based on the LIMMA moderated t-test.
+The data consists of mice fed with four different diets (high fat, TTA, fish oil
+and TTA$+$fish oil).
 Understand more about the data set with `?protein_expressions`
 
-This will calculate the false discovery rates for the differentially regulated features (pairwise comparisons versus the first "high fat" condition) and most importantly, their expected individual variances, to be used in the variance-sensitive clustering. These variances can also be uploaded separately via a last column containing them as individual standard deviations.
+This will calculate the false discovery rates for the differentially regulated
+features (pairwise comparisons versus the first "high fat" condition) and most
+importantly, their expected individual variances, to be used in the
+variance-sensitive clustering. These variances can also be uploaded separately
+via a last column containing them as individual standard deviations.
 
-The `PrepareForVSClust` function also creates a PCA plot to assess variability and control whether the samples have been loaded correctly (replicated samples should form groups).
+The `PrepareForVSClust` function also creates a PCA plot to assess variability 
+and control whether the samples have been loaded correctly (replicated samples
+should form groups).
 
-After estimating the standard deviations, the matrix consists of the averaged quantitative feature values and a last column for the standard deviations of the features.
+After estimating the standard deviations, the matrix consists of the averaged
+quantitative feature values and a last column for the standard deviations of the
+features.
 
 ```{r fig.width = 12 }
 
@@ -106,9 +138,14 @@ write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
 
 ## Estimation of cluster number
 
-There is no simple way to find the optimal number of clusters in a data set. For obtaining this number, we run the clustering for different cluster numbers and evaluate them via so-called validity indices, which provide information about suitable cluster numbers. VSClust uses mainly the "Maximum centroid distances" that denotes the shortest distance between any of the centroids. Alternatively, one can inspect the Xie Beni index.
+There is no simple way to find the optimal number of clusters in a data set. For
+obtaining this number, we run the clustering for different cluster numbers and
+evaluate them via so-called validity indices, which provide information about
+suitable cluster numbers. VSClust uses mainly the "Maximum centroid distances" 
+that denotes the shortest distance between any of the centroids. Alternatively, 
+one can inspect the Xie Beni index.
 
-The output of `estimClustNum` contains the suggestion for the number of clusters, , and the data used for the plots.
+The output of `estimClustNum` contains the suggestion for the number of clusters.
 
 We further visualize the outcome.
 ```{r fig.width = 12}
@@ -131,9 +168,10 @@ if (PreSetNumClustStand == 0)
 
 ## Run final clustering
 
-Now we run the clustering again with the optimal parameters from the estimation. One can 
-take alternative numbers of clusters corresponding to large decays in the Minimum Centroid Distance or low values of the Xie Beni
-index.
+Now we run the clustering again with the optimal parameters from the estimation.
+One can 
+take alternative numbers of clusters corresponding to large decays in the 
+Minimum Centroid Distance or low values of the Xie Beni index.
 
 First, we carry out the variance-sensitive method
 
@@ -141,7 +179,8 @@ First, we carry out the variance-sensitive method
 
 
 #### Run clustering (VSClust and standard fcm clustering
-ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=TRUE, cores)
+ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=TRUE, 
+                            cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl
 #ClustOut$p
@@ -157,34 +196,47 @@ write.csv(Bestcl$centers, paste(Experiment,"FCMVarMResultsCentroids",
 
 
 ```
-We see that most of the difference are between TTA diets and the rest. This shows that the TTA fatty acids have strong impact on
-the organisms. Cluster three shows the proteins that a commonly lower abundant in mice fed with fish oil and thus are related to
+We see that most of the difference are between TTA diets and the rest. This 
+shows that the TTA fatty acids have strong impact on
+the organisms. Cluster three shows the proteins that a commonly lower abundant 
+in mice fed with fish oil and thus are related to
 biological processes affected this particular diet. 
 
-For comparison, this is the clustering using standard fuzzy c-means of the means over the replicates.
+For comparison, this is the clustering using standard fuzzy c-means of the means
+over the replicates.
 
 ``` {r}
-ClustOut <- runClustWrapper(dat, PreSetNumClustStand, NULL, VSClust=F, cores)
+ClustOut <- runClustWrapper(dat, PreSetNumClustStand, NULL, VSClust=FALSE, 
+                            cores)
 Bestcl <- ClustOut$Bestcl
 ## Write clustering results (standard fcm)
-write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                     Bestcl$membership), paste(Experiment, "FCMResults", Sys.Date(), ".csv", sep=""))
+write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,
+                     isClusterMember=rowMaxs(Bestcl$membership)>0.5,
+                     maxMembership=rowMaxs(Bestcl$membership),
+                     Bestcl$membership), paste(Experiment, "FCMResults", 
+                                               Sys.Date(), ".csv", sep=""))
 ## Write coordinates of cluster centroids
-write.csv(Bestcl$centers, paste(Experiment,"FCMResultsCentroids", Sys.Date(), ".csv", sep=""))
+write.csv(Bestcl$centers, paste(Experiment,"FCMResultsCentroids", Sys.Date(),
+                                ".csv", sep=""))
 
 
 ```
-Here, the clusters look rather similar. VSClust best performs for larger numbers of different experimental conditions (one finds major improvements for $D>6$). For a 4-dimensional data set, the algorithm mostly filters out features with very high variance levels, making them unsuitable for belonging to 
+Here, the clusters look rather similar. VSClust best performs for larger numbers
+of different experimental conditions (one finds major improvements for $D>6$).
+For a 4-dimensional data set, the algorithm mostly filters out features with 
+very high variance levels, making them unsuitable for belonging to 
 a particular cluster.
 
 ### Biological interpretation
 
-We now will look for the KEGG pathways that are found to be enriched in each of the clusters. This procedure might fail as it depends
+We now will look for the KEGG pathways that are found to be enriched in each of
+the clusters. This procedure might fail as it depends
 on an old library that is not anymore actively maintained in Bioconductor: `RDAVIDWebService`.
 
-Enrichment results are retrieved and visualized with function from `clusterProfiler`
+Enrichment results are retrieved and visualized with function from 
+`clusterProfiler`
 
-``` {r fig.width=12, eval=F, warning=F}
+``` {r fig.width=12,warning=FALSE,eval=FALSE}
 ## Vector mapping protein names to the same proteins accession names
 protnames <- rownames(VSClust_cl$membership)
 names(protnames) <- protnames

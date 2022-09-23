@@ -1,0 +1,9 @@
+# Overview of additional functionality in the vsclust package
+
+## Command line script to run vsclust analysis
+__Folder__: `inst/cmdline`
+
+The two scripts allow direct analysis of a data matrix where the parameters and input files are given by a yaml file like `vsclust.yml` in the folder `inst/extdata`
+
+Call it with `run_clust_app.R vsclust.yml`
+

@@ -1,7 +1,7 @@
 Package: vsclust
 Type: Package
 Title: Feature-based variance-sensitive quantitative clustering
-Version: 0.99.0
+Version: 0.99.14
 Date: 2022-03-23
 Authors@R: 
     person(
@@ -16,10 +16,10 @@ Imports:
   limma,
   parallel,
   shiny,
-  clusterProfiler,
   qvalue,
   grDevices,
   stats,
+  MultiAssayExperiment,
   graphics
 Suggests:
     knitr,
@@ -33,7 +33,7 @@ biocViews:
   DifferentialExpression,
   Visualization
 VignetteBuilder: knitr
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Depends: R (>= 4.2.0)
 Config/testthat/edition: 3
 LazyData: false
