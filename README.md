@@ -1,3 +1,7 @@
+# Variance-sensitive clustering of omics data
+
+Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance.
+
 **Welcome to the repository of VSClust**
 developed at the
 
@@ -7,7 +11,7 @@ Department of Biochemistry and Molecular Biology
 
 ## Citation
 When using VSClust, please cite our paper:  
-Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
+Veit Schw?mmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
 
 We provide a shiny app for interactive analysis, a command-line version for running VSClust as script in R and a docker version of the tool to avoid installation issues.
 
@@ -66,16 +70,27 @@ You can run the image by
 
 and access the server through http://localhost:3838
 
-## Command line 
+## Command line and R package
 
 All operations but the gene set enrichment can be performed via command line running the R script `runVSClust.R`
+or using the functions of the Bioconductor package `vsclust`
+
+### Installation
+
+#### In R: 
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("QFeatures")
+```
+
+### As conda package
+TBD
 
 ### Usage
 
-Given that you installed the *e1071FuzzVec* library, open the R script and change the relevant file names and parameters. The different operations are described in the R file. 
-
-### Installation
-The *e1071FuzzVec* library needs to be compiled and installed, see above.
+Please take a look at the vignettes and/or in the help packages of the `vsclust` functions
 
 ## Contact
 For software issues and general questions, please submit an issue.
