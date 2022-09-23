@@ -348,7 +348,6 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
   cmeans_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
   
   // calculate fitness: J(c, m) -> see literature
-  
   old_fitness = new_fitness = cmeans_error_fn(membership_mat, dist_mat, weight,
                                               nr_objects, nr_centers, fuzz);
   
