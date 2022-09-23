@@ -2,7 +2,7 @@
 
 Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance.
 
-VSClust is available as Shiny webservice and as R package in Bioconductor. For more instructions on both, see below.
+VSClust is available as interactive and user-friendly Shiny webservice and as R package in Bioconductor. For more instructions on both, see below.
 
 VSClust was developed at the
 
@@ -12,16 +12,13 @@ Department of Biochemistry and Molecular Biology
 
 ## Citation
 When using VSClust, please cite our paper:  
-Veit Schw?mmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
-
-We provide a shiny app for interactive analysis, a command-line version for running VSClust as script in R and a docker version of the tool to avoid installation issues.
+Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
 
 ## Shiny app
 
 ### Web service
 
-You can use the implementation on our web server http://computproteomics.bmb.sdu.dk:
-
+You can use the implementation on our web server http://computproteomics.bmb.sdu.dk:  
 http://computproteomics.bmb.sdu.dk/Apps/VSClust
 
 Be aware that the tool does allow only one user to run the background R calculations at a time. Therefore the app might become temporarily irresponsive. However, multiple sessions are separated and your data won't be shared between sessions or overwritten. 
@@ -31,41 +28,42 @@ Be aware that the tool does allow only one user to run the background R calculat
 #### Docker
 The easiest option is to use the docker image:
 
-`docker pull veitveit/vsclust`
-
-`docker run -t -i -p 3838:3838 veitveit/vsclust`
+```
+docker pull veitveit/vsclust
+docker run -t -i -p 3838:3838 veitveit/vsclust
+```
 
 and access the server through http://localhost:3838
 
 #### Bioconda
-Install the package
-
+Install the package in the command-line
+```
 conda install -c bioconda vsclust
-
 run_vsclust_app.sh
-
+```
 and access the shiny app through http://localhost:3838
 
 #### Manual installation
-Install the following R libraries: Mfuzz, matrixStats, limma, qvalue, yaml, shiny, clusterProfiler, RDAVIDWebService, parallel, shinyjs and shinythemes.
+Install the Bioconductor package `vsclust`
 In R:
-`source("https://bioconductor.org/biocLite.R")`   
-`biocLite(c("Mfuzz", "DOSE", "matrixStats", "limma", "yaml", "qvalue", "shiny", "clusterProfiler", "RDAVIDWebService", "parallel", "shinyjs", "shinythemes"))`
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 
-Download the files into a folder and install the library *e1071FuzzVec*. You might need to compile the library on your computer:  
-Run `R CMD INSTALL e1071FuzzVec_Installation` from the command line. You need to be in the VSClust folder. For Windows users, replace `R` by `InstallationPath/R.exe`.
+BiocManager::install("vsclust")
+```
 
-You can run the shiny app from the server.R or ui.R files using [Rstudio](http://rstudio.com) or run the app on a [shiny-server](https://www.rstudio.com/products/shiny/shiny-server/)
+You can run the shiny app from the server.R or ui.R files in the "inst/shiny" folder using [Rstudio](http://rstudio.com) or run the app on a [shiny-server](https://www.rstudio.com/products/shiny/shiny-server/)
 
 Be aware that you need to have all files, the R libraries described in Installation *and* the modified e1071 library installed.
 
 
 ### Build and use Docker image
-A Dockerfile has been created on the basis of an OpenSuse distribution. Copy the repository to a folder and carry out the following command to build the images (takes a while)
+A Dockerfile has been created on top of the rocker/shiny docker image. Copy this repository to a folder and carry out the following command to build the image (takes a while)
 
 `docker build -t veitveit/vsclust .`
 
-You can run the image by
+You can also just directly download and run the image by
 
 `docker run -t -i -p 3838:3838 veitveit/vsclust`
 
