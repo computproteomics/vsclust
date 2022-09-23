@@ -2,8 +2,9 @@
 
 Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance.
 
-**Welcome to the repository of VSClust**
-developed at the
+VSClust is available as Shiny webservice and as R package in Bioconductor. For more instructions on both, see below.
+
+VSClust was developed at the
 
 [Protein Research Group](http://www.sdu.dk/en/Om_SDU/Institutter_centre/Bmb_biokemi_og_molekylaer_biologi/Forskning/Forskningsgrupper/Protein.aspx)  
 Department of Biochemistry and Molecular Biology  
