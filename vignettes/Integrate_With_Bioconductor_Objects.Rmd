@@ -1,17 +1,31 @@
 ---
-title: "VSClust run on MultiAssayExperiment"
-output: rmarkdown::html_vignette
+title: "VSClust with Bioconductor objects"
+author: "Veit Schwämmle"
+package: vsclust
+abstract: >
+  Here, we describe the workflow to run variance-sensitive clustering on data 
+  stored in a SummarizedExperiment, QFeatures or MultiAssayExperiment object. 
+  This vignette is distributed under a CC BY-SA license.
 vignette: >
   %\VignetteIndexEntry{VSClust on Bioconductor object}
   %\VignetteEngine{knitr::rmarkdown}
+  %%\VignetteKeywords{Genomics, Transcriptomics, Proteomics, Metabolomics, Clustering, Quantitative, Statistics }
   %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    toc_float: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
 ```
 
-## Introduction
+```{r env, message = FALSE, warning = FALSE, echo = FALSE}
+library("vsclust")
+library("MultiAssayExperiment")
+```
+
+# Introduction
 
 For a more detailed explanation of the VSClust function and the workflow, please
 take a look on the vignette for running the VSClust workflow. 
@@ -20,26 +34,20 @@ Here, we present an example script to integrate the clustering with data object
 from Bioconductor, such as `QFeatures`, `SummarizedExperiment` and
 `MultiAssayExperiment`. 
 
-## Installation and additional packages
+# Installation and additional packages
 
-Use the common `BiocManager::install("vsclust")` command for installation. The 
-full functionality can be obtained by additionally installing and loading the
+Use the common Bioconductor commands for installation:
+
+```{r eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("vsclust")
+```
+The full functionality can be obtained by additionally installing and loading the
 packages `yaml`, `shiny`, `clusterProfiler`, and `matrixStats`.
 
-You will need the library `MultiAssayExperiment` for loading the example data 
-file.
 
-
-```{r echo=FALSE}
-library(vsclust)
-require(yaml)
-require(shiny)
-require(clusterProfiler)
-require(matrixStats)
-require(MultiAssayExperiment)
-```
-
-## Initialization
+# Initialization
 
 Here, we define the different parameters for the data set `RNASeq2GeneNorm` from
 the `miniACC` object. 
@@ -48,31 +56,29 @@ The number of replicates and experimental conditions will be retrieved
 automatically by specifying the metadata for the grouping. 
 ```{r}
 #### Input parameters, only read when now parameter file was provided #####
-## All principal parameters for running VSClust can be defined as in the shiny 
-## app 
-## at computproteomics.bmb.sdu.dk/Apps/VSClust
+## All principal parameters for running VSClust can be defined as in the 
+## shiny app at computproteomics.bmb.sdu.dk/Apps/VSClust
 # name of study
 Experiment <- "miniACC" 
-# Paired or unpaired statistical tests when carrying out LIMMA for statistical
-# testing
+# Paired or unpaired statistical tests when carrying out LIMMA for 
+# statistical testing
 isPaired <- FALSE
 # Number of threads to accelerate the calculation (use 1 in doubt)
 cores <- 2 
 
-# If 0 (default), then automatically estimate the cluster number for the vsclust
-# run 
-# from the Minimum Centroid Distance
+# If 0 (default), then automatically estimate the cluster number for the 
+# vsclust run from the Minimum Centroid Distance
 PreSetNumClustVSClust <- 0 
 # If 0 (default), then automatically estimate the cluster number for the 
 # original fuzzy c-means from the Minimum Centroid Distance
 PreSetNumClustStand <- 0 
 
-# max. number of clusters when estimating the number of clusters. Higher numbers 
-# can drastically extend the computation time.
+# max. number of clusters when estimating the number of clusters. 
+# Higher numbers can drastically extend the computation time.
 maxClust <- 10 
 ```
 
-## Statistics and data preprocessing
+# Statistics and data preprocessing
 
 At first, we load will log-transform the original data and normalize it to the 
 median. Statistical testing will be applied on the resulting object. 
@@ -96,7 +102,8 @@ boxplot(logminiACC)
 
 
 #### running statistical analysis and estimation of individual variances
-statOut <- PrepareSEForVSClust(miniACC2, "log2rnaseq", coldatname = "OncoSign", 
+statOut <- PrepareSEForVSClust(miniACC2, "log2rnaseq", 
+                               coldatname = "OncoSign", 
                                isPaired=isPaired, isStat=TRUE)
 
 ```
@@ -104,7 +111,7 @@ statOut <- PrepareSEForVSClust(miniACC2, "log2rnaseq", coldatname = "OncoSign",
 We can see that there is no good separation of cancer signatures on the PCA 
 plot.
 
-## Estimation of cluster number
+# Estimation of cluster number
 
 There is no simple way to find the optimal number of clusters in a data set. For 
 obtaining this number, we run the clustering for different cluster numbers and 
@@ -121,7 +128,7 @@ We further visualize the outcome.
 
 #### Estimate number of clusters with maxClust as maximum number clusters to run 
 #### the estimation with
-ClustInd <- estimClustNum(dat, maxClust, cores)
+ClustInd <- estimClustNum(statOut$dat, maxClust, cores)
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
@@ -139,7 +146,7 @@ estimate for the cluster number. However, we can also see that this decreases
 the number of clustered features quite drastically from over 150 to about 90.
 
 
-## Run final clustering
+# Run final clustering
 
 Now we run the clustering again with the optimal parameters from the estimation.
 One can 
@@ -153,7 +160,9 @@ First, we carry out the variance-sensitive method
 
 
 #### Run clustering (VSClust and standard fcm clustering
-ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=TRUE, 
+ClustOut <- runClustWrapper(statOut$dat, 
+                            PreSetNumClustVSClust, NULL, 
+                            VSClust=TRUE, 
                             cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl

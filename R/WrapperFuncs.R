@@ -487,6 +487,7 @@ runClustWrapper <-
 # names are not working)
 # param infosource Type of gene annotation (e.g. KEGG_PATHWAY)
 # return plot object to be able to pass the figures to e.g. shiny
+# @export
 runFuncEnrich <-
   function(cl, protnames = NULL, idtypes, infosource) {
     Accs <- list()

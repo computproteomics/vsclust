@@ -81,7 +81,7 @@ or using the functions of the Bioconductor package `vsclust`
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install("QFeatures")
+BiocManager::install("vsclust")
 ```
 
 ### As conda package

@@ -377,7 +377,7 @@ shinyServer(function(input, output,clientData,session) {
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             
-            enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
+            enriched <- vsclust:::runFuncEnrich(cl, pars$proteins, input$idtype, input$infosource)
             x <- enriched$fullFuncs
             y <- enriched$redFuncs
             BHI <- enriched$BHI
