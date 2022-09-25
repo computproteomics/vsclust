@@ -105,9 +105,9 @@ PrepareForVSClust <-
 #' This includes visualization running the functions for the principal component
 #' analysis and its visualization, statistical testing with LIMMA, as well as
 #' scaling and filtering of missing values
-#' @param SummarizedExperiment object
-#' @param Sample in SummarizedExperiment object
-#' @param Column in colData for extracting replicates
+#' @param se SummarizedExperiment object
+#' @param assayname Sample in SummarizedExperiment object
+#' @param coldatname Column in colData for extracting replicates
 #' @param isPaired Boolean for running paired or unpaired statistical tests
 #' @param isStat Boolean for whether to run statistical test or each column
 #' corresponds to a different experimental conditions. Then this function reads
@@ -118,7 +118,7 @@ PrepareForVSClust <-
 #' of before for saving in file, `NumReps` number of replicates and `NumCond` 
 #' number of different experimental conditions
 #' @examples
-#' data(miniACC)
+#' data(miniACC, package="MultiAssayExperiment")
 #' 
 #' stats <- PrepareSEForVSClust(miniACC, coldatname="COC", isStat=TRUE)
 #'

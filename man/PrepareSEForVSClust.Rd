@@ -13,17 +13,17 @@ PrepareSEForVSClust(
 )
 }
 \arguments{
+\item{se}{SummarizedExperiment object}
+
+\item{assayname}{Sample in SummarizedExperiment object}
+
+\item{coldatname}{Column in colData for extracting replicates}
+
 \item{isPaired}{Boolean for running paired or unpaired statistical tests}
 
 \item{isStat}{Boolean for whether to run statistical test or each column
 corresponds to a different experimental conditions. Then this function reads
 feature standard deviations from data frame from the last column}
-
-\item{SummarizedExperiment}{object}
-
-\item{Sample}{in SummarizedExperiment object}
-
-\item{Column}{in colData for extracting replicates}
 }
 \value{
 list with the items `dat` (data matrix of features averaged over
@@ -39,7 +39,7 @@ analysis and its visualization, statistical testing with LIMMA, as well as
 scaling and filtering of missing values
 }
 \examples{
-data(miniACC)
+data(miniACC, package="MultiAssayExperiment")
 
 stats <- PrepareSEForVSClust(miniACC, coldatname="COC", isStat=TRUE)
 
