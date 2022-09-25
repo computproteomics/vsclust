@@ -1,17 +1,34 @@
 ---
 title: "VSClust workflow"
-output: rmarkdown::html_vignette
+author: "Veit Schwämmle"
+package: vsclust
+abstract: >
+  Here, we describe the workflow to run variance-sensitive clustering on data 
+  from a quantitative omics experiments. In principle, this can be any 
+  multi-dimensional data set containing quantitative and optionally replicated
+  values.
+  This vignette is distributed under a CC BY-SA license.
 vignette: >
-  %\VignetteIndexEntry{VSClust workflow}
+  %\VignetteIndexEntry{VSClust on Bioconductor object}
   %\VignetteEngine{knitr::rmarkdown}
+  %%\VignetteKeywords{Genomics, Transcriptomics, Proteomics, Metabolomics, Clustering, Quantitative, Statistics, Functional analysis }
   %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    toc_float: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
 ```
 
-## Introduction
+```{r env, message = FALSE, warning = FALSE, echo = FALSE}
+library("vsclust")
+require(clusterProfiler)
+require(matrixStats)
+```
+
+# Introduction
 
 Clustering is a method to identify common pattern in highly dimensional data. 
 This can be for example genes or proteins with similar quantitative changes, 
@@ -30,22 +47,20 @@ its docker image or on \URL{http://computproteomics.bmb.sdu.dk}), or the
 corresponding command line script. For the source code, see
 \URL{https://bitbucket.com/veitveit/vsclust}. 
 
-## Installation and additional packages
+# Installation and additional packages
 
-Use the common `BiocManager::install("vsclust")` command for installation. The 
-full functionality can be obtained by additionally installing and loading the
-packages `yaml`, `shiny`, `clusterProfiler`, and `matrixStats`.
+Use the common Bioconductor commands for installation:
 
-
-```{r echo=FALSE}
-library(vsclust)
-require(yaml)
-require(shiny)
-require(clusterProfiler)
-require(matrixStats)
+```{r eval=FALSE}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("vsclust")
 ```
 
-## Initialization
+The  full functionality of this vignette can be obtained by additionally 
+installing and loading the packages `matrixStats` and `clusterProfiler`
+
+# Initialization
 
 Here, we define the different parameters for the example data set
 `protein_expressions`. In the command-line version of VSClust ("runVSClust.R"), 
@@ -69,33 +84,37 @@ D. If you don't have replicates, use the same format as in C. and set the
 standard deviations to 1. 
 
 ```{r}
-#### Input parameters, only read when now parameter file was provided #####
-## All principal parameters for running VSClust can be defined as in the shiny 
-## app at computproteomics.bmb.sdu.dk/Apps/VSClust
+#### Input parameters, only read when now parameter file was provided
+## All principal parameters for running VSClust can be defined as in the 
+## shinyapp at computproteomics.bmb.sdu.dk/Apps/VSClust 
 # name of study
 Experiment <- "ProtExample" 
-# Number of replicates/sample per different experimental condition (sample type)
+# Number of replicates/sample per different experimental condition (sample 
+# type)
 NumReps <- 3  
-# Number of different experimental conditions (e.g. time points or sample types)
+# Number of different experimental conditions (e.g. time points or sample 
+# types)
 NumCond <- 4  
-# Paired or unpaired statistical tests when carrying out LIMMA for statistical testing
+# Paired or unpaired statistical tests when carrying out LIMMA for 
+# statistical testing
 isPaired <- FALSE
 # Number of threads to accelerate the calculation (use 1 in doubt)
 cores <- 2 
 
-# If 0 (default), then automatically estimate the cluster number for the vsclust 
+# If 0 (default), then automatically estimate the cluster number for the 
+# vsclust 
 # run from the Minimum Centroid Distance
 PreSetNumClustVSClust <- 0 
 # If 0 (default), then automatically estimate the cluster number for the 
 # original fuzzy c-means from the Minimum Centroid Distance
 PreSetNumClustStand <- 0 
 
-# max. number of clusters when estimating the number of clusters. Higher numbers 
-# can drastically extend the computation time.
+# max. number of clusters when estimating the number of clusters. Higher 
+# numbers can drastically extend the computation time.
 maxClust <- 10 
 ```
 
-## Statistics and data preprocessing
+# Statistics and data preprocessing
 
 At first, we load the example proteomics data set and carry out statistical 
 testing of all conditions version the first based on the LIMMA moderated t-test.
@@ -127,16 +146,17 @@ statOut <- PrepareForVSClust(dat, NumReps, NumCond, isPaired, TRUE)
 
 dat <- statOut$dat
 Sds <- dat[,ncol(dat)]
-print(paste("Features:",nrow(dat),"<br/>Missing values:",
-            sum(is.na(dat)),"<br/>Median standard deviations:",
+cat(paste("Features:",nrow(dat),"\nMissing values:",
+            sum(is.na(dat)),"\nMedian standard deviations:",
             round(median(Sds,na.rm=TRUE),digits=3)))
 
 ## Write output into file 
-write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
+write.csv(statOut$statFileOut,
+          paste("",Experiment,"statFileOut.csv",sep=""))
 
 ```
 
-## Estimation of cluster number
+# Estimation of cluster number
 
 There is no simple way to find the optimal number of clusters in a data set. For
 obtaining this number, we run the clustering for different cluster numbers and
@@ -150,8 +170,8 @@ The output of `estimClustNum` contains the suggestion for the number of clusters
 We further visualize the outcome.
 ```{r fig.width = 12}
 
-#### Estimate number of clusters with maxClust as maximum number clusters to run 
-#### the estimation with
+#### Estimate number of clusters with maxClust as maximum number clusters 
+#### to run the estimation with
 ClustInd <- estimClustNum(dat, maxClust, cores)
 
 #### Use estimate cluster number or use own
@@ -162,11 +182,9 @@ if (PreSetNumClustStand == 0)
 #### Visualize
   estimClust.plot(ClustInd)
 
-
-
 ```
 
-## Run final clustering
+# Run final clustering
 
 Now we run the clustering again with the optimal parameters from the estimation.
 One can 
@@ -176,26 +194,35 @@ Minimum Centroid Distance or low values of the Xie Beni index.
 First, we carry out the variance-sensitive method
 
 ``` {r}
-
-
 #### Run clustering (VSClust and standard fcm clustering
-ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, NULL, VSClust=TRUE, 
+ClustOut <- runClustWrapper(dat, 
+                            PreSetNumClustVSClust, 
+                            NULL, 
+                            VSClust=TRUE, 
                             cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl
 #ClustOut$p
 ## Write clustering results (VSClust)
-write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,
+write.csv(data.frame(cluster=Bestcl$cluster,
+                     ClustOut$outFileClust,
                      isClusterMember=rowMaxs(Bestcl$membership)>0.5,
                      maxMembership=rowMaxs(Bestcl$membership),
                      Bestcl$membership), 
-          paste(Experiment, "FCMVarMResults", Sys.Date(), ".csv", sep=""))
+          paste(Experiment, 
+                "FCMVarMResults", 
+                Sys.Date(), 
+                ".csv", 
+                sep=""))
 ## Write coordinates of cluster centroids
-write.csv(Bestcl$centers, paste(Experiment,"FCMVarMResultsCentroids", 
-                                Sys.Date(), ".csv", sep=""))
-
-
+write.csv(Bestcl$centers, 
+          paste(Experiment,
+                "FCMVarMResultsCentroids",
+                Sys.Date(), 
+                ".csv", 
+                sep=""))
 ```
+
 We see that most of the difference are between TTA diets and the rest. This 
 shows that the TTA fatty acids have strong impact on
 the organisms. Cluster three shows the proteins that a commonly lower abundant 
@@ -210,44 +237,33 @@ ClustOut <- runClustWrapper(dat, PreSetNumClustStand, NULL, VSClust=FALSE,
                             cores)
 Bestcl <- ClustOut$Bestcl
 ## Write clustering results (standard fcm)
-write.csv(data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,
+write.csv(data.frame(cluster=Bestcl$cluster,
+                     ClustOut$outFileClust,
                      isClusterMember=rowMaxs(Bestcl$membership)>0.5,
                      maxMembership=rowMaxs(Bestcl$membership),
-                     Bestcl$membership), paste(Experiment, "FCMResults", 
-                                               Sys.Date(), ".csv", sep=""))
+                     Bestcl$membership), 
+          paste(Experiment, 
+                "FCMResults", 
+                Sys.Date(), 
+                ".csv", 
+                sep=""))
 ## Write coordinates of cluster centroids
-write.csv(Bestcl$centers, paste(Experiment,"FCMResultsCentroids", Sys.Date(),
-                                ".csv", sep=""))
-
-
+write.csv(Bestcl$centers, paste(Experiment,
+                                "FCMResultsCentroids", 
+                                Sys.Date(),
+                                ".csv", 
+                                sep=""))
 ```
+
 Here, the clusters look rather similar. VSClust best performs for larger numbers
 of different experimental conditions (one finds major improvements for $D>6$).
 For a 4-dimensional data set, the algorithm mostly filters out features with 
 very high variance levels, making them unsuitable for belonging to 
 a particular cluster.
 
-### Biological interpretation
-
-We now will look for the KEGG pathways that are found to be enriched in each of
-the clusters. This procedure might fail as it depends
-on an old library that is not anymore actively maintained in Bioconductor: `RDAVIDWebService`.
-
-Enrichment results are retrieved and visualized with function from 
-`clusterProfiler`
-
-``` {r fig.width=12,warning=FALSE,eval=FALSE}
-## Vector mapping protein names to the same proteins accession names
-protnames <- rownames(VSClust_cl$membership)
-names(protnames) <- protnames
-
-enriched <- runFuncEnrich(VSClust_cl, protnames, "UNIPROT_ACCESSION", "KEGG_PATHWAY")
-x <- enriched$fullFuncs
-y <- enriched$redFuncs
-BHI <- enriched$BHI
-dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20)
-
-```
+This analysis is then followed by evaluating the features (here proteins) of 
+each cluster for their biological relevance. This can be done by functional
+analysis with e.g. the `clusterProfiler` package.
 
 
 ```{r}

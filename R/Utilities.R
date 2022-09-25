@@ -195,6 +195,6 @@ balanceData <- function(dat, coldat) {
     }
                                                            }
   # Rearrange columns
-  tdat[, rep(seq_len((NumCond)-1), NumReps) * NumReps + rep(seq_len(NumReps),
+  tdat[, rep(seq_len(NumCond)-1, NumReps) * NumReps + rep(seq_len(NumReps),
                                                        each = NumCond)]
 }
