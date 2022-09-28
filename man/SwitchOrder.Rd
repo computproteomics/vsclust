@@ -22,5 +22,5 @@ arrange cluster member numbers from largest to smallest
 data <- matrix(rnorm(seq_len(1000)), nrow=100)
 # Run clustering
 clres <- vsclust_algorithm(data, centers=5, m=1.5)
-clres <- SwitchOrder(clres)
+clres <- SwitchOrder(clres, 5)
 }

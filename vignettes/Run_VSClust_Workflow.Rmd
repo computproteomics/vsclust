@@ -9,7 +9,7 @@ abstract: >
   values.
   This vignette is distributed under a CC BY-SA license.
 vignette: >
-  %\VignetteIndexEntry{VSClust on Bioconductor object}
+  %\VignetteIndexEntry{VSClust workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %%\VignetteKeywords{Genomics, Transcriptomics, Proteomics, Metabolomics, Clustering, Quantitative, Statistics, Functional analysis }
   %\VignetteEncoding{UTF-8}

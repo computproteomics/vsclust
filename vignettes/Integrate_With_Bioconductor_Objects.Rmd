@@ -89,7 +89,7 @@ features.
 We will separate the samples according to their `OncoSign`.
 
 ```{r fig.width = 12 }
-data(miniACC)
+data(miniACC, package="MultiAssayExperiment")
 # log-transformation and remove of -Inf values
 logminiACC <- log2(assays(miniACC)$RNASeq2GeneNorm)
 logminiACC[!is.finite(logminiACC)] <- NA
