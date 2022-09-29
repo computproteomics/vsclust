@@ -39,7 +39,6 @@ print.fclust <-
 #' @param NClust Number of clusters
 #' @importFrom matrixStats rowMaxs
 #' @return fclust object with reorder clusters
-#' @example 
 #' @examples
 #' # Generate some random data
 #' data <- matrix(rnorm(seq_len(1000)), nrow=100)
@@ -83,9 +82,8 @@ SwitchOrder <- function(Bestcl, NClust) {
 #' @return Biological Homogeneity Index
 #' @examples
 #' # Run enrichment analysis
-#' library(clusterProfiler)
-#' data(gcSample)
-#' xx <- compareCluster(gcSample, fun="enrichKEGG",
+#' data(gcSample, package="clusterProfiler")
+#' xx <- clusterProfiler::compareCluster(gcSample, fun="enrichKEGG",
 #'                      organism="hsa", pvalueCutoff=0.05)
 #' # Generate random list from gcSample
 #' rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))
@@ -133,7 +131,7 @@ calcBHI <- function(Accs, gos) {
       ltgenes <- length(tgenes)
       if (ltgenes > 1) {
         for (i1 in tgenes[seq_len(ltgenes - 1)]) {
-          ttgene <- tgenes[(which(i1 == tgenes) + 1):ltgenes]
+          ttgene <- tgenes[seq(which(i1 == tgenes) + 1,ltgenes,1)]
           ispair[i1, ttgene] <- ispair[ttgene, i1] <- TRUE
         }
         
@@ -165,7 +163,7 @@ averageCond <- function(data, NumReps, NumCond) {
   # Calculates means over replicates
   tdat <-
     rowMeans(data[, seq(1, NumReps * NumCond, NumCond)], na.rm = TRUE)
-  for (i in 2:NumCond) {
+  for (i in seq(2,NumCond,1)) {
     tdat <-
       cbind(tdat, rowMeans(data[, seq(i, NumReps * NumCond, NumCond)], na.rm =
                              TRUE))

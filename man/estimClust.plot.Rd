@@ -11,7 +11,7 @@ estimClust.plot(ClustInd)
 }
 \value{
 Multiple panels showing expression profiles of clustered features 
-passing the min.mem threshold
+passing the minMem threshold
 }
 \description{
 This function visualizes the output from estimClustNumber, and there 

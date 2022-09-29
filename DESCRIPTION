@@ -1,11 +1,11 @@
 Package: vsclust
 Type: Package
 Title: Feature-based variance-sensitive quantitative clustering
-Version: 0.99.20
+Version: 0.99.21
 Date: 2022-03-23
 Authors@R: 
     person(
-        "Veit", "Schwämmle",
+        "Veit", "Schwaemmle",
         email = "veits@bmb.sdu.dk",
         role = c("aut", "cre")
     )
@@ -26,7 +26,8 @@ Suggests:
     yaml,
     testthat (>= 3.0.0),
     rmarkdown,
-    BiocStyle
+    BiocStyle,
+    clusterProfiler
 LinkingTo: Rcpp
 biocViews: 
   Clustering,

@@ -326,7 +326,10 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
                         NumericVector & weight, NumericVector & fuzz, int dist_metric, int iter_max, double rel_tol,
                         int verbose, NumericMatrix & membership_mat, double ermin, IntegerVector & iter, double missing_value = NA_REAL, 
                         double weight_missing = 0) {
-  
+
+  // check for user interrupts
+  Rcpp::checkUserInterrupt();
+
   int nr_objects = feature_mat.nrow();
   int nr_centers = centers.nrow();
   // for symmetric matrix

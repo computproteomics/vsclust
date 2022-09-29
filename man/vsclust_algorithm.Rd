@@ -7,11 +7,11 @@
 vsclust_algorithm(
   x,
   centers,
-  iter.max = 100,
+  iterMax = 100,
   verbose = FALSE,
   dist = "euclidean",
   m = 2,
-  rate.par = NULL,
+  ratePar = NULL,
   weights = 1,
   control = list()
 )
@@ -22,7 +22,7 @@ vsclust_algorithm(
 \item{centers}{Either numeric for number of clusters or numeric matrix with 
 center coordinates}
 
-\item{iter.max}{Numeric for maximum number of iterations}
+\item{iterMax}{Numeric for maximum number of iterations}
 
 \item{verbose}{Verbose information}
 
@@ -32,7 +32,7 @@ center coordinates}
 \item{m}{Fuzzifier value: numeric or vector of length equal to number of rows 
 of x}
 
-\item{rate.par}{(experimental) numeric value for punishing missing values}
+\item{ratePar}{(experimental) numeric value for punishing missing values}
 
 \item{weights}{numeric or vector of length equal to number of rows of x}
 

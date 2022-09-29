@@ -14,7 +14,7 @@ NULL
 #' scaling and filtering of missing values
 #' @param dat matrix or data frame of numerical data. Columns are samples.
 #' Replicates are grouped (i.e. A1, B1, C1, A2, B2, C2) when letters denote
-#' conditions and numbers the replicates. In case of `isStat=F`, you need a
+#' conditions and numbers the replicates. In case of `isStat=FALSE`, you need a
 #' last column for the standard deviations
 #' @param NumReps Number replicates in the data
 #' @param NumCond Number of different experimental conditions. The total number
@@ -123,7 +123,7 @@ PrepareForVSClust <-
 #' stats <- PrepareSEForVSClust(miniACC, coldatname="COC", isStat=TRUE)
 #'
 #' @import stats
-#' @import MultiAssayExperiment
+#' @importFrom MultiAssayExperiment assay assays sampleMap colData
 #' @importFrom matrixStats rowSds
 #' @importFrom shiny validate
 #' @export
@@ -287,7 +287,7 @@ estimClustNum <- function(dat,
   sds <- sds / (rowSds(as.matrix(tData), na.rm = TRUE))
   tData <- t(scale(t(tData)))
   
-  multiOut <- lapply(3:maxClust, function(x) {
+  multiOut <- lapply(seq(3,maxClust,1), function(x) {
     if (!is.null(getDefaultReactiveDomain())) {
       incProgress(1, detail = paste("Running cluster number", x))
     } else {
@@ -306,9 +306,9 @@ estimClustNum <- function(dat,
   
   stopCluster(cl)
   
-  for (NClust in 3:maxClust)
+  for (NClust in seq(3,maxClust,1))
     ClustInd[NClust - 2,] <- multiOut[[NClust - 2]]
-  rownames(ClustInd) <- paste0("num_clust_", 3:maxClust)
+  rownames(ClustInd) <- paste0("num_clust_", seq(3,maxClust,1))
   colnames(ClustInd) <-
     c(
       "MinCentroidDist_VSClust",
@@ -412,7 +412,7 @@ runClustWrapper <-
       tData,
       cl = Bestcl,
       mfrow = c(round(sqrt(NClust)), ceiling(sqrt(NClust))),
-      min.mem = 0.5,
+      minMem = 0.5,
       colo = "fancy"
     )
     p <- recordPlot()
