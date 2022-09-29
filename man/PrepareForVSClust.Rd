@@ -9,7 +9,7 @@ PrepareForVSClust(dat, NumReps, NumCond, isPaired = FALSE, isStat)
 \arguments{
 \item{dat}{matrix or data frame of numerical data. Columns are samples.
 Replicates are grouped (i.e. A1, B1, C1, A2, B2, C2) when letters denote
-conditions and numbers the replicates. In case of `isStat=F`, you need a
+conditions and numbers the replicates. In case of `isStat=FALSE`, you need a
 last column for the standard deviations}
 
 \item{NumReps}{Number replicates in the data}

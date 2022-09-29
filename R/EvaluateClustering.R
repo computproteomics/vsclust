@@ -31,7 +31,7 @@ cvalidate.xiebeni <-
     ncenters <-
       dim(clres$centers)[1]
     for (i in seq_len(ncenters - 1)) {
-      for (j in (i + 1):ncenters) {
+      for (j in seq(i + 1,ncenters, 1)) {
         diff <- clres$ce[i,] - clres$ce[j,]
         diffdist <-
           t(diff) %*% t(t(diff))
@@ -61,9 +61,9 @@ cvalidate.xiebeni <-
 #' @param mfrow vector of two numbers for the number of rows and colums, figure 
 #' panels are distributed in the plot
 #' @param colo color map to be used (can be missing)
-#' @param min.mem filter for showing only features with a higher membership 
+#' @param minMem filter for showing only features with a higher membership 
 #' values than this value
-#' @param time.labels alternative labels for different conditions
+#' @param timeLabels alternative labels for different conditions
 #' @param filename for writing into pdf. Will write on screen when using NA
 #' @param xlab Label of x-axis
 #' @param ylab Label of y-axis
@@ -72,9 +72,9 @@ cvalidate.xiebeni <-
 #' data <- matrix(rnorm(seq_len(5000)), nrow=500)
 #' # Run clustering
 #' clres <- vsclust_algorithm(data, centers=2, m=1.5)
-#' mfuzz.plot(data, clres,  mfrow=c(2,3), min.mem=0.0)
+#' mfuzz.plot(data, clres,  mfrow=c(2,3), minMem=0.0)
 #' @return Multiple panels showing expression profiles of clustered features 
-#' passing the min.mem threshold
+#' passing the minMem threshold
 #' @export
 #' @references
 #' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering 
@@ -95,15 +95,15 @@ mfuzz.plot <-
             cl,
             mfrow = c(1, 1),
             colo,
-            min.mem = 0,
-            time.labels,
+            minMem = 0,
+            timeLabels,
             filename = NA,
             xlab = "Time",
             ylab = "Expression changes")
   {
     clusterindex <- cl[[3]]
     memship <- cl[[4]]
-    memship[memship < min.mem] <- -1
+    memship[memship < minMem] <- -1
     colorindex <- integer(dim(dat)[[1]])
     if (missing(colo)) {
       colo <- c(
@@ -168,15 +168,15 @@ mfuzz.plot <-
       )
     }    else {
       if (colo == "fancy") {
-        fancy.blue <- c(c(255:0), rep(0, length(c(255:0))),
+        fancyBlue <- c(c(255:0), rep(0, length(c(255:0))),
                         rep(0, length(c(255:150))))
-        fancy.green <-
+        fanceGreen <-
           c(c(0:255), c(255:0), rep(0, length(c(255:150))))
-        fancy.red <- c(c(0:255), rep(255, length(c(255:0))),
+        fancyRed <- c(c(0:255), rep(255, length(c(255:0))),
                        c(255:150))
-        colo <- rgb(blue = fancy.blue / 255,
-                    green = fancy.green / 255,
-                    red = fancy.red / 255)
+        colo <- rgb(blue = fancyBlue / 255,
+                    green = fanceGreen / 255,
+                    red = fancyRed / 255)
       }
     }
     colorseq <- seq(0, 1, length = length(colo))
@@ -208,12 +208,12 @@ mfuzz.plot <-
             main = paste("Cluster", j),
             axes = FALSE
           )
-          if (missing(time.labels)) {
+          if (missing(timeLabels)) {
             axis(1, seq_len(dim(dat)[[2]]), c(seq_len(dim(dat)[[2]])))
             axis(2)
           }
           else {
-            axis(1, seq_len(dim(dat)[[2]]), time.labels)
+            axis(1, seq_len(dim(dat)[[2]]), timeLabels)
             axis(2)
           }
         }
@@ -235,12 +235,12 @@ mfuzz.plot <-
             main = paste("Cluster", j),
             axes = FALSE
           )
-          if (missing(time.labels)) {
+          if (missing(timeLabels)) {
             axis(1, seq_len(dim(dat)[[2]]), seq_len(dim(dat)[[2]]))
             axis(2)
           }
           else {
-            axis(1, seq_len(dim(dat)[[2]]), time.labels)
+            axis(1, seq_len(dim(dat)[[2]]), timeLabels)
             axis(2)
           }
         }
@@ -271,7 +271,7 @@ mfuzz.plot <-
 #'
 #' @param ClustInd Matrix with values from validity indices
 #' @return Multiple panels showing expression profiles of clustered features 
-#' passing the min.mem threshold
+#' passing the minMem threshold
 #' @examples
 #' data("artificial_clusters")
 #' dat <- averageCond(artificial_clusters, 5, 10)
@@ -297,7 +297,7 @@ estimClust.plot <- function(ClustInd) {
   par(mfrow = c(1, 3))
   maxClust <- nrow(ClustInd) + 2
   plot(
-    3:maxClust,
+    seq(3,maxClust,1),
     ClustInd[seq_len(nrow(ClustInd)), "MinCentroidDist_VSClust"],
     col = 2 ,
     type = "b",
@@ -309,7 +309,7 @@ estimClust.plot <- function(ClustInd) {
              max(ClustInd[, grep("MinCentroidDist",
                                  colnames(ClustInd))], na.rm = TRUE))
   )
-  lines(3:maxClust, ClustInd[seq_len(nrow(ClustInd)), "MinCentroidDist_FCM"],
+  lines(seq(3,maxClust,1), ClustInd[seq_len(nrow(ClustInd)), "MinCentroidDist_FCM"],
         col = 3, type = "b")
   dmindist <- optimalClustNum(ClustInd)
   points(dmindist,
@@ -325,7 +325,7 @@ estimClust.plot <- function(ClustInd) {
   )
   grid(NULL, NA, lwd = 1, col = 1)
   plot(
-    3:maxClust,
+    seq(3,maxClust,1),
     ClustInd[seq_len(nrow(ClustInd)), "XieBeni_VSClust"],
     col = 2,
     type = "b",
@@ -337,7 +337,7 @@ estimClust.plot <- function(ClustInd) {
              max(ClustInd[, grep("XieBeni", colnames(ClustInd))], na.rm =
                    TRUE))
   )
-  lines(3:maxClust, ClustInd[seq_len(nrow(ClustInd)), "XieBeni_FCM"], type =
+  lines(seq(3,maxClust,1), ClustInd[seq_len(nrow(ClustInd)), "XieBeni_FCM"], type =
           "b", col = 3)
   dxiebeni <- optimalClustNum(ClustInd, index = "XieBeni")
   points(dxiebeni,

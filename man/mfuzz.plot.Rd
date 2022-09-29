@@ -9,8 +9,8 @@ mfuzz.plot(
   cl,
   mfrow = c(1, 1),
   colo,
-  min.mem = 0,
-  time.labels,
+  minMem = 0,
+  timeLabels,
   filename = NA,
   xlab = "Time",
   ylab = "Expression changes"
@@ -27,10 +27,10 @@ panels are distributed in the plot}
 
 \item{colo}{color map to be used (can be missing)}
 
-\item{min.mem}{filter for showing only features with a higher membership 
+\item{minMem}{filter for showing only features with a higher membership 
 values than this value}
 
-\item{time.labels}{alternative labels for different conditions}
+\item{timeLabels}{alternative labels for different conditions}
 
 \item{filename}{for writing into pdf. Will write on screen when using NA}
 
@@ -40,7 +40,7 @@ values than this value}
 }
 \value{
 Multiple panels showing expression profiles of clustered features 
-passing the min.mem threshold
+passing the minMem threshold
 }
 \description{
 This function visualizes the clustered quantitative profiles in multiple 
@@ -52,7 +52,7 @@ labels and color maps. The code is adopted from the MFuzz package.
 data <- matrix(rnorm(seq_len(5000)), nrow=500)
 # Run clustering
 clres <- vsclust_algorithm(data, centers=2, m=1.5)
-mfuzz.plot(data, clres,  mfrow=c(2,3), min.mem=0.0)
+mfuzz.plot(data, clres,  mfrow=c(2,3), minMem=0.0)
 }
 \references{
 Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering 

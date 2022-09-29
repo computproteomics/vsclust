@@ -24,9 +24,8 @@ functional classes. BMC bioinformatics 7, 397 (2006).
 }
 \examples{
 # Run enrichment analysis
-library(clusterProfiler)
-data(gcSample)
-xx <- compareCluster(gcSample, fun="enrichKEGG",
+data(gcSample, package="clusterProfiler")
+xx <- clusterProfiler::compareCluster(gcSample, fun="enrichKEGG",
                      organism="hsa", pvalueCutoff=0.05)
 # Generate random list from gcSample
 rand_ids <- lapply(gcSample, function(x) sample(unlist(gcSample), 200))

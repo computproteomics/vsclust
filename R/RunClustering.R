@@ -43,7 +43,7 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
   ### d_i and d_t
   difunc <-
     function(c, D) {
-      x <- 0:c
+      x <- seq(0,c,1)
       sum(choose(c, x) / (x * D + 1) * (-1) ^ x)
     }
   
@@ -73,13 +73,13 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 #' @param x a numeric data matrix
 #' @param centers Either numeric for number of clusters or numeric matrix with 
 #' center coordinates
-#' @param iter.max Numeric for maximum number of iterations
+#' @param iterMax Numeric for maximum number of iterations
 #' @param verbose Verbose information
 #' @param dist Distance to use for the calculation. We prefer "euclidean" 
 #' (default)
 #' @param m Fuzzifier value: numeric or vector of length equal to number of rows 
 #' of x
-#' @param rate.par (experimental) numeric value for punishing missing values
+#' @param ratePar (experimental) numeric value for punishing missing values
 #' @param weights numeric or vector of length equal to number of rows of x
 #' @param control list with arguments to vsclust algorithms (now only cutoff for 
 #' relative tolerance: reltol)
@@ -112,11 +112,11 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 vsclust_algorithm <-
   function(x,
            centers,
-           iter.max = 100,
+           iterMax = 100,
            verbose = FALSE,
            dist = "euclidean",
            m = 2,
-           rate.par = NULL,
+           ratePar = NULL,
            weights = 1,
            control = list())
   {
@@ -157,11 +157,11 @@ vsclust_algorithm <-
     if (xcols != ncol(centers))
       stop("Must have same number of columns in 'x' and 'centers'.")
     
-    if (iter.max < 1)
-      stop("Argument 'iter.max' must be positive.")
+    if (iterMax < 1)
+      stop("Argument 'iterMax' must be positive.")
     
-    if (missing(rate.par)) {
-      rate.par <- 0
+    if (missing(ratePar)) {
+      ratePar <- 0
     }
     
     reltol <- control$reltol
@@ -194,14 +194,14 @@ vsclust_algorithm <-
                        weights,
                        m,
                        dist - 1,
-                       iter.max,
+                       iterMax,
                        reltol,
                        verbose,
                        u ,
                        1,
                        iter,
                        NA,
-                       rate.par)
+                       ratePar)
     # put modified values in retval
     retval <-
       list(
@@ -212,10 +212,10 @@ vsclust_algorithm <-
         ncenters = ncenters,
         m = m,
         dist = dist - 1,
-        iter.max = iter.max,
+        iterMax = iterMax,
         reltol = reltol,
         verbose = verbose,
-        rate.par = rate.par,
+        ratePar = ratePar,
         u = u,
         ermin = val,
         iter = iter
@@ -316,11 +316,11 @@ ClustComp <-
           NClust,
           m = m,
           verbose = FALSE,
-          iter.max =
+          iterMax =
             1000
         ))
     # cls <- lapply(seq_len(NSs), function(x) vsclust_algorithm(tData,NClust,
-    # m=m, verbose=FALSE,iter.max=1000))  #print(cls[[1]])
+    # m=m, verbose=FALSE,iterMax=1000))  #print(cls[[1]])
     Bestcl <- cls[[which.min(lapply(cls, function(x)
       x$withinerror))]]
     cls <-
@@ -330,7 +330,7 @@ ClustComp <-
           NClust,
           m = mm,
           verbose = FALSE,
-          iter.max =
+          iterMax =
             1000
         ))
     Bestcl2 <- cls[[which.min(lapply(cls, function(x)
