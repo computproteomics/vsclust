@@ -99,7 +99,7 @@ NumCond <- 4
 # statistical testing
 isPaired <- FALSE
 # Number of threads to accelerate the calculation (use 1 in doubt)
-cores <- 2 
+cores <- 1 
 
 # If 0 (default), then automatically estimate the cluster number for the 
 # vsclust 
