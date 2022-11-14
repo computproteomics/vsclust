@@ -466,8 +466,9 @@ corresponding to replicates (A-C), grouped columns are arranged A1, A2, A3, A4, 
                                    given by the biological homogeneity index (BHI, see also <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1590054/'>paper</a>)<br/>
 <b>Important: </b>In the case of more than 2000 features in cluster, they will be limited to the 2000 with the highest membership values.
     ")})
-  output$reading <- renderUI({HTML("The source code of VSClust is available at <a href='https://bitbucket.org/veitveit/vsclust'>bitbucket</a>. VSClust was developed and implemented 
-                                   at the <a href='http://www.sdu.dk/en/Om_SDU/Institutter_centre/Bmb_biokemi_og_molekylaer_biologi/Forskning/Forskningsgrupper/Protein.aspx'>Protein Research Group</a> of the University of Southern Denmark. See also <a href='computproteomics.bmb.sdu.dk'>computproteomics.bmb.sdu.dk</a> for more information.")})
+  output$reading <- renderUI({HTML("VSClust is now available as R package via <a href='https://bioconductor.org/packages/release/bioc/html/vsclust.html'>Bioconductor</a> including the different functions 
+                                   for running the analysis. The source code of VSClust is available at <a href='https://github.com/veitveit/vsclust'>bitbucket</a>. VSClust was developed and implemented 
+                                   at the <a href='https://www.sdu.dk/en/forskning/protein'>Protein Research Group</a> of the University of Southern Denmark. See also <a href='computproteomics.bmb.sdu.dk'>computproteomics.bmb.sdu.dk</a> for more information.")})
   output$DownloadExample <- downloadHandler(
     filename = function() {
       paste("ExampleFile.csv")
