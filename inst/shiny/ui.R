@@ -21,7 +21,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
  var inmessage = JSON.parse(evt.data);
  console.log(inmessage); 
  console.log("read message");
- evt.source.postMessage("vsclust data received",evt.origin);
+ evt.source.postMessage("VSClust: data received",evt.origin);
  Shiny.setInputValue("extdata", evt.data);
  };
 });
