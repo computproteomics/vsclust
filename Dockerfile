@@ -9,7 +9,8 @@ RUN R -e "install.packages(c('BiocManager','remotes'), repos='http://cran.us.r-p
 #  BiocManager::install(c('BiocManager', 'devtools', 'RJDBC', 'dplyr', 'plotly', 'RPostgreSQL','rJava', 'lubridate', 'DT'),ask=F)"
 
 RUN R -e "BiocManager::install('veitveit/vsclust')"
-RUN R -e "library(BiocManager); BiocManager::install(c('genefilter', 'Rcpp',  'clusterProfiler','qvalue','limma','matrixStats','yaml','shinyjs','shinythemes','graph', 'GOstats', 'Category', 'RBGL'),ask=F, force=T)"
+RUN R -e "library(BiocManager); BiocManager::install(c('genefilter', 'Rcpp',  'clusterProfiler','qvalue','limma','matrixStats','yaml','shinyjs','shinythemes','graph', 'GOstats', 'Category', 'RBGL',\
+                                                       'DT', 'RJDBC','dplyr','plotly','RPostgreSQL','lubridate'),ask=F, force=T)"
 RUN R -e "install.packages('rJava')"
 RUN R CMD javareconf
 RUN bash
