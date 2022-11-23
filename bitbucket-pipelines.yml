@@ -18,8 +18,8 @@ pipelines:
           # push the new Docker image to the Docker registry
           - docker push $IMAGE_NAME
           # push a new version of the webserver to biolib
-          - pip3 install pybiolib
-          - cd webserver && biolib push SDU/VSClust
+          #- pip3 install pybiolib
+          #- cd webserver && biolib push SDU/VSClust
   tags: 
     release-*:
     - step:
@@ -37,8 +37,8 @@ pipelines:
           # push the new Docker image to the Docker registry
           - docker push $IMAGE_NAME
           # push a new version of the webserver to biolib
-          - pip3 install pybiolib
-          - cd webserver && biolib push SDU/VSClust
+          #- pip3 install pybiolib
+          #- cd webserver && biolib push SDU/VSClust
 
 definitions:
   services:
