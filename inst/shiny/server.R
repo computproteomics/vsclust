@@ -73,7 +73,7 @@ shinyServer(function(input, output,clientData,session) {
   output$tdescr <- renderText("Description")
   
   #global variables
-  v <- reactiveValues(dat = NULL, example = F, clustOut = NULL)
+  v <- reactiveValues(dat = NULL, example = F, clustOut = NULL, results = NULL)
   
   observe({
     input$reset
@@ -197,6 +197,7 @@ shinyServer(function(input, output,clientData,session) {
           }
         }
         fulldat <- dat
+        print(dim(fulldat))
         validate(need(try(statOut <- PrepareForVSClust(dat, NumReps, NumCond, input$isPaired, input$isStat)), 
                       "Please remove the following items from your input file:\na) empty columns or rows\nb) non-numerical or infinite values\nc) commenting characters (e.g. #)"))
         
@@ -277,8 +278,12 @@ shinyServer(function(input, output,clientData,session) {
                 dev.off()
               })
             
+            
             Bestcl <- ClustOut$Bestcl
             pars$Bestcl2 <<- Bestcl  
+            
+            v$results <- data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                       Bestcl$membership)            
             
             output$downloadData2 <- downloadHandler(
               filename = function() {
@@ -365,6 +370,18 @@ shinyServer(function(input, output,clientData,session) {
         }}
     })
   })
+  
+  # Send data back to calling OmicsQ
+  observeEvent(input$retrieve_output, isolate({
+    # make table in right format
+    print("Sending data back")
+    if (!is.null(v$results)) {
+    outdata <- as.data.frame(as.matrix(v$results))
+    BackMessage <- toJSON(list(expr_matrix=as.list(outdata)))
+    js$send_results(dat=BackMessage)
+    }
+  }))
+  
   
   output$plot4 <- renderPlot({
     if(input$goButton == 0)

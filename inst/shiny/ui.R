@@ -3,29 +3,9 @@ library(shinyjs)
 
 
 shinyUI(fluidPage(theme=shinytheme("cosmo"),
-                  #  singleton(
-                  #    tags$head(tags$script(src = "message-handler.js"))),
-                  tags$head(tags$script('
-    Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {      
-        var id = "#" + x + "_progress";
-        var idFile = "#" + x;
-        var idBar = id + " .bar";
-        $(id).css("visibility", "hidden");
-        $(idBar).css("width", "0%");
-        $(id).addClass("active");
-        $(idFile).replaceWith(idFile = $(idFile).clone(true));
-    });
- $(document).on("shiny:connected", function() {
- window.addEventListener("message", displayMessage, false);
- function displayMessage(evt) { 
- var inmessage = JSON.parse(evt.data);
- console.log(inmessage); 
- console.log("read message");
- evt.source.postMessage("VSClust: data received",evt.origin);
- Shiny.setInputValue("extdata", evt.data);
- };
-});
-  ')),
+                  tags$head(tags$script(src="ExchangeData.js")),
+                  useShinyjs(),  # Include shinyjs
+                  extendShinyjs(script="ExchangeData.js", functions=c("send_results")),
                   tags$head(tags$style("body {background-image: url('/BackgroundTexture.jpg');background-size:cover;} 
   .shiny-myframe{padding:20px}
   .shiny-input-panel{background-color: transparent;border-color: transparent}

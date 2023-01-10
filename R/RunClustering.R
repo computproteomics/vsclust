@@ -40,6 +40,10 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
     1 + (1418 / dims[1] + 22.05) * dims[2] ^ (-2) + (12.33 / dims[1] + 0.243) *
     dims[2] ^ (-0.0406 * log(dims[1]) - 0.1134)
   
+  ## Lower limit of the fuzzifier is 1.001 to avoid 
+  ## numerical issues
+  mm <- max(1.01, mm)
+  
   ### d_i and d_t
   difunc <-
     function(c, D) {
@@ -55,6 +59,9 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
   m[m == Inf] <- 0
   m[m == 0] <- NA
   m[is.na(m)] <- mm * 10
+  
+   
+  
   
   ## If m for highest Sd is mm then all = mm
   if (m[which.max(Sds)] == mm)
