@@ -238,7 +238,7 @@ shinyServer(function(input, output,clientData,session) {
         dat <- pars$dat
         clustInd <- NULL
         withProgress(message="Calculating ...", min=3,max=maxClust, value=2,  {
-          clustInd <- estimClustNum(dat, input$maxclust, cores)
+          clustInd <- estimClustNum(dat, input$maxclust, cores=cores)
           estimClust.plot(clustInd)
           updateSliderInput(session,"nclust1",value=optimalClustNum(clustInd))
           updateSliderInput(session,"nclust2",value=optimalClustNum(clustInd, method="FCM"))
@@ -267,7 +267,7 @@ shinyServer(function(input, output,clientData,session) {
             print(input$nclust1)
             Nclust <- input$nclust1
             # pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
-            ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=T, cores)
+            ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=T, cores=cores)
             output$downloadFigure <- downloadHandler(
               filename = function() {
                 paste("FCMVarMResults", Sys.Date(), ".pdf", sep="");
@@ -326,7 +326,7 @@ shinyServer(function(input, output,clientData,session) {
             Nclust <- input$nclust2
             # pars$dat <- pars$dat[rowSums(is.na(pars$dat))==0,]
             
-            ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=F, cores)
+        ClustOut <- runClustWrapper(pars$dat, Nclust, pars$proteins, VSClust=F, cores=cores)
             output$downloadFigure2 <- downloadHandler(
               filename = function() {
                 paste("FCMResults", Sys.Date(), ".pdf", sep="");

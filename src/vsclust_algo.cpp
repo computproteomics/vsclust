@@ -76,6 +76,7 @@ static void
     }
   }
 
+
 static void
   object_memberships(const NumericMatrix & dist_mat,
                      const int nr_centers, const NumericVector & fuzz,
@@ -84,10 +85,14 @@ static void
     double sum, v;
     
     int n_of_zeroes = 0;
+
+    // Count the number of zeroes in the dist_mat for the current object
     for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
       if(dist_mat(object_nr, center_nr) == 0)
         n_of_zeroes++;
     }
+
+    // If there are zeroes in the dist_mat
     if(n_of_zeroes > 0) {
       v = 1 / n_of_zeroes;
       for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
@@ -96,9 +101,8 @@ static void
           dist_mat(object_nr, center_nr) == 0 ? v: 0;
       }
     }
+    // If there are no zeroes in the dist_mat
     else {
-      /* Use the assumption that in general, pow() is more
-       expensive than subscripting. */
       sum = 0;
       for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
         // check if individual fuzzifier values
@@ -111,10 +115,11 @@ static void
         membership_mat(object_nr, center_nr) *= sum;
     }
     
-    sum = 0;
+    /*    sum = 0;
     double epsilon = 0.00001;
     for(int center_nr = 0; center_nr < nr_centers; center_nr++)
       sum +=  membership_mat(object_nr, center_nr);
+    */
   }
 
 

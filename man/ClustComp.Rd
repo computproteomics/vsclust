@@ -10,7 +10,8 @@ ClustComp(
   NSs = 10,
   NClust = NClust,
   Sds = Sds,
-  cl = parallel::makePSOCKcluster(1)
+  cl = parallel::makePSOCKcluster(1),
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ as features numbers in matrix or single value)}
 
 \item{cl}{object of class `cluster` or `SOCKcluster` to specify environment 
 for parallelization}
+
+\item{verbose}{Show more information during execution}
 }
 \value{
 List containing the objects

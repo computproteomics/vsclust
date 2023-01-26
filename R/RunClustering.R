@@ -40,9 +40,9 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
     1 + (1418 / dims[1] + 22.05) * dims[2] ^ (-2) + (12.33 / dims[1] + 0.243) *
     dims[2] ^ (-0.0406 * log(dims[1]) - 0.1134)
   
-  ## Lower limit of the fuzzifier is 1.001 to avoid 
+  ## Lower limit of the fuzzifier is 1.02 to avoid 
   ## numerical issues
-  mm <- max(1.01, mm)
+  mm <- max(1.02, mm)
   
   ### d_i and d_t
   difunc <-
@@ -270,6 +270,7 @@ vsclust_algorithm <-
 #' as features numbers in matrix or single value)
 #' @param cl object of class `cluster` or `SOCKcluster` to specify environment 
 #' for parallelization
+#' @param verbose Show more information during execution
 #' @return List containing the objects
 #' @return `indices` containing minimum centroid distance and Xie-Beni index for 
 #' both clustering methods
@@ -306,14 +307,16 @@ ClustComp <-
            NSs = 10,
            NClust = NClust,
            Sds = Sds,
-           cl = parallel::makePSOCKcluster(1)) {
+           cl = parallel::makePSOCKcluster(1),
+           verbose = FALSE
+           ) {
     fuzz_out <- determine_fuzz(dim(dat), NClust, Sds)
     m <- fuzz_out$m
     mm <- fuzz_out$mm
     
     clusterExport(
       cl = cl,
-      varlist = c("dat", "NClust", "m", "mm"),
+      varlist = c("dat", "NClust", "m", "mm","verbose"),
       envir = environment()
     )
     cls <-
@@ -322,7 +325,7 @@ ClustComp <-
           dat,
           NClust,
           m = m,
-          verbose = FALSE,
+          verbose = verbose,
           iterMax =
             1000
         ))
@@ -336,7 +339,7 @@ ClustComp <-
           dat,
           NClust,
           m = mm,
-          verbose = FALSE,
+          verbose = verbose,
           iterMax =
             1000
         ))

@@ -246,6 +246,8 @@ PrepareSEForVSClust <-
 #' @param dat matrix of features averaged over replicates. The last column
 #' contains their standard deviation
 #' @param maxClust Maximal number of cluster. The minimum is 3
+#' @param scaling Either `standardize` (default), `center` or `none`. Standardized 
+#' features get mean 0 and standard deviation 1. Centered samples get mean 0. 
 #' @param cores The number of threads to be used for parallelisation
 #' @return list with the items `ClustInd`: list of clustering objects for each
 #' number of clusters, `p` plot object with plots for validity indices,
@@ -264,6 +266,7 @@ PrepareSEForVSClust <-
 #' @export
 estimClustNum <- function(dat,
                           maxClust = 25,
+                          scaling = "standardize",
                           cores = 1) {
   ClustInd <- matrix(NA, nrow = maxClust - 2, ncol = 6)
   if (is.null(rownames(dat)))
@@ -279,14 +282,18 @@ estimClustNum <- function(dat,
     envir = environment()
   )
   clusterEvalQ(cl = cl, library(vsclust))
-  
-  # Standardise
+
   sds <- dat[rownames(tData), ncol(dat)]
+  
+  #Standardize
   # scale standard deviations by the ones in the actual data to cope for the
   # following standardization
-  sds <- sds / (rowSds(as.matrix(tData), na.rm = TRUE))
-  tData <- t(scale(t(tData)))
-  
+  if (!any(scaling == c("standardize", "center", "none")))
+    stop("parameter scaling needs to be standardize, center or none!")
+  if ((scaling == "standardize"))
+    sds <- sds / rowSds(as.matrix(tData), na.rm = TRUE)
+  tData <- t(scale(t(tData), center = (scaling != "none"), scale = (scaling == "standardize")))
+
   multiOut <- lapply(seq(3,maxClust,1), function(x) {
     if (!is.null(getDefaultReactiveDomain())) {
       incProgress(1, detail = paste("Running cluster number", x))
@@ -333,7 +340,10 @@ estimClustNum <- function(dat,
 #' to be added to the results
 #' @param VSClust boolean. TRUE for running the variance-sensitive clustering.
 #' Otherwise, the function will call standard fuzzy c-means clustering
+#' @param scaling Either `standardize` (default), `center` or `none`. Standardized 
+#' features get mean 0 and standard deviation 1. Centered samples get mean 0.
 #' @param cores Number of threads for the parallelization
+#' @param verbose Show more information during execution
 #' @return list with the items `dat`(the original data), `Bestcl` clustering
 #' results (same as from vsclust_algorithm), `p` (plot object with mfuzz plots),
 #' `outFileClust`(suitable matrix with complete information) , `ClustInd`
@@ -355,15 +365,20 @@ runClustWrapper <-
            NClust,
            proteins = NULL,
            VSClust = TRUE,
-           cores) {
+           scaling = "standardize",
+           cores,
+           verbose = FALSE) {
     tData <- dat[, seq_len(ncol(dat) - 1)]
     sds <- dat[, ncol(dat)]
     
     #Standardize
     # scale standard deviations by the ones in the actual data to cope for the
     # following standardization
-    sds <- sds / rowSds(as.matrix(tData), na.rm = TRUE)
-    tData <- t(scale(t(tData)))
+    if (!any(scaling == c("standardize", "center", "none")))
+      stop("parameter scaling needs to be standardize, center or none!")
+    if ((scaling == "standardize"))
+      sds <- sds / rowSds(as.matrix(tData), na.rm = TRUE)
+  tData <- t(scale(t(tData), center = (scaling != "none"), scale = (scaling == "standardize")))
     if (is.null(rownames(tData))) {
       rownames(tData) <- seq_len(nrow(tData))
     }
@@ -380,7 +395,8 @@ runClustWrapper <-
       NClust = NClust,
       Sds = sds,
       NSs = 16,
-      cl = cl
+      cl = cl,
+      verbose = verbose
     )
     stopCluster(cl)
     

@@ -4,7 +4,14 @@
 \alias{runClustWrapper}
 \title{Wrapper for running cluster analysis}
 \usage{
-runClustWrapper(dat, NClust, proteins = NULL, VSClust = TRUE, cores)
+runClustWrapper(
+  dat,
+  NClust,
+  proteins = NULL,
+  VSClust = TRUE,
+  cores,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{dat}{matrix or data frame with feature values for different conditions}
@@ -18,6 +25,8 @@ to be added to the results}
 Otherwise, the function will call standard fuzzy c-means clustering}
 
 \item{cores}{Number of threads for the parallelization}
+
+\item{verbose}{Show more information during execution}
 }
 \value{
 list with the items `dat`(the original data), `Bestcl` clustering
