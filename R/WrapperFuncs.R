@@ -298,7 +298,7 @@ estimClustNum <- function(dat,
     if (!is.null(getDefaultReactiveDomain())) {
       incProgress(1, detail = paste("Running cluster number", x))
     } else {
-      message("Running cluster number", x)
+      message("Running cluster number ", x)
     }
     clustout <- ClustComp(
       tData,

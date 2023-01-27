@@ -315,7 +315,6 @@ shinyServer(function(input, output,clientData,session) {
     })
   })
   
-  
   output$plot3 <- renderPlot({
     if(input$clButton3 == 0) 
       return()

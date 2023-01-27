@@ -148,7 +148,8 @@ static double
       currFuzzVal = fuzz[object_nr];  
       for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
         sum += weight[object_nr] * pow(membership_mat(object_nr, center_nr), currFuzzVal)
-        * dist_mat(object_nr, center_nr);
+
+	  * dist_mat(object_nr, center_nr);
       }
     }
     return(sum);
@@ -215,13 +216,16 @@ static void
   {
     double currFuzz = fuzz[0];
     double k = weight_missing;
+
+    NumericVector numerator(nr_features);
+    double sum = 0;
     
     for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
       for(int feature_nr = 0; feature_nr < nr_features; feature_nr++) {
         // reset centers
-        centers(center_nr, feature_nr) = 0;
+	std::fill(numerator.begin(), numerator.end(), 0);
+        sum = 0;	
       }
-      double sum = 0;
       for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
         currFuzz = fuzz[object_nr]; 
         double v = weight[object_nr]* pow(membership_mat(object_nr, center_nr), currFuzz) * (1 - (1 - ratio_missing_vals(object_nr)) * k);
@@ -231,7 +235,7 @@ static void
           // only allow calculation if current value is not missing
           if(!missing_vals(object_nr, feature_nr)) {
             // numerator: sum(denominator * feature values)
-            centers(center_nr, feature_nr) += v * feature_mat(object_nr, feature_nr);
+             numerator[feature_nr] += v * feature_mat(object_nr, feature_nr);
           }
         }
         
@@ -239,7 +243,7 @@ static void
       sum = 1.0/sum;
       for(int feature_nr = 0; feature_nr < nr_features; feature_nr++) {
         // new center: numerator / denominator
-        centers(center_nr, feature_nr) *= sum;
+        centers(center_nr, feature_nr) = numerator[feature_nr] * sum;
       }
     }
   }
