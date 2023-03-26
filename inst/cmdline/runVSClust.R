@@ -114,6 +114,10 @@ if(protnames) {
   names(proteins) <- rownames(dat)
 }
 
+#### In case you need grouping is on putting replicates in adjacent columns -> reorganize order
+dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
+
+
 
 #### running statistical analysis and estimation of individual variances
 statOut <- PrepareForVSClust(dat, NumReps, NumCond, isPaired, isStat)
@@ -130,7 +134,7 @@ write.csv(statOut$statFileOut,paste("",Experiment,"statFileOut.csv",sep=""))
 #### Estimate number of clusters with maxClust as maximum number clusters to test for
 ## Write output into file 
 pdf(paste(Experiment,"EstimatedClustNumber.pdf", sep=""),height=6,width=15)
-ClustInd <- estimClustNum(dat, maxClust, cores)
+ClustInd <- estimClustNum(dat, maxClust, cores=cores)
 estimClust.plot(ClustInd)
 dev.off()
 
@@ -145,7 +149,7 @@ if (PreSetNumClustStand == 0)
 #### Run clustering (VSClust and standard fcm clustering
 ## Write pdf-figure of clusters
 pdf(paste(Experiment,"FCMVarMResults", Sys.Date(), ".pdf", sep=""))
-ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, proteins, VSClust=T, cores)
+ClustOut <- runClustWrapper(dat, PreSetNumClustVSClust, proteins, VSClust=T, cores=cores)
 dev.off() 
 
 Bestcl <- ClustOut$Bestcl
@@ -158,7 +162,7 @@ write.csv(Bestcl$centers, paste(Experiment,"FCMVarMResultsCentroids", Sys.Date()
 
 ## Write pdf-figure of clusters
 pdf(paste(Experiment,"FCMStdResults", Sys.Date(), ".pdf", sep=""))
-ClustOut <- runClustWrapper(dat, PreSetNumClustStand, proteins, VSClust=F, cores)
+ClustOut <- runClustWrapper(dat, PreSetNumClustStand, proteins, VSClust=F, cores=cores)
 dev.off()
 
 Bestcl <- ClustOut$Bestcl

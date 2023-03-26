@@ -143,7 +143,6 @@ vsclust_algorithm <-
     if (length(centers) == 1) {
       ncenters <- centers
       centers <- x[sample(seq_len(xrows), ncenters), , drop = FALSE]
-      centers[is.na(centers)] <- 0
       if (any(duplicated(centers))) {
         cn <- unique(x)
         mm <- nrow(cn)
@@ -170,6 +169,9 @@ vsclust_algorithm <-
     if (missing(ratePar)) {
       ratePar <- 0
     }
+    
+    ## ensure that there are no missing values in centers
+    centers[is.na(centers)] <- 0
     
     reltol <- control$reltol
     if (is.null(reltol))

@@ -128,7 +128,7 @@ We further visualize the outcome.
 
 #### Estimate number of clusters with maxClust as maximum number clusters to run 
 #### the estimation with
-ClustInd <- estimClustNum(statOut$dat, maxClust, cores)
+ClustInd <- estimClustNum(statOut$dat, maxClust=maxClust, cores=cores)
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
@@ -162,8 +162,8 @@ First, we carry out the variance-sensitive method
 #### Run clustering (VSClust and standard fcm clustering
 ClustOut <- runClustWrapper(statOut$dat, 
                             PreSetNumClustVSClust, NULL, 
-                            VSClust=TRUE, 
-                            cores)
+                            VSClust=TRUE,
+                            cores=cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl
 

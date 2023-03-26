@@ -172,7 +172,7 @@ We further visualize the outcome.
 
 #### Estimate number of clusters with maxClust as maximum number clusters 
 #### to run the estimation with
-ClustInd <- estimClustNum(dat, maxClust, cores)
+ClustInd <- estimClustNum(dat, maxClust=maxClust, scaling="standardize", cores=cores)
 
 #### Use estimate cluster number or use own
 if (PreSetNumClustVSClust == 0)
@@ -199,7 +199,8 @@ ClustOut <- runClustWrapper(dat,
                             PreSetNumClustVSClust, 
                             NULL, 
                             VSClust=TRUE, 
-                            cores)
+                            scaling="standardize",
+                            cores=cores)
 Bestcl <- ClustOut$Bestcl
 VSClust_cl <- Bestcl
 #ClustOut$p
@@ -234,7 +235,7 @@ over the replicates.
 
 ``` {r}
 ClustOut <- runClustWrapper(dat, PreSetNumClustStand, NULL, VSClust=FALSE, 
-                            cores)
+                            scaling="standardize", cores=cores)
 Bestcl <- ClustOut$Bestcl
 ## Write clustering results (standard fcm)
 write.csv(data.frame(cluster=Bestcl$cluster,
