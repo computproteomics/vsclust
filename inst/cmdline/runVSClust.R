@@ -115,7 +115,7 @@ if(protnames) {
 }
 
 #### In case you need grouping is on putting replicates in adjacent columns -> reorganize order
-dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
+#dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
 
 
 
