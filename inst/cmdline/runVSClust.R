@@ -118,7 +118,6 @@ if(protnames) {
 #dat <- dat[,rep(0:(NumCond-1),NumReps)*NumReps+rep(1:(NumReps), each=NumCond)]
 
 
-
 #### running statistical analysis and estimation of individual variances
 statOut <- PrepareForVSClust(dat, NumReps, NumCond, isPaired, isStat)
 
