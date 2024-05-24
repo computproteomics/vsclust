@@ -1,4 +1,3 @@
-## TODO Clean accession numbers better and separate ()?
 library(vsclust)
 library(shinyjs)
 library(clusterProfiler)
@@ -104,6 +103,7 @@ shinyServer(function(input, output,clientData,session) {
         NumReps <- jsonmessage[["numrep"]]
         isPaired <- jsonmessage[["paired"]]
         isGrouped <- jsonmessage[["grouped"]]
+        isStat <- jsonmessage[["stat"]]
         hasProtnames <- jsonmessage[["modsandprots"]]
         # reading data matrix
         expr_matr <- jsonmessage[["expr_matrix"]]
@@ -130,6 +130,7 @@ shinyServer(function(input, output,clientData,session) {
           updateCheckboxInput(session, "isPaired", value=isPaired)
           updateCheckboxInput(session, "qcol_order", value=isGrouped)
           updateCheckboxInput(session, "protnames", value=hasProtnames)
+          updateCheckboxInput(session,"isStat",value=isStat)
           return(paste("Loaded external data"))
         })
         
