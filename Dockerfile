@@ -10,9 +10,11 @@ RUN R -e "install.packages(c('BiocManager','remotes'), repos='http://cran.us.r-p
 
 RUN R -e "BiocManager::install('veitveit/vsclust')"
 RUN R -e "library(BiocManager); BiocManager::install(c('genefilter', 'Rcpp',  'clusterProfiler','qvalue','limma','matrixStats','yaml','shinyjs','shinythemes','graph', 'GOstats', 'Category', 'RBGL',\
-                                                       'DT', 'RJDBC','dplyr','plotly','RPostgreSQL','lubridate','RDavidWebservice'),ask=F, force=T)"
+                                                       'DT', 'RJDBC','dplyr','plotly','RPostgreSQL','lubridate'),ask=F, force=T)"
 RUN R -e "install.packages('rJava')"
 RUN R CMD javareconf
+COPY inst/other/RDAVIDWebService_1.28.0.tar.gz .
+RUN R CMD INSTALL RDAVIDWebService_1.28.0.tar.gz
 RUN bash
 
 

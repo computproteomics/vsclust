@@ -506,7 +506,7 @@ runClustWrapper <-
 # @export
 runFuncEnrich <-
   function(cl, protnames = NULL, idtypes, infosource) {
-    library(RDavidWebService)
+    library(RDAVIDWebService)
     Accs <- list()
     for (c in seq_len(max(cl$cluster))) {
       cname <- paste("Cluster", c, sep = "_")
