@@ -21,7 +21,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+      run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_HUB_USER }} --password-stdin
       env:
         DOCKER_HUB_USERNAME: veitveit
         # DOCKER_HUB_PASSWORD should be set in GitHub repository secrets
