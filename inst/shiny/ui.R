@@ -13,7 +13,7 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                   
                   
                   h1(img(src="Logo.svg",style="width:150px"),"Variance-sensitive fuzzy clustering",style="text-shadow: 1px 0px #999900;font-weight:bold;color: #888888;"),
-                p("Version 1.2",br(), "See also: ",a(href="https://github.com/computproteomics/vsclust","Source code and installation"),br(),"Publication: ",a(href="https://doi.org/10.1093/bioinformatics/bty224","Veit Schwämmle, Ole N Jensen; Bioinformatics 2018,bty224"),br(),"Tutorial: ",a(href="https://pubmed.ncbi.nlm.nih.gov/33950508/", "Quantitative Methods in Proteomics"),style="font-size:8px;text-align:right"),
+                p(version <- installed.packages()["vsclust","Version"],br(), "See also: ",a(href="https://github.com/computproteomics/vsclust","Source code and installation"),br(),"Publication: ",a(href="https://doi.org/10.1093/bioinformatics/bty224","Veit Schwämmle, Ole N Jensen; Bioinformatics 2018,bty224"),br(),"Tutorial: ",a(href="https://pubmed.ncbi.nlm.nih.gov/33950508/", "Quantitative Methods in Proteomics"),style="font-size:8px;text-align:right"),
                   tabsetPanel(
                     tabPanel("File input", br(), 
                              p(
