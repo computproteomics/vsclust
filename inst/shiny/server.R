@@ -375,8 +375,9 @@ shinyServer(function(input, output,clientData,session) {
     # make table in right format
     print("Sending data back")
     if (!is.null(v$results)) {
+    version <- installed.packages()["vsclust","Version"]
     outdata <- as.data.frame(as.matrix(v$results))
-    BackMessage <- toJSON(list(expr_matrix=as.list(outdata)))
+    BackMessage <- toJSON(list(expr_matrix=as.list(outdata), version = version))
     js$send_results(dat=BackMessage)
     }
   }))
