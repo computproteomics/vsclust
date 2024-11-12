@@ -33,7 +33,7 @@ jobs:
         else
           IMAGE_NAME=veitveit/vsclust:latest
         fi
-        docker build -t $IMAGE_NAME -f Dockerfile .
+        docker build -t $IMAGE_NAME -f inst/docker/Dockerfile .
         docker push $IMAGE_NAME
       env:
         DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
