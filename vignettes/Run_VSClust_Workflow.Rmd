@@ -23,7 +23,6 @@ BiocStyle::markdown()
 ```
 
 ```{r env, message = FALSE, warning = FALSE, echo = FALSE}
-library("vsclust")
 require(clusterProfiler)
 require(matrixStats)
 ```
@@ -55,6 +54,7 @@ Use the common Bioconductor commands for installation:
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("vsclust")
+library(vsclust)
 ```
 
 The  full functionality of this vignette can be obtained by additionally 
