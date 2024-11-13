@@ -4,13 +4,16 @@
 \alias{estimClustNum}
 \title{Wrapper for estimation of cluster number}
 \usage{
-estimClustNum(dat, maxClust = 25, cores = 1)
+estimClustNum(dat, maxClust = 25, scaling = "standardize", cores = 1)
 }
 \arguments{
 \item{dat}{matrix of features averaged over replicates. The last column
 contains their standard deviation}
 
 \item{maxClust}{Maximal number of cluster. The minimum is 3}
+
+\item{scaling}{Either `standardize` (default), `center` or `none`. Standardized 
+features get mean 0 and standard deviation 1. Centered samples get mean 0.}
 
 \item{cores}{The number of threads to be used for parallelisation}
 }

@@ -9,6 +9,7 @@ runClustWrapper(
   NClust,
   proteins = NULL,
   VSClust = TRUE,
+  scaling = "standardize",
   cores,
   verbose = FALSE
 )
@@ -23,6 +24,9 @@ to be added to the results}
 
 \item{VSClust}{boolean. TRUE for running the variance-sensitive clustering.
 Otherwise, the function will call standard fuzzy c-means clustering}
+
+\item{scaling}{Either `standardize` (default), `center` or `none`. Standardized 
+features get mean 0 and standard deviation 1. Centered samples get mean 0.}
 
 \item{cores}{Number of threads for the parallelization}
 

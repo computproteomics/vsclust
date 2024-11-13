@@ -1,11 +1,5 @@
-#' @section VSClust functions:
 #' Functions for running VSClust analysis
 #'
-#' @docType package
-#' @name vsclust
-#' @useDynLib vsclust
-NULL
-#> NULL
 #' Wrapper for statistical analysis
 #'
 #' Prepare data for running vsclust clustering.
@@ -569,7 +563,7 @@ runFuncEnrich <-
 #'
 #' @return The shiny app should open in a browser or in RStudio.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' runVSClustApp()}
 #' @export
 #' @references

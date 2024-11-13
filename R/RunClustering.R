@@ -102,7 +102,7 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 #' clres <- vsclust_algorithm(data, centers=5, m=1.5)
 #' head(clres$membership)
 #' @export
-#' @useDynLib
+#' @useDynLib vsclust, .registration = TRUE
 #' @references
 #' Schwaemmle V, Jensen ON. VSClust: feature-based variance-sensitive clustering 
 #' of omics data. Bioinformatics. 2018 Sep 1;34(17):2965-2972. doi: 

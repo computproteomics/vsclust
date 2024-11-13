@@ -23,7 +23,6 @@ BiocStyle::markdown()
 ```
 
 ```{r env, message = FALSE, warning = FALSE, echo = FALSE}
-library("vsclust")
 require(clusterProfiler)
 require(matrixStats)
 ```
@@ -52,9 +51,11 @@ corresponding command line script. For the source code, see
 Use the common Bioconductor commands for installation:
 
 ```{r eval=FALSE}
+# Uncomment in case you have not installed vsclust yet
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("vsclust")
+library(vsclust)
 ```
 
 The  full functionality of this vignette can be obtained by additionally 
@@ -84,6 +85,7 @@ D. If you don't have replicates, use the same format as in C. and set the
 standard deviations to 1. 
 
 ```{r}
+library(vsclust)
 #### Input parameters, only read when now parameter file was provided
 ## All principal parameters for running VSClust can be defined as in the 
 ## shinyapp at computproteomics.bmb.sdu.dk/Apps/VSClust 
