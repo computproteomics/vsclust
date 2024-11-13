@@ -2,7 +2,7 @@
 % Please edit documentation in R/WrapperFuncs.R
 \name{PrepareForVSClust}
 \alias{PrepareForVSClust}
-\title{Wrapper for statistical analysis}
+\title{Functions for running VSClust analysis}
 \usage{
 PrepareForVSClust(dat, NumReps, NumCond, isPaired = FALSE, isStat)
 }
@@ -30,6 +30,9 @@ the statistical tests (each conditions versus the first), `StatFileOut` all
 of before for saving in file
 }
 \description{
+Wrapper for statistical analysis
+}
+\details{
 Prepare data for running vsclust clustering.
 This includes visualization running the functions for the principal component
 analysis and its visualization, statistical testing with LIMMA, as well as

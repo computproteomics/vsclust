@@ -16,6 +16,7 @@ erf.inv <- function(x)
 
 
 # Function to return content of fclust object
+#' @export
 print.fclust <-
   function(x, ...)
   {

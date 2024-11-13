@@ -14,7 +14,7 @@ You will get the full functionality of the VSClust workflow with multiple
 visualizations and downloads
 }
 \examples{
-\donttest{
+\dontrun{
 runVSClustApp()}
 }
 \references{

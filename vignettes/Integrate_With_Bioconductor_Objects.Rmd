@@ -39,9 +39,10 @@ from Bioconductor, such as `QFeatures`, `SummarizedExperiment` and
 Use the common Bioconductor commands for installation:
 
 ```{r eval=FALSE}
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("vsclust")
+# uncomment in case you have not installed vsclust yet
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("vsclust")
 ```
 The full functionality can be obtained by additionally installing and loading the
 packages `yaml`, `shiny`, `clusterProfiler`, and `matrixStats`.

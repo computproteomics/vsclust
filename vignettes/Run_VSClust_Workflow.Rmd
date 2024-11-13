@@ -51,9 +51,10 @@ corresponding command line script. For the source code, see
 Use the common Bioconductor commands for installation:
 
 ```{r eval=FALSE}
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("vsclust")
+# Uncomment in case you have not installed vsclust yet
+#if (!require("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install("vsclust")
 library(vsclust)
 ```
 
