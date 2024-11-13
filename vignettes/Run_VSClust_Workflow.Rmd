@@ -52,9 +52,9 @@ Use the common Bioconductor commands for installation:
 
 ```{r eval=FALSE}
 # Uncomment in case you have not installed vsclust yet
-#if (!require("BiocManager", quietly = TRUE))
-#    install.packages("BiocManager")
-#BiocManager::install("vsclust")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("vsclust")
 library(vsclust)
 ```
 
@@ -85,6 +85,7 @@ D. If you don't have replicates, use the same format as in C. and set the
 standard deviations to 1. 
 
 ```{r}
+library(vsclust)
 #### Input parameters, only read when now parameter file was provided
 ## All principal parameters for running VSClust can be defined as in the 
 ## shinyapp at computproteomics.bmb.sdu.dk/Apps/VSClust 
