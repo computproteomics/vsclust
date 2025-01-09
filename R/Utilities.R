@@ -115,7 +115,7 @@ calcBHI <- function(Accs, gos) {
   names(BHI) <- names(Accs)
   goData <- as.data.frame(gos@compareClusterResult)
   for (i in names(gos@geneClusters)) {
-    genes <- Accs[[i]]
+    genes <- Accs[[i]]    
     ispair <-
       matrix(FALSE,
              length(genes),
@@ -123,10 +123,11 @@ calcBHI <- function(Accs, gos) {
              dimnames = list(rows = genes, cols = genes))
     sumcomb[i] <- choose(length(genes), 2)
     clgroup <- goData[goData$Cluster == i, "geneID"]
+
     for (j in seq_len(length(clgroup))) {
       tgenes <-
         genes[na.omit(match(
-          unlist(strsplit(clgroup[j], "/"), use.names = FALSE),
+          unlist(strsplit(clgroup[j], ","), use.names = FALSE),
           as.character(genes)
         ))]
       ltgenes <- length(tgenes)
@@ -137,7 +138,6 @@ calcBHI <- function(Accs, gos) {
         }
         
       }
-      # print(tgenes)
     }
     BHI[i] <- BHI[i] + sum(ispair) / 2
   }
