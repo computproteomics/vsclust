@@ -238,20 +238,20 @@ over the replicates.
 ``` {r}
 ClustOut <- runClustWrapper(dat, PreSetNumClustStand, NULL, VSClust=FALSE, 
                             scaling="standardize", cores=cores)
-Bestcl <- ClustOut$Bestcl
+Bestcl2 <- ClustOut$Bestcl
 ## Write clustering results (standard fcm)
-write.csv(data.frame(cluster=Bestcl$cluster,
+write.csv(data.frame(cluster=Bestcl2$cluster,
                      ClustOut$outFileClust,
-                     isClusterMember=rowMaxs(Bestcl$membership)>0.5,
-                     maxMembership=rowMaxs(Bestcl$membership),
-                     Bestcl$membership), 
+                     isClusterMember=rowMaxs(Bestcl2$membership)>0.5,
+                     maxMembership=rowMaxs(Bestcl2$membership),
+                     Bestcl2$membership), 
           paste(Experiment, 
                 "FCMResults", 
                 Sys.Date(), 
                 ".csv", 
                 sep=""))
 ## Write coordinates of cluster centroids
-write.csv(Bestcl$centers, paste(Experiment,
+write.csv(Bestcl2$centers, paste(Experiment,
                                 "FCMResultsCentroids", 
                                 Sys.Date(),
                                 ".csv", 
@@ -267,6 +267,33 @@ a particular cluster.
 This analysis is then followed by evaluating the features (here proteins) of 
 each cluster for their biological relevance. This can be done by functional
 analysis with e.g. the `clusterProfiler` package.
+
+You can use the `runFuncEnrich` function to visualize the results. It retrieves 
+the functional enrichment from [STRING](https://string-db.org). The `infosource` 
+argument can be anny category of of the ones given by the _category IDs_ 
+described in the table of the 
+[STRING API](https://string-db.org/help/api/#retrieving-enrichment-figure).
+
+The output object is a `compareCluster` object from `clusterProfiler` that 
+can be further analyzed or visualized as done in this vignette. Note that STRING 
+does not provide a `geneRatio`. We use the gene `Count` instead.
+
+
+```{r}
+# Functional enrichment
+ClustEnriched <- runFuncEnrich(VSClust_cl, infosource = "KEGG")
+
+# Take the reduce version of the enrichment (redFuncs), not the full one 
+# (fullFuncs)
+redClustEnriched <- ClustEnriched$redFuncs
+
+# Load the clusterProfiler package
+library(clusterProfiler)
+
+# Plot the top 10 most enriched KEGG pathways
+dotplot(redClustEnriched, showCategory=10, title="KEGG enrichment", size = "count")
+
+```
 
 
 ```{r}

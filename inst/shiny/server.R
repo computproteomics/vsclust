@@ -395,22 +395,22 @@ shinyServer(function(input, output,clientData,session) {
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
           withProgress(message="Waiting for data (1/2)...", min=0,max=1, {
             
-            enriched <- vsclust:::runFuncEnrich(cl, pars$proteins, input$idtype, input$infosource)
+            enriched <- vsclust::runFuncEnrich(cl, pars$proteins, input$infosource)
             x <- enriched$fullFuncs
             y <- enriched$redFuncs
             BHI <- enriched$BHI
-            validate(need(!is.null(x),"No result. Wrong ID type?"))
+            validate(need(!is.null(x),"No result. IDs might not be matching or you do not have any significant enrichments."))
             incProgress(0.7, detail = "received")
             incProgress(0.8, detail = "plotting")
             validate(need(nrow(x@compareClusterResult)>1,"No significant results"))
             output$downloadGOData1 <- downloadHandler(
               filename = function() {
-                paste("DAVIDResultsVarM", Sys.Date(), ".csv", sep="");
+                paste("EnrichResultsVarM", Sys.Date(), ".csv", sep="");
               },
               content = function(file) {
                 write.csv(as.data.frame(x@compareClusterResult), file)
               })
-            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10)
+            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10, size = "Count")
           })
         }})}})
   
@@ -425,23 +425,23 @@ shinyServer(function(input, output,clientData,session) {
           dat <- pars$dat[,1:(ncol(pars$dat)-1)]
           withProgress(message="Waiting for data (2/2)...", min=0,max=1, {
             
-            enriched <- runFuncEnrich(cl, dat, pars$proteins, input$idtype, input$infosource)
+            enriched <- runFuncEnrich(cl, pars$proteins, input$infosource)
             x <- enriched$fullFuncs
             y <- enriched$redFuncs
             BHI <- enriched$BHI
-            validate(need(!is.null(x),"No result. Wrong ID type?"))
+            validate(need(!is.null(x),"No result. IDs might not be matching or you do not have any significant enrichments"))
             incProgress(0.7, detail = "received")
             incProgress(0.8, detail = "plotting")
             validate(need(nrow(x@compareClusterResult)>1,"No significant results"))
             output$downloadGOData2 <- downloadHandler(
               filename = function() {
-                paste("DAVIDResultsStand", Sys.Date(), ".csv", sep="");
+                paste("EnrichResultsStand", Sys.Date(), ".csv", sep="");
               },
               content = function(file) {
                 write.csv(as.data.frame(x@compareClusterResult), file)
               }) 
             #print(y@compareClusterResult)
-            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10)
+            dotplot(y,title=paste("BHI:",round(BHI,digits=3)),showCategory=20,font.size=10, size = "Count")
           })
         }})}
   })
@@ -454,7 +454,7 @@ the estimation of the fuzzifier (parameter m). For details see<br/><a href='http
                                  Please note that this method reveals its power for 8 or more different conditions (dimensions). Lower numbers yields results nearly identical to standard fuzzy c-means clustering.<br/>
                                  <b><i>Example data set:</i></b> You can test the method with an artificial data set by clicking on <i>Load example</i>. The data set contains 500 features where half of them 
                                  make part of five predefined clusters while the rest of the data is randomly distributed. The different features 
-                                 do not contain identifiers for subsequent gene enrichement analysis (long waiting times for response from the DAVID web service would compromise VSClust performance by multiple users).")})
+                                 do not contain identifiers for subsequent gene enrichment analysis.")})
   output$finput <- renderUI({HTML("Input format is restricted to comma-delimited files (.csv). Files are required to contain only the numerical data that will
 be analyzed in addition to the following contents: A one-row header containing the 
                                   column names and additionally defined feature names for the rows (e.g. gene names, transcripts, peptides and proteins). The latter
@@ -480,7 +480,7 @@ corresponding to replicates (A-C), grouped columns are arranged A1, A2, A3, A4, 
                                   of cluster members is shown in a table. This can be useful when comparing the two methods, where the variance-based algorithm should yield 
                                   lower numbers of cluster members as features with large standard deviations often get discarded.")})
   output$goterms <- renderUI({HTML("Simple viewer for GO term and pathway enrichment based on <a  target='_blank'' href='https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html'>clusterProfiler</a> 
-                                    configured to access the <a href='https://david.ncifcrf.gov/content.jsp?file=WS.html'>DAVID</a> web service. <i>This can take a while (response times of DAVID server)</i>. We furthermore offer a rough estimate of enrichment efficiency, 
+                                    configured to access the <a href='https://string-db.org'>STRING</a> web service. <i>This can take a while (response times of STRING server)</i>. We furthermore offer a rough estimate of enrichment efficiency, 
                                    given by the biological homogeneity index (BHI, see also <a href='http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1590054/'>paper</a>)<br/>
 <b>Important: </b>In the case of more than 2000 features in cluster, they will be limited to the 2000 with the highest membership values.
     ")})
