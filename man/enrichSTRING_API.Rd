@@ -2,7 +2,7 @@
 % Please edit documentation in R/WrapperFuncs.R
 \name{enrichSTRING_API}
 \alias{enrichSTRING_API}
-\title{Functional Enrichment with STRING}
+\title{Enrichment Analysis via STRING REST API}
 \usage{
 enrichSTRING_API(
   genes,
@@ -13,57 +13,75 @@ enrichSTRING_API(
 )
 }
 \arguments{
-\item{cl}{A clustering result. Typically either the direct output of
-\code{vsclust_algorithm} or a \code{Bestcl} object from \code{ClustComp}
-or \code{runClustWrapper}.}
+\item{genes}{Character vector of gene or protein identifiers recognized by STRING.}
 
-\item{protnames}{Optional named vector mapping feature IDs (as in \code{cl$cluster})
-to more interpretable gene/protein identifiers. If \code{NULL} (the default),
-the feature names in \code{cl} themselves are used.}
+\item{species}{A single numeric or string specifying the NCBI taxonomy ID
+(e.g., \code{9606} for human). If \code{"none"} (default), no species is set in
+the request, and STRING will attempt to auto-detect or may fail.}
 
-\item{infosource}{Currently unused; previously indicated enrichment categories
-when using DAVID. Kept for compatibility but is ignored in this version.}
+\item{category}{One or more enrichment categories from STRING (e.g., \code{"KEGG"},
+\code{"Process"}, etc.). Defaults to \code{"KEGG"} if unspecified.}
+
+\item{adjpvalueCutoff}{Numeric cutoff for the BH-adjusted p-value (default 0.05).}
+
+\item{verbose}{Logical indicating whether to print diagnostic messages (default \code{FALSE}).}
 }
 \value{
-A list with three components:
-\describe{
-  \item{\code{fullFuncs}}{The full \code{compareCluster} result from \code{enrichSTRING_API}.}
-  \item{\code{redFuncs}}{A \code{compareClusterResult} object containing only
-        the top 20 enriched terms (if more than 20 were detected).}
-  \item{\code{BHI}}{A numeric value from \code{calcBHI} measuring cluster
-        heterogeneity.}
-}
+If any terms pass the cutoff, an \code{\link{enrichResult}} object
+  (from \emph{clusterProfiler}) is returned. Otherwise, if \emph{clusterProfiler}
+  is not installed or no terms pass filtering, the function either returns a
+  data.frame (if installed but no terms pass) or \code{NULL}.
 }
 \description{
-\code{runFuncEnrich} performs a functional enrichment analysis for each cluster
-of features (genes/proteins) using an \code{enrichSTRING_API} call (which queries
-the STRING database). It replaces a previously used approach that relied on
-\emph{RDAVIDWebService}, and is therefore more up to date.
+\code{enrichSTRING_API} performs a functional enrichment analysis by sending a
+gene list to STRING's TSV API endpoint, retrieving enrichment results for one or
+more categories (e.g., "KEGG"), and building a \code{clusterProfiler}-style result
+object. It is intended as a lightweight replacement for older web-service–based
+methods like \emph{RDAVIDWebService}.
 }
 \details{
-The function takes a clustering result (e.g., from \code{vsclust_algorithm} or
-\code{Bestcl} objects) and, for each cluster:
+This function:
 \enumerate{
-  \item Extracts the member features with membership above 0.5.
-  \item Optionally replaces their IDs with entries from \code{protnames}.
-  \item Calls \code{compareCluster} (from \emph{clusterProfiler}) using a
-        custom \code{enrichSTRING_API} function for the actual STRING-based enrichment.
+  \item Accepts a vector of \code{genes} recognized by STRING (e.g., Ensembl,
+        UniProt, or commonly used gene symbols for a given species).
+  \item Sends a \emph{POST} request to \url{https://string-db.org/api/tsv/enrichment} with
+        those identifiers (and optionally \code{species}).
+  \item Parses the returned \emph{TSV}-formatted enrichment data, which typically
+        includes columns for \code{term}, \code{description}, \code{p_value}, and more.
+  \item Optionally filters by \code{category} (e.g., "KEGG", "Process", etc.), applies
+        \code{BH} multiple-testing correction, and removes terms above the
+        \code{adjpvalueCutoff}.
+  \item Returns an object of class \code{enrichResult} if \emph{clusterProfiler} is
+        installed; otherwise, it simply returns the filtered data frame.
 }
-The resulting \code{compareClusterResult} includes adjusted p-values (FDR),
-and the top 20 enriched terms are retained if the total set is larger than 20.
+
+Note that this function does \emph{not} allow you to explicitly supply a custom
+background gene set. The STRING API by default uses the entire known set of genes
+or proteins for the specified species as the background. Also, the total number of
+background genes is not reported by STRING; only how many of them map to each term.
 }
 \examples{
-\dontrun{
-  # Suppose 'mycl' is a clustering result from vsclust_algorithm,
-  # and we have a named vector 'myProtnames' that maps feature IDs to gene symbols:
+  library(httr)
 
-  res <- runFuncEnrich(mycl, protnames = myProtnames)
-  res$fullFuncs  # The full compareCluster output
-  res$redFuncs   # The top 20 enriched terms
-  res$BHI        # The numeric BHI value
-}
+  # A small gene set:
+  gene_set <- c("TP53","BRCA1","BRCA2","EGFR")
+
+  # Perform enrichment on KEGG terms for human (9606):
+  enr <- enrichSTRING_API(
+            genes       = gene_set,
+            species     = 9606,
+            category    = "KEGG",
+            adjpvalueCutoff = 0.05,
+            verbose     = TRUE
+         )
+
+  if (!is.null(enr)) {
+    # If clusterProfiler is installed and some terms pass filtering, check results:
+    head(enr@result)
+  }
 
 }
 \seealso{
-\code{\link{compareCluster}}, \code{\link{enrichSTRING_API}}
+\href{https://string-db.org/help/api/}{STRING API documentation},
+\code{\link{clusterProfiler}}.
 }

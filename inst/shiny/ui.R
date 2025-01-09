@@ -80,9 +80,9 @@ shinyUI(fluidPage(theme=shinytheme("cosmo"),
                       h3("Distribution of features over clusters"),
                       DT::dataTableOutput("clustinf2"),
                       value="clust2"),
-                    tabPanel("Enriched terms (DAVID)",inputPanel(
+                    tabPanel("Enriched terms (STRING)",inputPanel(
                       # radioButtons("enrich_method","Enrichment tool",choices=c("DAVID"="DAVID","KEGG (local copy)"="KEGG","GO molecular function (local copy)"="GOMF"),selected = "DAVID"),br(),
-                      selectInput("infosource","Information resource (DAVID)",choices=list("GO terms"=c("GO molecular function"="Function",
+                      selectInput("infosource","Information resource (STRING)",choices=list("GO terms"=c("GO molecular function"="Function",
                                                                                                         "GO biological process"="Process",
                                                                                                         "GO cellular component"="Component"),
                                                                                            UniProt = c("UniProt keywords" = "Keyword"),
