@@ -273,6 +273,8 @@ the functional enrichment from [STRING](https://string-db.org). The `infosource`
 argument can be anny category of of the ones given by the _category IDs_ 
 described in the table of the 
 [STRING API](https://string-db.org/help/api/#retrieving-enrichment-figure).
+The given feature IDs are converted in STRING without specifying the species, 
+which can lead to inconsistencies when using generic gene names.
 
 The output object is a `compareCluster` object from `clusterProfiler` that 
 can be further analyzed or visualized as done in this vignette. Note that STRING 
