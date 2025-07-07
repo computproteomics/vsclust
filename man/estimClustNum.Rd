@@ -34,5 +34,5 @@ distance and/or a low value of the Xie Beni index.
 \examples{
 data <- matrix(rnorm(1000), nrow=100)
 estim_out <- estimClustNum(data, maxClust=10)
-best_number <- max(estim_out[1])
+best_number <- which.max(estim_out[1]) + 2
 }

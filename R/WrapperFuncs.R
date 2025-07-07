@@ -511,6 +511,8 @@ runClustWrapper <-
 #'   res$BHI        # The numeric BHI value
 #' }
 #'
+#' @importFrom clusterProfiler compareCluster
+#'
 #' @export
 runFuncEnrich <-
     function(cl, protnames = NULL, infosource) {
@@ -535,7 +537,7 @@ runFuncEnrich <-
         Accs <- Accs[lapply(Accs, length) > 0]
         x <- NULL
         try(x <-
-                compareCluster(
+                clusterProfiler::compareCluster(
                     Accs,
                     fun = "enrichSTRING_API",
                     category = unlist(infosource)
@@ -609,7 +611,7 @@ runFuncEnrich <-
 #' @param adjpvalueCutoff Numeric cutoff for the BH-adjusted p-value (default 0.05).
 #' @param verbose Logical indicating whether to print diagnostic messages (default \code{FALSE}).
 #'
-#' @return If any terms pass the cutoff, an \code{\link{enrichResult}} object
+#' @return If any terms pass the cutoff, an \code{enrichResult} object
 #'   (from \emph{clusterProfiler}) is returned. Otherwise, if \emph{clusterProfiler}
 #'   is not installed or no terms pass filtering, the function either returns a
 #'   data.frame (if installed but no terms pass) or \code{NULL}.
@@ -637,6 +639,9 @@ runFuncEnrich <-
 #'     # If clusterProfiler is installed and some terms pass filtering, check results:
 #'     head(enr@result)
 #'   }
+#'   
+#' @import httr 
+#' @import DOSE
 #'
 #' @export
 enrichSTRING_API <- function(genes,
@@ -663,6 +668,7 @@ enrichSTRING_API <- function(genes,
         identifiers     = identifiers_str,
         caller_identity = "VSClust_enrichSTRING_API"  # customize as you like
     )
+    print(body_list)
     if (species != "none") {
         body_list$species <- species
     }    

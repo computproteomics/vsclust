@@ -27,7 +27,7 @@ the request, and STRING will attempt to auto-detect or may fail.}
 \item{verbose}{Logical indicating whether to print diagnostic messages (default \code{FALSE}).}
 }
 \value{
-If any terms pass the cutoff, an \code{\link{enrichResult}} object
+If any terms pass the cutoff, an \code{enrichResult} object
   (from \emph{clusterProfiler}) is returned. Otherwise, if \emph{clusterProfiler}
   is not installed or no terms pass filtering, the function either returns a
   data.frame (if installed but no terms pass) or \code{NULL}.
@@ -79,7 +79,7 @@ background genes is not reported by STRING; only how many of them map to each te
     # If clusterProfiler is installed and some terms pass filtering, check results:
     head(enr@result)
   }
-
+  
 }
 \seealso{
 \href{https://string-db.org/help/api/}{STRING API documentation},
