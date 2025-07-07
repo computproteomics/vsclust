@@ -12,7 +12,7 @@ Department of Biochemistry and Molecular Biology
 
 ## Citation
 When using VSClust, please cite our paper:  
-Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, , bty224, https://doi.org/10.1093/bioinformatics/bty224
+Veit Schwämmle, Ole N Jensen; VSClust: Feature-based variance-sensitive clustering of omics data, Bioinformatics, bty224, https://doi.org/10.1093/bioinformatics/bty224
 
 ## Shiny app
 
