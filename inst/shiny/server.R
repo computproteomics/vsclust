@@ -283,9 +283,16 @@ shinyServer(function(input, output,clientData,session) {
             Bestcl <- ClustOut$Bestcl
             pars$Bestcl2 <<- Bestcl  
             
-            v$results <- data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
-                       Bestcl$membership)            
+            only_results <- data.frame(cluster=Bestcl$cluster,ClustOut$outFileClust,isClusterMember=rowMaxs(Bestcl$membership)>0.5,maxMembership=rowMaxs(Bestcl$membership),
+                       Bestcl$membership)
             
+            # order according to rownames of v$dat
+            only_results <- only_results[match(rownames(pars$dat), rownames(ClustOut$outFileClust)),]
+            
+            
+            v$results <- only_results
+
+
             output$downloadData2 <- downloadHandler(
               filename = function() {
                 paste("FCMVarMResults", Sys.Date(), ifelse(input$clustvar_tsv,".tsv",".csv"), sep="");
