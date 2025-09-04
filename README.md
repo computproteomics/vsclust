@@ -1,3 +1,5 @@
+[![bio.tools](https://img.shields.io/badge/bio.tools-vsclust-005472)](https://bio.tools/vsclust)
+
 # Variance-sensitive clustering of omics data
 
 Feature-based variance-sensitive clustering of omics data. Optimizes cluster assignment by taking into account individual feature variance.
