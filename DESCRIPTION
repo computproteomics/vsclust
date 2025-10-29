@@ -2,7 +2,7 @@ Package: vsclust
 Encoding: UTF-8
 Type: Package
 Title: Feature-based variance-sensitive quantitative clustering
-Version: 1.12.0
+Version: 1.13.0
 Date: 2022-03-23
 Authors@R: 
     person(
