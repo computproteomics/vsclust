@@ -1,0 +1,123 @@
+cff-version: 1.2.0
+title: VSClust
+version: null
+type: software
+repository: !!python/object:bridge.core.biotools.UrlftpType
+  __dict__:
+    root: http://computproteomics.bmb.sdu.dk/app_direct/VSClust/
+  __pydantic_fields_set__: !!set
+    root: null
+identifiers:
+- type: other
+  value: !!python/object:bridge.core.biotools.BiotoolsIdType
+    __dict__:
+      root: vsclust
+    __pydantic_fields_set__: !!set
+      root: null
+  description: bio.tools
+license: !!python/object/apply:bridge.core.biotools.License
+- GPL-2.0
+keywords:
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Genomics
+    uri: http://edamontology.org/topic_0622
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Proteomics
+    uri: http://edamontology.org/topic_0121
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Omics
+    uri: http://edamontology.org/topic_3391
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Metabolomics
+    uri: http://edamontology.org/topic_3172
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Statistics and probability
+    uri: http://edamontology.org/topic_2269
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+- !!python/object:bridge.core.biotools.TopicItem
+  __dict__:
+    term: Data mining
+    uri: http://edamontology.org/topic_3473
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    term: null
+    uri: null
+  __pydantic_private__: null
+abstract: Feature-based variance-sensitive clustering of omics data. Optimizes cluster
+  assignment by taking into account individual feature variance .
+message: If you use this software, please cite it and the Primary publications below.
+preferred-citation: &id001 !!python/object:bridge.core.publication.Publication
+  __dict__:
+    doi: 10.1093/bioinformatics/bty224
+    title: 'VSClust: feature-based variance-sensitive clustering of omics data.'
+    authors:
+    - !!python/object:bridge.core.publication.Author
+      __dict__:
+        first_name: Veit
+        last_name: "Schw\xE4mmle"
+        name: null
+      __pydantic_extra__: null
+      __pydantic_fields_set__: !!set
+        last_name: null
+        first_name: null
+      __pydantic_private__: null
+    - !!python/object:bridge.core.publication.Author
+      __dict__:
+        first_name: Ole N
+        last_name: Jensen
+        name: null
+      __pydantic_extra__: null
+      __pydantic_fields_set__: !!set
+        last_name: null
+        first_name: null
+      __pydantic_private__: null
+    year: 2018
+    journal: null
+    volume: null
+    issue: null
+    page_start: 2965
+    page_end: 2972
+    pub_type: article
+  __pydantic_extra__: null
+  __pydantic_fields_set__: !!set
+    authors: null
+    year: null
+    page_end: null
+    issue: null
+    volume: null
+    page_start: null
+    journal: null
+    title: null
+    doi: null
+  __pydantic_private__: null
+references:
+- *id001
