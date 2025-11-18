@@ -206,11 +206,7 @@ SignAnalysis <- function(Data, NumCond, NumReps) {
 #'
 #' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters 
 #' for fuzzy c-means cluster analysis. Bioinformatics. 2010 
-#' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534
-#' 
-#' 
-#' 
-#' . Epub 2010 Sep 29. 
+#' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29.
 #' PMID: 20880957.
 pcaWithVar <- function(data, NumReps, NumCond, Sds = 1) {
     # Remove columns with only 5% of the data
