@@ -4,6 +4,8 @@
 #' Relative protein abundances were obtained using iTRAQ labelling. The given numbers are log2-transformed.
 #' Protein names as UniProt accession numbers are given as rownames.
 #'
+#' @docType data
+#' @usage data(protein_expressions)
 #' @format A data frame consisting of 574 proteins measured in 12 samples:
 #' \describe{
 #'   \item{HF.Rep.1}{Mice fed with a high fat diet, replicate 1} 

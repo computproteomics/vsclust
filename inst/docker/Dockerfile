@@ -14,8 +14,8 @@ RUN R -e "library(BiocManager); BiocManager::install(c('genefilter', 'Rcpp',  'c
                                                        'DT', 'RJDBC','dplyr','plotly','RPostgreSQL','lubridate'),ask=F, force=T)"
 RUN R -e "install.packages('rJava')"
 RUN R CMD javareconf
-COPY inst/other/RDAVIDWebService_1.28.0.tar.gz .
-RUN R CMD INSTALL RDAVIDWebService_1.28.0.tar.gz
+#COPY inst/other/RDAVIDWebService_1.28.0.tar.gz .
+#RUN R CMD INSTALL RDAVIDWebService_1.28.0.tar.gz
 RUN bash
 
 
