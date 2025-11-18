@@ -182,7 +182,8 @@ mfuzz.plot <-
     colorseq <- seq(0, 1, length = length(colo))
     for (j in seq_len(max(clusterindex))) {
       if (sum(clusterindex == j) > 0) {
-        tmp <- dat[clusterindex == j,]
+        # keep matrices in place even if a cluster has just one member
+        tmp <- dat[clusterindex == j,, drop = FALSE]
         tmpmem <- memship[clusterindex == j, j]
         if (((j - 1) %% (mfrow[1] * mfrow[2])) == 0) {
           if (!is.na(filename)) {
@@ -375,4 +376,3 @@ estimClust.plot <- function(ClustInd) {
   # finally plot
   p <- recordPlot()
 }
-
