@@ -41,9 +41,6 @@ the Quantitative Analysis of Protein Complexes. Methods Mol Biol.
 Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters 
 for fuzzy c-means cluster analysis. Bioinformatics. 2010 
 Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534
-
-
-
-. Epub 2010 Sep 29. 
+Epub 2010 Sep 29. 
 PMID: 20880957.
 }
