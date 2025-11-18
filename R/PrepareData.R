@@ -217,7 +217,7 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds = 1) {
         stop("Wrong number of conditions and/or replicates!")
     pcaDat <- data[, colSums(!is.na(data)) > 0.05 * nrow(data)]
     pcaDat <- (pcaDat[complete.cases(pcaDat), ])
-    if(shiny::isRunning()){
+    if (shiny::isRunning()){
         validate(need(
             length(pcaDat) > 0,
             "Principal component analysis not shown as too many missing values"
