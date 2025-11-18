@@ -39,49 +39,49 @@
 #' PMID: 20880957.
 #' @export
 SignAnalysisPaired <- function(Data, NumCond, NumReps) {
-  ##########################################################
-  # significance analysis
-  MAData <- Data[, 2:(NumCond)] - Data[, 1]
-  for (i in seq_len(NumReps - 1))
-    MAData <-
-      cbind(MAData, Data[, (i * NumCond + 1) + seq_len(NumCond - 1)] - 
-              Data[, (i * NumCond + 1)])
-  rownames(MAData) <- rownames(Data)
-  MAReps <- rep(seq_len(NumCond - 1), NumReps)
-  if (is.null(rownames(MAData)))
-    rownames(MAData) <- paste0("feature", seq_len(nrow(MAData)))
-  ##limma with ratios
-  design <- plvalues <- NULL
-  for (c in (seq_len(NumCond - 1))) {
-    design <- cbind(design, as.numeric(MAReps == c))
-  }
-  lm.fittedMA <- lmFit(MAData, design)
-  lm.bayesMA <- eBayes(lm.fittedMA)
-  topTable(lm.bayesMA)
-  plvalues <- lm.bayesMA$p.value
-  qvalues <-
-    matrix(
-      NA,
-      nrow = nrow(plvalues),
-      ncol = ncol(plvalues),
-      dimnames = dimnames(plvalues)
-    )
-  # qvalue correction
-  for (i in seq_len(ncol(plvalues))) {
-    tqs <- tryCatch(
-      qvalue(na.omit(plvalues[, i]))$qvalues,
-      error = function(e)
-        NULL
-    )
-    if (length(tqs) > 0) {
-      qvalues[names(tqs), i] <- tqs
+    ##########################################################
+    # significance analysis
+    MAData <- Data[, 2:(NumCond)] - Data[, 1]
+    for (i in seq_len(NumReps - 1))
+        MAData <-
+            cbind(MAData, Data[, (i * NumCond + 1) + seq_len(NumCond - 1)] - 
+                      Data[, (i * NumCond + 1)])
+    rownames(MAData) <- rownames(Data)
+    MAReps <- rep(seq_len(NumCond - 1), NumReps)
+    if (is.null(rownames(MAData)))
+        rownames(MAData) <- paste0("feature", seq_len(nrow(MAData)))
+    ##limma with ratios
+    design <- plvalues <- NULL
+    for (c in (seq_len(NumCond - 1))) {
+        design <- cbind(design, as.numeric(MAReps == c))
     }
-    else {
-      qvalues[names(tqs), i] <- NA
+    lm.fittedMA <- lmFit(MAData, design)
+    lm.bayesMA <- eBayes(lm.fittedMA)
+    topTable(lm.bayesMA)
+    plvalues <- lm.bayesMA$p.value
+    qvalues <-
+        matrix(
+            NA,
+            nrow = nrow(plvalues),
+            ncol = ncol(plvalues),
+            dimnames = dimnames(plvalues)
+        )
+    # qvalue correction
+    for (i in seq_len(ncol(plvalues))) {
+        tqs <- tryCatch(
+            qvalue(na.omit(plvalues[, i]))$qvalues,
+            error = function(e)
+                NULL
+        )
+        if (length(tqs) > 0) {
+            qvalues[names(tqs), i] <- tqs
+        }
+        else {
+            qvalues[names(tqs), i] <- NA
+        }
     }
-  }
-  
-  return(list(qvalues = qvalues, Sds = sqrt(lm.bayesMA$s2.post)))
+    
+    return(list(qvalues = qvalues, Sds = sqrt(lm.bayesMA$s2.post)))
 }
 
 #' Unpaired statistical testing
@@ -126,52 +126,52 @@ SignAnalysisPaired <- function(Data, NumCond, NumReps) {
 #' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. 
 #' PMID: 20880957.
 SignAnalysis <- function(Data, NumCond, NumReps) {
-  ##########################################################
-  if (is.null(rownames(Data)))
-    rownames(Data) <- paste0("feature", seq_len(nrow(Data)))
-  # significance analysis
-  Reps <- rep(seq_len(NumCond), NumReps)
-  design <- model.matrix( ~ 0 + factor(Reps - 1))
-  colnames(design) <- paste("i", c(seq_len(NumCond)), sep = "")
-  contrasts <- NULL
-  First <- 1
-  for (i in (seq_len(NumCond))[-First])
-    contrasts <- append(contrasts,
-                        paste(colnames(design)[i], "-", colnames(design)[First], 
-                              sep = ""))
-  contrast.matrix <- makeContrasts(contrasts = contrasts, levels = design)
-  lm.fitted <- lmFit(Data, design)
-  
-  lm.contr <- contrasts.fit(lm.fitted, contrast.matrix)
-  lm.bayes <- eBayes(lm.contr)
-  #topTable(lm.bayes)
-  plvalues <- lm.bayes$p.value
-  qvalues <- matrix(
-    NA,
-    nrow = nrow(plvalues),
-    ncol = ncol(plvalues),
-    dimnames = dimnames(plvalues)
-  )
-  # qvalue correction
-  for (i in seq_len(ncol(plvalues))) {
-    tqs <- tryCatch(
-      qvalue(na.omit(plvalues[, i]))$qvalues,
-      error = function(e)
-        NULL
+    ##########################################################
+    if (is.null(rownames(Data)))
+        rownames(Data) <- paste0("feature", seq_len(nrow(Data)))
+    # significance analysis
+    Reps <- rep(seq_len(NumCond), NumReps)
+    design <- model.matrix( ~ 0 + factor(Reps - 1))
+    colnames(design) <- paste("i", c(seq_len(NumCond)), sep = "")
+    contrasts <- NULL
+    First <- 1
+    for (i in (seq_len(NumCond))[-First])
+        contrasts <- append(contrasts,
+                            paste(colnames(design)[i], "-", colnames(design)[First], 
+                                  sep = ""))
+    contrast.matrix <- makeContrasts(contrasts = contrasts, levels = design)
+    lm.fitted <- lmFit(Data, design)
+    
+    lm.contr <- contrasts.fit(lm.fitted, contrast.matrix)
+    lm.bayes <- eBayes(lm.contr)
+    #topTable(lm.bayes)
+    plvalues <- lm.bayes$p.value
+    qvalues <- matrix(
+        NA,
+        nrow = nrow(plvalues),
+        ncol = ncol(plvalues),
+        dimnames = dimnames(plvalues)
     )
-    # print(tqs)
-    if (length(tqs) > 0) {
-      qvalues[names(tqs), i] <- tqs
+    # qvalue correction
+    for (i in seq_len(ncol(plvalues))) {
+        tqs <- tryCatch(
+            qvalue(na.omit(plvalues[, i]))$qvalues,
+            error = function(e)
+                NULL
+        )
+        # print(tqs)
+        if (length(tqs) > 0) {
+            qvalues[names(tqs), i] <- tqs
+        }
+        else {
+            qvalues[names(tqs), i] <- NA
+        }
     }
-    else {
-      qvalues[names(tqs), i] <- NA
-    }
-  }
-  return(list(
-    pvalues = plvalues,
-    qvalues = qvalues,
-    Sds = sqrt(lm.bayes$s2.post)
-  ))
+    return(list(
+        pvalues = plvalues,
+        qvalues = qvalues,
+        Sds = sqrt(lm.bayes$s2.post)
+    ))
 }
 
 #' Visualize using principal component analysis (both loadings and scoring) 
@@ -192,7 +192,7 @@ SignAnalysis <- function(Data, NumCond, NumReps) {
 #' pcaWithVar(data, NumCond=2, NumReps=5, Sds=1)
 #' @import stats
 #' @import graphics
-#' @importFrom shiny need
+#' @importFrom shiny need isRunning validate
 #' @importFrom grDevices rainbow
 #' @export
 #' @references
@@ -206,54 +206,65 @@ SignAnalysis <- function(Data, NumCond, NumReps) {
 #'
 #' Schwaemmle V, Jensen ON. A simple and fast method to determine the parameters 
 #' for fuzzy c-means cluster analysis. Bioinformatics. 2010 
-#' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. 
+#' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534
+#' 
+#' 
+#' 
+#' . Epub 2010 Sep 29. 
 #' PMID: 20880957.
 pcaWithVar <- function(data, NumReps, NumCond, Sds = 1) {
-  # Remove columns with only 5% of the data
-  plab <- rep(seq_len(NumCond), NumReps)
-  plab <- plab[colSums(!is.na(data)) > 0.05 * nrow(data)]
-  pcaDat <- data
-  if (ncol(pcaDat) != NumCond * NumReps)
-    stop("Wrong number of conditions and/or replicates!")
-  pcaDat <- data[, colSums(!is.na(data)) > 0.05 * nrow(data)]
-  pcaDat <- (pcaDat[complete.cases(pcaDat), ])
-  validate(need(
-    length(pcaDat) > 0,
-    "Principal component analysis not shown as too many missing values"
-  ))
-  validate(need(
-    nrow(pcaDat) > 10,
-    "Principal component analysis not shown as too many missing values"
-  ))
-  pca <- prcomp(pcaDat, scale = TRUE, retx = TRUE)
-  # scores <- pca$x
-  # loadings <- pca$rotation
-  scores <- pca$rotation
-  loadings <- pca$x
-  par(mfrow = c(1, 2))
-  # Set missing values to maximum std. dev.
-  Sds[is.na(Sds)] <- max(Sds, na.rm = TRUE)
-  # Scaling suitable for visualization
-  Sds <- sqrt(Sds)
-  plot(
-    loadings,
-    cex = Sds,
-    pch = 16,
-    col = paste("#000000", sprintf("%02X", as.integer(
-      255 / max(1 / Sds) / Sds
-    )), sep = "")
-  )
-  title(main = "Principal component analysis of data set (loadings)", sub =
-          "The point size corresponds to the estimated standard deviation")
-  plot(scores, pch = 19, col = rainbow(NumCond)[plab])
-  title(main = "Principal component analysis of data set (scores)", sub =
-          "Colors denote different conditions")
-  legend(
-    "topright",
-    paste("Condition", seq_len(NumCond)),
-    pch = rep(19, NumCond),
-    col = rainbow(NumCond)[seq_len(NumCond)]
-  )
+    # Remove columns with only 5% of the data
+    plab <- rep(seq_len(NumCond), NumReps)
+    plab <- plab[colSums(!is.na(data)) > 0.05 * nrow(data)]
+    pcaDat <- data
+    if (ncol(pcaDat) != NumCond * NumReps)
+        stop("Wrong number of conditions and/or replicates!")
+    pcaDat <- data[, colSums(!is.na(data)) > 0.05 * nrow(data)]
+    pcaDat <- (pcaDat[complete.cases(pcaDat), ])
+    if(shiny::isRunning()){
+        validate(need(
+            length(pcaDat) > 0,
+            "Principal component analysis not shown as too many missing values"
+        ))
+        validate(need(
+            nrow(pcaDat) > 10,
+            "Principal component analysis not shown as too many missing values"
+        ))
+    } else {
+        if (length(pcaDat) == 0 || nrow(pcaDat) < 10){
+            warning("Principal component analysis not possible due to too many missing values")
+            return(NULL)
+        }
+    }
+    pca <- prcomp(pcaDat, scale = TRUE, retx = TRUE)
+    # scores <- pca$x
+    # loadings <- pca$rotation
+    scores <- pca$rotation
+    loadings <- pca$x
+    par(mfrow = c(1, 2))
+    # Set missing values to maximum std. dev.
+    Sds[is.na(Sds)] <- max(Sds, na.rm = TRUE)
+    # Scaling suitable for visualization
+    Sds <- sqrt(Sds)
+    plot(
+        loadings,
+        cex = Sds,
+        pch = 16,
+        col = paste("#000000", sprintf("%02X", as.integer(
+            255 / max(1 / Sds) / Sds
+        )), sep = "")
+    )
+    title(main = "Principal component analysis of data set (loadings)", sub =
+              "The point size corresponds to the estimated standard deviation")
+    plot(scores, pch = 19, col = rainbow(NumCond)[plab])
+    title(main = "Principal component analysis of data set (scores)", sub =
+              "Colors denote different conditions")
+    legend(
+        "topright",
+        paste("Condition", seq_len(NumCond)),
+        pch = rep(19, NumCond),
+        col = rainbow(NumCond)[seq_len(NumCond)]
+    )
 }
 
 #' Determine optimal cluster number from validity index
@@ -288,34 +299,34 @@ pcaWithVar <- function(data, NumReps, NumCond, Sds = 1) {
 #' for fuzzy c-means cluster analysis. Bioinformatics. 2010 Nov 15;26(22):2841-8. 
 #' doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. PMID: 20880957.
 optimalClustNum <-
-  function(ClustInd,
-           index = "MinCentroidDist",
-           method = "VSClust") {
-    allowedInd <- c("XieBeni", "MinCentroidDist")
-    allowedMethod <- c("FCM", "VSClust")
-    if (!any(index == allowedInd)) {
-      stop(paste("index needs to be one of", paste(allowedInd, collapse = " ")))
+    function(ClustInd,
+             index = "MinCentroidDist",
+             method = "VSClust") {
+        allowedInd <- c("XieBeni", "MinCentroidDist")
+        allowedMethod <- c("FCM", "VSClust")
+        if (!any(index == allowedInd)) {
+            stop(paste("index needs to be one of", paste(allowedInd, collapse = " ")))
+        }
+        if (!any(method == allowedMethod)) {
+            stop(paste(
+                "method needs to be one of",
+                paste(allowedMethod, collapse = " ")
+            ))
+        }
+        
+        tClustInd <- ClustInd[, grep(index, colnames(ClustInd))]
+        tClustInd <- tClustInd[, grep(method, colnames(tClustInd))]
+        opt_val <- NULL
+        if (length(tClustInd) < 3)
+            stop("Minimal length of ClustInd vector is 3")
+        if (index == "MinCentroidDist") {
+            opt_val <-
+                which.max(tClustInd[seq_len(length(tClustInd) - 1)] - 
+                              tClustInd[2:length(tClustInd)])
+        } else if (index == "XieBeni") {
+            opt_val <- which.min(tClustInd[seq_len(length(tClustInd))])
+            
+        }
+        return(as.numeric(opt_val + 2))
     }
-    if (!any(method == allowedMethod)) {
-      stop(paste(
-        "method needs to be one of",
-        paste(allowedMethod, collapse = " ")
-      ))
-    }
-    
-    tClustInd <- ClustInd[, grep(index, colnames(ClustInd))]
-    tClustInd <- tClustInd[, grep(method, colnames(tClustInd))]
-    opt_val <- NULL
-    if (length(tClustInd) < 3)
-      stop("Minimal length of ClustInd vector is 3")
-    if (index == "MinCentroidDist") {
-      opt_val <-
-        which.max(tClustInd[seq_len(length(tClustInd) - 1)] - 
-                    tClustInd[2:length(tClustInd)])
-    } else if (index == "XieBeni") {
-      opt_val <- which.min(tClustInd[seq_len(length(tClustInd))])
-      
-    }
-    return(as.numeric(opt_val + 2))
-  }
 

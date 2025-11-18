@@ -11,7 +11,7 @@ A data frame consisting of 500 features distributed over 5 clusters and being re
 Protein Research Group, University of Southern Denmark, Odense
 }
 \usage{
-artificial_clusters
+data(artificial_clusters)
 }
 \description{
 10-dimensional data set with 500 simulating features measured over 5 replicates each, comprising a total of 50 samples. 

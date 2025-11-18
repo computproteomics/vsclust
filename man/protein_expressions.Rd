@@ -25,7 +25,7 @@ A data frame consisting of 574 proteins measured in 12 samples:
 Protein Research Group, University of Southern Denmark, Odense
 }
 \usage{
-protein_expressions
+data(protein_expressions)
 }
 \description{
 There are 12 samples coming from mouse fed with the four different diets, measured in three replicates each. 
