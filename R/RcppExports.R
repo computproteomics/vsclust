@@ -2,7 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 flag_missing_entries <- function(feature_mat, missing_vals, ratio_missing_vals, missing_value = NA_real_) {
-    invisible(.Call(`_vsclust_flag_missing_entries`, feature_mat, missing_vals, ratio_missing_vals, missing_value))
+    invisible(.Call(`_vsclust_flag_missing_entries`, feature_mat, missing_vals, ratio_missing_vals, missing_value, PACKAGE = "vsclust"))
 }
 
 run_fuzzy_cmeans <- function(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value = NA_real_, weight_missing = 0) {
