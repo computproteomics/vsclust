@@ -10,22 +10,22 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// fill_missing_vals_and_ratio
-void fill_missing_vals_and_ratio(const NumericMatrix& feature_mat, LogicalMatrix& missing_vals, NumericVector& ratio_missing_vals, double missing_value);
-RcppExport SEXP _vsclust_fill_missing_vals_and_ratio(SEXP feature_matSEXP, SEXP missing_valsSEXP, SEXP ratio_missing_valsSEXP, SEXP missing_valueSEXP) {
+// flag_missing_entries
+void flag_missing_entries(const NumericMatrix& feature_mat, LogicalMatrix& missing_vals, NumericVector& ratio_missing_vals, double missing_value);
+RcppExport SEXP _vsclust_flag_missing_entries(SEXP feature_matSEXP, SEXP missing_valsSEXP, SEXP ratio_missing_valsSEXP, SEXP missing_valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericMatrix& >::type feature_mat(feature_matSEXP);
     Rcpp::traits::input_parameter< LogicalMatrix& >::type missing_vals(missing_valsSEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type ratio_missing_vals(ratio_missing_valsSEXP);
     Rcpp::traits::input_parameter< double >::type missing_value(missing_valueSEXP);
-    fill_missing_vals_and_ratio(feature_mat, missing_vals, ratio_missing_vals, missing_value);
+    flag_missing_entries(feature_mat, missing_vals, ratio_missing_vals, missing_value);
     return R_NilValue;
 END_RCPP
 }
-// c_plusplus_means
-double c_plusplus_means(const NumericMatrix& feature_mat, NumericMatrix& centers, NumericVector& weight, NumericVector& fuzz, int dist_metric, int iter_max, double rel_tol, int verbose, NumericMatrix& membership_mat, double ermin, IntegerVector& iter, double missing_value, double weight_missing);
-RcppExport SEXP _vsclust_c_plusplus_means(SEXP feature_matSEXP, SEXP centersSEXP, SEXP weightSEXP, SEXP fuzzSEXP, SEXP dist_metricSEXP, SEXP iter_maxSEXP, SEXP rel_tolSEXP, SEXP verboseSEXP, SEXP membership_matSEXP, SEXP erminSEXP, SEXP iterSEXP, SEXP missing_valueSEXP, SEXP weight_missingSEXP) {
+// run_fuzzy_cmeans
+double run_fuzzy_cmeans(const NumericMatrix& feature_mat, NumericMatrix& centers, NumericVector& weight, NumericVector& fuzz, int dist_metric, int iter_max, double rel_tol, int verbose, NumericMatrix& membership_mat, double ermin, IntegerVector& iter, double missing_value, double weight_missing);
+RcppExport SEXP _vsclust_run_fuzzy_cmeans(SEXP feature_matSEXP, SEXP centersSEXP, SEXP weightSEXP, SEXP fuzzSEXP, SEXP dist_metricSEXP, SEXP iter_maxSEXP, SEXP rel_tolSEXP, SEXP verboseSEXP, SEXP membership_matSEXP, SEXP erminSEXP, SEXP iterSEXP, SEXP missing_valueSEXP, SEXP weight_missingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,14 +42,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector& >::type iter(iterSEXP);
     Rcpp::traits::input_parameter< double >::type missing_value(missing_valueSEXP);
     Rcpp::traits::input_parameter< double >::type weight_missing(weight_missingSEXP);
-    rcpp_result_gen = Rcpp::wrap(c_plusplus_means(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value, weight_missing));
+    rcpp_result_gen = Rcpp::wrap(run_fuzzy_cmeans(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value, weight_missing));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_vsclust_fill_missing_vals_and_ratio", (DL_FUNC) &_vsclust_fill_missing_vals_and_ratio, 4},
-    {"_vsclust_c_plusplus_means", (DL_FUNC) &_vsclust_c_plusplus_means, 13},
+    {"_vsclust_flag_missing_entries", (DL_FUNC) &_vsclust_flag_missing_entries, 4},
+    {"_vsclust_run_fuzzy_cmeans", (DL_FUNC) &_vsclust_run_fuzzy_cmeans, 13},
     {NULL, NULL, 0}
 };
 

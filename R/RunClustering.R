@@ -198,7 +198,7 @@ vsclust_algorithm <-
     u <- matrix(0.0,  nrow = xrows, ncol = ncenters)
     iter <- c(0L)
     val <-
-      c_plusplus_means(x,
+      run_fuzzy_cmeans(x,
                        centers,
                        weights,
                        m,
