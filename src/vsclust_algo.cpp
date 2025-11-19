@@ -19,8 +19,10 @@ void printMat(const NumericMatrix &mat) {
   }
 }
 
+// Allocate the distance matrix and initialize workspace needed for distance metrics
+// (e.g. weighted median buffers when using Manhattan distance).
 static NumericMatrix
-  cmeans_setup(int nr_objects, int nr_centers, int dist_metric)
+  allocate_distance_matrix(int nr_objects, int nr_centers, int dist_metric)
   {
     if(dist_metric == 1) {
       // Needed for weighted medians. (manhattan)
@@ -32,10 +34,10 @@ static NumericMatrix
     return NumericMatrix(nr_objects, nr_centers);
   }
 
-/* Update the dissimilarities/distances (between objects and prototypes) for a
- single object (i.e., a single row of the dissimilarity matrix. */
+// Compute distances between one object and every centroid (i.e. fill a single
+// row of the distance matrix).
 static void
-  object_dissimilarities(const NumericMatrix& feature_mat, const NumericMatrix& centers,
+  update_object_distances(const NumericMatrix& feature_mat, const NumericMatrix& centers,
                          const int nr_objects, const int nr_features, const int nr_centers,
                          const int dist_metric, const int object_nr, NumericMatrix& dist_mat, 
                          const LogicalMatrix & missing_vals)
@@ -62,8 +64,9 @@ static void
     }
   }
 
+// Refresh the full distance matrix by iterating over every object.
 static void
-  cmeans_dissimilarities(const NumericMatrix& feature_mat, const NumericMatrix& centers,
+  update_all_distances(const NumericMatrix& feature_mat, const NumericMatrix& centers,
                          const int nr_objects, const int nr_features, 
                          const int nr_centers, const int dist_metric, 
                          NumericMatrix& dist_mat, const LogicalMatrix & missing_vals)
@@ -71,14 +74,15 @@ static void
     
     // loop over all objects
     for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
-      object_dissimilarities(feature_mat, centers, nr_objects, nr_features,
+      update_object_distances(feature_mat, centers, nr_objects, nr_features,
                              nr_centers, dist_metric, object_nr, dist_mat, missing_vals);
     }
   }
 
 
+// Recalculate the fuzzy memberships for a single object given its distances.
 static void
-  object_memberships(const NumericMatrix & dist_mat,
+  update_object_membership(const NumericMatrix & dist_mat,
                      const int nr_centers, const NumericVector & fuzz,
                      const int object_nr, NumericMatrix & membership_mat)
   {
@@ -123,20 +127,22 @@ static void
   }
 
 
+// Refresh all memberships row-by-row using update_object_membership().
 static void
-  cmeans_memberships(const NumericMatrix & dist_mat,
+  update_all_memberships(const NumericMatrix & dist_mat,
                      const int nr_objects, const int nr_centers,
                      const NumericVector & exponent, NumericMatrix & membership_mat)
   {
     // loop over all objects
     for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
-      object_memberships(dist_mat, nr_centers, exponent,
+      update_object_membership(dist_mat, nr_centers, exponent,
                          object_nr, membership_mat);
     }
   }
 
+// Evaluate the fuzzy c-means objective Jm for the current clustering state.
 static double
-  cmeans_error_fn(const NumericMatrix & membership_mat, const NumericMatrix & dist_mat,
+  objective_value(const NumericMatrix & membership_mat, const NumericMatrix & dist_mat,
                   NumericVector weight, const int nr_objects, 
                   const int nr_centers, const NumericVector & fuzz)
   {
@@ -207,8 +213,10 @@ static double
     return(marg);
   }
 
+// Update cluster centers under Euclidean distance using weighted means and
+// penalties for missing values.
 static void 
-  euclidean_prototypes(const NumericMatrix & feature_mat, const NumericMatrix & membership_mat,
+  update_centers_euclidean(const NumericMatrix & feature_mat, const NumericMatrix & membership_mat,
                        const NumericVector & weight, const int nr_objects,
                        const int nr_features, const int nr_centers, const NumericVector & fuzz,
                        const int dist_metric, NumericMatrix & centers, const NumericVector & ratio_missing_vals, 
@@ -250,8 +258,9 @@ static void
 
 
 
+// Update cluster centers under Manhattan distance using weighted medians.
 static void 
-  manhattan_prototypes(const NumericMatrix & feature_mat, const NumericMatrix & membership_mat,
+  update_centers_manhattan(const NumericMatrix & feature_mat, const NumericMatrix & membership_mat,
                        const NumericVector & weight, const int nr_objects,
                        const int nr_features, const int nr_centers, const NumericVector & fuzz,
                        const int dist_metric, NumericMatrix & centers)
@@ -273,8 +282,10 @@ static void
   }
 
 
+// Dispatch to the appropriate centroid update depending on the chosen
+// distance metric.
 static void
-  cmeans_prototypes(const NumericMatrix & feature_mat, NumericMatrix & membership_mat,
+  update_cluster_centers(const NumericMatrix & feature_mat, NumericMatrix & membership_mat,
                     const NumericVector & weight, const int nr_objects,
                     const int nr_features, const int nr_centers, const NumericVector & fuzz,
                     const int dist_metric, NumericMatrix & centers, const NumericVector & ratio_missing_vals,  
@@ -282,18 +293,20 @@ static void
   {
     if(dist_metric == 0) {
       /* Euclidean: weighted means. */
-      euclidean_prototypes(feature_mat, membership_mat, weight, nr_objects,
+      update_centers_euclidean(feature_mat, membership_mat, weight, nr_objects,
                            nr_features, nr_centers, fuzz, dist_metric, centers, ratio_missing_vals, missing_vals, weight_missing);
     }
     else {
       /* Manhattan: weighted medians. */
-      manhattan_prototypes(feature_mat, membership_mat, weight, nr_objects,
+      update_centers_manhattan(feature_mat, membership_mat, weight, nr_objects,
                            nr_features, nr_centers, fuzz, dist_metric, centers);
     }
   }
 
+// Flag missing entries (NA or sentinel) and compute per-object missing ratios
+// used when penalizing Euclidean centers for incomplete data.
 // [[Rcpp::export]]
-void fill_missing_vals_and_ratio(const NumericMatrix & feature_mat, LogicalMatrix & missing_vals, 
+void flag_missing_entries(const NumericMatrix & feature_mat, LogicalMatrix & missing_vals, 
                                  NumericVector & ratio_missing_vals, double missing_value = NA_REAL) {
   
   // declare function pointer for checking if value is missing value based on the parameter missing_value
@@ -330,8 +343,10 @@ void fill_missing_vals_and_ratio(const NumericMatrix & feature_mat, LogicalMatri
 
 // attribute tells the compiler to make this function invisible in R
 // returns ermin(fitness), because the conversion from R primitive datatype to C++ double doesn't allow changes directly
+// Full fuzzy c-means optimization loop: initialize distances/memberships and
+// iterate (centers -> distances -> memberships) until convergence.
 // [[Rcpp::export]]
-double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & centers,
+double run_fuzzy_cmeans(const NumericMatrix & feature_mat, NumericMatrix & centers,
                         NumericVector & weight, NumericVector & fuzz, int dist_metric, int iter_max, double rel_tol,
                         int verbose, NumericMatrix & membership_mat, double ermin, IntegerVector & iter, double missing_value = NA_REAL, 
                         double weight_missing = 0) {
@@ -346,34 +361,35 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
   
   LogicalMatrix missing_vals(nr_objects, nr_features);
   NumericVector ratio_missing_vals(nr_objects);
-  fill_missing_vals_and_ratio(feature_mat, missing_vals, ratio_missing_vals, missing_value);
+  flag_missing_entries(feature_mat, missing_vals, ratio_missing_vals, missing_value);
 
   double old_fitness, new_fitness;
   
-  NumericMatrix dist_mat = cmeans_setup(nr_objects, nr_centers, dist_metric);
+  NumericMatrix dist_mat = allocate_distance_matrix(nr_objects, nr_centers, dist_metric);
   
   // calculate distances based on dist_metric(euclidean/manhattan)
-  cmeans_dissimilarities(feature_mat, centers, nr_objects, nr_features, 
+  update_all_distances(feature_mat, centers, nr_objects, nr_features, 
                          nr_centers, dist_metric, dist_mat, missing_vals);
   
   // calculate memberships based on distances -> save in membership_mat
-  cmeans_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
+  update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
   
   // calculate fitness: J(c, m) -> see literature
-  old_fitness = new_fitness = cmeans_error_fn(membership_mat, dist_mat, weight,
+  old_fitness = new_fitness = objective_value(membership_mat, dist_mat, weight,
                                               nr_objects, nr_centers, fuzz);
   
   iter[0] = 0;
   
   // iterate iter_max-times to find cluster centers
   while(iter[0]++ < iter_max) {
-    cmeans_prototypes(feature_mat, membership_mat, weight, nr_objects, nr_features,
+    // Main update cycle for this iteration.
+    update_cluster_centers(feature_mat, membership_mat, weight, nr_objects, nr_features,
                       nr_centers, fuzz, dist_metric, centers, ratio_missing_vals, missing_vals, weight_missing);
-    cmeans_dissimilarities(feature_mat, centers, nr_objects, nr_features, 
+    update_all_distances(feature_mat, centers, nr_objects, nr_features, 
                            nr_centers, dist_metric, dist_mat, missing_vals);
-    cmeans_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
+    update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
 
-    new_fitness = cmeans_error_fn(membership_mat, dist_mat, weight, 
+    new_fitness = objective_value(membership_mat, dist_mat, weight, 
                                   nr_objects, nr_centers, fuzz);
 
     if(fabs(old_fitness - new_fitness) < rel_tol * (old_fitness + rel_tol)) {
@@ -385,7 +401,7 @@ double c_plusplus_means(const NumericMatrix & feature_mat, NumericMatrix & cente
     }
     else {
       if(verbose) {
-        ermin = cmeans_error_fn(membership_mat, dist_mat, weight, nr_objects,
+        ermin = objective_value(membership_mat, dist_mat, weight, nr_objects,
                                 nr_centers, fuzz);
         Rcout << "Iteration: " << iter << " with fitness: " << new_fitness << "\n";
       }
