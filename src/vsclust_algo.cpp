@@ -116,7 +116,7 @@ static void
     
     // loop over all objects
     for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
-      // if  constraints are providfes
+      // if  constraints are provided
       if (constraints_mat.nrow() > 0) {
          LogicalVector row_constraints = constraints_mat(object_nr, _);        
           update_object_distances(feature_mat, centers, nr_objects, nr_features,
