@@ -34,7 +34,6 @@ test_that("clust_comp_constraints", {
     constraints <- matrix(FALSE, nrow=nrow(dat), ncol=6)
     constraints[sample(1:length(constraints), 1000)] <- TRUE
     clust_out <- ClustComp(dat, NClust = 6, Sds = 1, constraints = constraints)
-    sum(apply(clust_out$Bestcl$membership, 1, max) > 0.5)
     expect_equal(  sum(apply(clust_out$Bestcl$membership, 1, max) > 0.5), 214, tolerance = 10)
     expect_equal( sum(constraints & (clust_out$Bestcl$membership == 0)), 1000)
     expect_true(sum(clust_out$Bestcl$membership[constraints]) == 0)
