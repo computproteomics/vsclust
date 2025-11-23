@@ -2,12 +2,9 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 flag_missing_entries <- function(feature_mat, missing_vals, ratio_missing_vals, missing_value = NA_real_) {
-    invisible(.Call(`_vsclust_flag_missing_entries`, feature_mat, missing_vals, ratio_missing_vals, missing_value))
+    invisible(.Call(`_vsclust_flag_missing_entries`, feature_mat, missing_vals, ratio_missing_vals, missing_value, PACKAGE = "vsclust"))
 }
 
-run_fuzzy_cmeans <- function(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, weight_missing = 0, constraints_mat = NULL, missing_value = NA_real_) {
-    if (is.null(constraints_mat)) {
-        constraints_mat <- matrix(FALSE, 0L, 0L)
-    }
-    .Call(`_vsclust_run_fuzzy_cmeans`, feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, weight_missing, constraints_mat, missing_value)
+run_fuzzy_cmeans <- function(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value = NA_real_, weight_missing = 0) {
+    .Call(`_vsclust_run_fuzzy_cmeans`, feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value, weight_missing, PACKAGE = "vsclust")
 }
