@@ -184,8 +184,8 @@ vsclust_algorithm <-
         stop("Number of rows in 'constraints' must be equal to number of rows in main data frame.")
       }
       if (ncol(constraints) != ncenters) {
-        stop("Number of columns in 'constraints' must be equal to number of
-             centers.")
+        stop("Number of columns in 'constraints' must be equal to number of centers.")
+      }
       }
       # matrix needs to be boolean
       if (!is.logical(constraints)) {
