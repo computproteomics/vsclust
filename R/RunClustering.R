@@ -86,6 +86,10 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 #' (default)
 #' @param m Fuzzifier value: numeric or vector of length equal to number of rows 
 #' of x
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters. If provided, the membership values for these features and cluster will
+#' not be calculated. This can be used to exclude certain features from specific clusters.
 #' @param ratePar (experimental) numeric value for punishing missing values
 #' @param weights numeric or vector of length equal to number of rows of x
 #' @param control list with arguments to vsclust algorithms (now only cutoff for 
@@ -123,6 +127,7 @@ vsclust_algorithm <-
            verbose = FALSE,
            dist = "euclidean",
            m = 2,
+           constraints = NULL,
            ratePar = NULL,
            weights = 1,
            control = list())
@@ -170,6 +175,25 @@ vsclust_algorithm <-
       ratePar <- 0
     }
     
+    # Check whether constraints are provided or set to NULL
+    if (!is.null(constraints)) {
+      if (!is.matrix(constraints)) {
+        stop("Argument 'constraints' must be a matrix or NULL.")
+      }
+      if (nrow(constraints) != xrows) {
+        stop("Number of rows in 'constraints' must be equal to number of rows in main data frame.")
+      }
+      if (ncol(constraints) != ncenters) {
+        stop("Number of columns in 'constraints' must be equal to number of
+             centers.")
+      }
+      # matrix needs to be boolean
+      if (!is.logical(constraints)) {
+        stop("Matrix 'constraints' must be of type logical (TRUE/FALSE).")
+      } 
+        
+    }
+    
     ## ensure that there are no missing values in centers
     centers[is.na(centers)] <- 0
     
@@ -209,8 +233,9 @@ vsclust_algorithm <-
                        u ,
                        1,
                        iter,
-                       NA,
-                       ratePar)
+                       ratePar,
+                       constraints,
+                       NA_real_)
     # put modified values in retval
     retval <-
       list(
@@ -270,6 +295,9 @@ vsclust_algorithm <-
 #' @param NClust Number of clusters
 #' @param Sds Standard deviation of features (either vector of the same length 
 #' as features numbers in matrix or single value)
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters (see `vsclust_algorithm` for details)
 #' @param cl object of class `cluster` or `SOCKcluster` to specify environment 
 #' for parallelization
 #' @param verbose Show more information during execution
@@ -277,8 +305,8 @@ vsclust_algorithm <-
 #' @return `indices` containing minimum centroid distance and Xie-Beni index for 
 #' both clustering methods
 #' @return `Bestcl` optimal vsclust results (variance-sensitive fcm clustering)
-#' @return `Bestcl2` optimal fuzzy c-means restults
-#' @return `m` vector of individual fuzzifer values per feature
+#' @return `Bestcl2` optimal fuzzy c-means results
+#' @return `m` vector of individual fuzzifier values per feature
 #' @return `withinerror` final optimization score for vsclust
 #' @return `withinerror2` final optimization score for fuzzy c-means clustering
 #' @examples
@@ -309,6 +337,7 @@ ClustComp <-
            NSs = 10,
            NClust = NClust,
            Sds = Sds,
+           constraints = NULL,           
            cl = parallel::makePSOCKcluster(1),
            verbose = FALSE
            ) {
@@ -318,7 +347,7 @@ ClustComp <-
     
     clusterExport(
       cl = cl,
-      varlist = c("dat", "NClust", "m", "mm","verbose"),
+      varlist = c("dat", "NClust", "m", "mm","verbose", "constraints", "vsclust_algorithm"),
       envir = environment()
     )
     cls <-
@@ -327,6 +356,7 @@ ClustComp <-
           dat,
           NClust,
           m = m,
+          constraints = constraints,
           verbose = verbose,
           iterMax =
             1000
@@ -341,6 +371,7 @@ ClustComp <-
           dat,
           NClust,
           m = mm,
+          constraints = constraints,
           verbose = verbose,
           iterMax =
             1000

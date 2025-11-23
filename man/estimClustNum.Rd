@@ -4,7 +4,13 @@
 \alias{estimClustNum}
 \title{Wrapper for estimation of cluster number}
 \usage{
-estimClustNum(dat, maxClust = 25, scaling = "standardize", cores = 1)
+estimClustNum(
+  dat,
+  maxClust = 25,
+  scaling = "standardize",
+  constraints = NULL,
+  cores = 1
+)
 }
 \arguments{
 \item{dat}{matrix of features averaged over replicates. The last column
@@ -14,6 +20,10 @@ contains their standard deviation}
 
 \item{scaling}{Either `standardize` (default), `center` or `none`. Standardized 
 features get mean 0 and standard deviation 1. Centered samples get mean 0.}
+
+\item{constraints}{Optional matrix with constraints for the membership values
+fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+clusters (see `vsclust_algorithm` for details)}
 
 \item{cores}{The number of threads to be used for parallelisation}
 }
