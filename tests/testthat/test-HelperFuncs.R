@@ -8,7 +8,7 @@ test_that("vsclust_algorithm", {
   expect_equal(    sum(apply(clust_out$membership, 1, max) > 0.5), 200, tolerance = 10)
 })
 
-test_that("vsclust_algorithm_constrains", {
+test_that("vsclust_algorithm_constraints", {
     data("artificial_clusters")
     dat <- averageCond(artificial_clusters, 5, 10)
     dat <- scale(dat)
