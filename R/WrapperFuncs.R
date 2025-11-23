@@ -274,7 +274,11 @@ estimClustNum <- function(dat,
     
     # define parallelization
     cl <- makeCluster(cores)
-    clusterEvalQ(cl = cl, library(vsclust))
+    clusterExport(
+        cl = cl,
+        varlist = c("ClustComp", "vsclust_algorithm"),
+        envir = environment()
+    )
     
     sds <- dat[rownames(tData), ncol(dat)]
     
@@ -381,7 +385,11 @@ runClustWrapper <-
             rownames(tData) <- seq_len(nrow(tData))
         }
         cl <- makeCluster(cores)
-        clusterEvalQ(cl = cl, library(vsclust))
+        clusterExport(
+            cl = cl,
+            varlist = c("ClustComp", "vsclust_algorithm"),
+            envir = environment()
+        )
         
         clustout <- ClustComp(
             tData,
