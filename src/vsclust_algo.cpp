@@ -514,9 +514,9 @@ double run_fuzzy_cmeans(const NumericMatrix & feature_mat, NumericMatrix & cente
       if(verbose) {
          Rcout << "Iteration: " << iter << " converged with fitness: " 
               << new_fitness << "\n";
-         ermin = new_fitness;
-         break;
       }
+      ermin = new_fitness;
+      break;
     }
     else {
       if(verbose) {
