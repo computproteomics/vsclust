@@ -10,6 +10,7 @@ ClustComp(
   NSs = 10,
   NClust = NClust,
   Sds = Sds,
+  constraints = NULL,
   cl = parallel::makePSOCKcluster(1),
   verbose = FALSE
 )
@@ -24,6 +25,10 @@ ClustComp(
 \item{Sds}{Standard deviation of features (either vector of the same length 
 as features numbers in matrix or single value)}
 
+\item{constraints}{Optional matrix with constraints for the membership values
+fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+clusters (see `vsclust_algorithm` for details)}
+
 \item{cl}{object of class `cluster` or `SOCKcluster` to specify environment 
 for parallelization}
 
@@ -37,9 +42,9 @@ both clustering methods
 
 `Bestcl` optimal vsclust results (variance-sensitive fcm clustering)
 
-`Bestcl2` optimal fuzzy c-means restults
+`Bestcl2` optimal fuzzy c-means results
 
-`m` vector of individual fuzzifer values per feature
+`m` vector of individual fuzzifier values per feature
 
 `withinerror` final optimization score for vsclust
 

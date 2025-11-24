@@ -31,7 +31,8 @@ Suggests:
     testthat (>= 3.0.0),
     rmarkdown,
     BiocStyle,
-    httr
+    httr,
+    magick
 LinkingTo: Rcpp
 biocViews: 
   Clustering,

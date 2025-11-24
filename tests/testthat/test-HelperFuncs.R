@@ -8,6 +8,17 @@ test_that("vsclust_algorithm", {
   expect_equal(    sum(apply(clust_out$membership, 1, max) > 0.5), 200, tolerance = 10)
 })
 
+test_that("vsclust_algorithm_constraints", {
+    data("artificial_clusters")
+    dat <- averageCond(artificial_clusters, 5, 10)
+    dat <- scale(dat)
+    constraints <- matrix(FALSE, nrow=nrow(dat), ncol=6)
+    constraints[sample(1:length(constraints), 1000)] <- TRUE
+    clust_out <- vsclust_algorithm(dat, centers = 6, m = 1.55, constraints = constraints)
+    expect_equal(    sum(apply(clust_out$membership, 1, max) > 0.5), 200, tolerance = 10)
+    expect_equal( sum(constraints & (clust_out$membership == 0)), 1000)
+    expect_true(sum(clust_out$membership[constraints]) == 0)
+})
 
 test_that("clust_comp", {
   data("artificial_clusters")
@@ -16,6 +27,20 @@ test_that("clust_comp", {
   sum(apply(clust_out$Bestcl$membership, 1, max) > 0.5)
   expect_equal(  sum(apply(clust_out$Bestcl$membership, 1, max) > 0.5), 214, tolerance = 10)
 })
+
+test_that("clust_comp_constraints", {
+    data("artificial_clusters")
+    dat <- averageCond(artificial_clusters, 5, 10)
+    constraints <- matrix(FALSE, nrow=nrow(dat), ncol=6)
+    constraints[sample(1:length(constraints), 1000)] <- TRUE
+    clust_out <- ClustComp(dat, NClust = 6, Sds = 1, constraints = constraints)
+    expect_equal(  sum(apply(clust_out$Bestcl$membership, 1, max) > 0.5), 214, tolerance = 10)
+    expect_equal( sum(constraints & (clust_out$Bestcl$membership == 0)), 1000)
+    expect_true(sum(clust_out$Bestcl$membership[constraints]) == 0)
+    expect_equal( sum(constraints & (clust_out$Bestcl2$membership == 0)), 1000)
+    expect_true(sum(clust_out$Bestcl2$membership[constraints]) == 0)
+})
+
 
 test_that("sign_analysis_paired", {
   set.seed(0)

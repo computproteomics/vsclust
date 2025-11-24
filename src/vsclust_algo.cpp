@@ -40,10 +40,19 @@ static void
   update_object_distances(const NumericMatrix& feature_mat, const NumericMatrix& centers,
                          const int nr_objects, const int nr_features, const int nr_centers,
                          const int dist_metric, const int object_nr, NumericMatrix& dist_mat, 
-                         const LogicalMatrix & missing_vals)
+                         const LogicalMatrix & missing_vals, const LogicalVector & constraints_centers)
   {
     double sum, v;
-    for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
+    // vector of indices that are not constrained for current center
+    std::vector<int> active_centers;
+    active_centers.reserve(nr_centers);
+    for (int center_nr = 0; center_nr < nr_centers; ++center_nr) {
+        if (!constraints_centers[center_nr]) {
+            active_centers.push_back(center_nr);
+        }
+    }
+    
+    for(int center_nr : active_centers) {
       sum = 0;
       v = 0;
       for(int feature_nr = 0; feature_nr < nr_features; feature_nr++) {
@@ -64,18 +73,58 @@ static void
     }
   }
 
+// Compute distances between one object and every centroid (i.e. fill a single
+// row of the distance matrix).
+static void
+update_object_distances(const NumericMatrix& feature_mat, const NumericMatrix& centers,
+                        const int nr_objects, const int nr_features, const int nr_centers,
+                        const int dist_metric, const int object_nr, NumericMatrix& dist_mat, 
+                        const LogicalMatrix & missing_vals)
+{
+    double sum, v;
+
+    for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
+        sum = 0;
+        v = 0;
+        for(int feature_nr = 0; feature_nr < nr_features; feature_nr++) {
+            if(!missing_vals(object_nr, feature_nr)) {
+                // feature_entry - center_entry
+                v = feature_mat(object_nr, feature_nr) - centers(center_nr, feature_nr);
+            }
+            // euclidean-distance
+            if(dist_metric == 0)
+                sum += v * v;
+            // manhattan-distance
+            else if(dist_metric == 1)
+                sum += fabs(v);
+            
+        }
+        // save distance from object to center in distance matrix
+        dist_mat(object_nr, center_nr) = sum;
+    }
+}
+
+
 // Refresh the full distance matrix by iterating over every object.
 static void
   update_all_distances(const NumericMatrix& feature_mat, const NumericMatrix& centers,
                          const int nr_objects, const int nr_features, 
                          const int nr_centers, const int dist_metric, 
-                         NumericMatrix& dist_mat, const LogicalMatrix & missing_vals)
+                         NumericMatrix& dist_mat, const LogicalMatrix & missing_vals, 
+                         const LogicalMatrix constraints_mat)
   {
     
     // loop over all objects
     for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
-      update_object_distances(feature_mat, centers, nr_objects, nr_features,
+      // if  constraints are provided
+      if (constraints_mat.nrow() > 0) {
+         LogicalVector row_constraints = constraints_mat(object_nr, _);        
+          update_object_distances(feature_mat, centers, nr_objects, nr_features,
+                                  nr_centers, dist_metric, object_nr, dist_mat, missing_vals, row_constraints);
+      } else {          
+        update_object_distances(feature_mat, centers, nr_objects, nr_features,
                              nr_centers, dist_metric, object_nr, dist_mat, missing_vals);
+      }
     }
   }
 
@@ -118,26 +167,81 @@ static void
       for(int center_nr = 0; center_nr < nr_centers; center_nr++)
         membership_mat(object_nr, center_nr) *= sum;
     }
-    
-    /*    sum = 0;
-    double epsilon = 0.00001;
-    for(int center_nr = 0; center_nr < nr_centers; center_nr++)
-      sum +=  membership_mat(object_nr, center_nr);
-    */
   }
+
+
+// Recalculate the fuzzy memberships for a single object given its distances.
+static void
+update_object_membership(const NumericMatrix & dist_mat,
+                         const int nr_centers, const NumericVector & fuzz,
+                         const int object_nr, NumericMatrix & membership_mat, const LogicalVector & row_constraints)
+{
+    double sum, v;
+    
+    int n_of_zeroes = 0;
+    
+    // vector of indices that are not constrained for current center
+    std::vector<int> active_centers;
+    active_centers.reserve(nr_centers);
+    for (int center_nr = 0; center_nr < nr_centers; ++center_nr) {
+        if (!row_constraints[center_nr]) {
+            active_centers.push_back(center_nr);
+        }
+    }
+    
+    // Count the number of zeroes in the dist_mat for the current object
+    for(int center_nr : active_centers) {
+        if(dist_mat(object_nr, center_nr) == 0)
+            n_of_zeroes++;
+    }
+    
+    // If there are zeroes in the dist_mat
+    if(n_of_zeroes > 0) {
+        v = 1 / n_of_zeroes;
+        for(int center_nr : active_centers) {
+            // update membership_mat only with v and on positions which are 0 in dist_mat
+            membership_mat(object_nr, center_nr) = 
+                dist_mat(object_nr, center_nr) == 0 ? v: 0;
+        }
+    }
+    // If there are no zeroes in the dist_mat
+    else {
+        sum = 0;
+        for(int center_nr : active_centers) {
+            // check if individual fuzzifier values
+            v = pow(dist_mat(object_nr, center_nr), -1.0/(fuzz[object_nr]-1.0));
+            sum += v;
+            membership_mat(object_nr, center_nr) = v;
+        }
+        sum = 1/sum;
+        for(int center_nr : active_centers)
+            membership_mat(object_nr, center_nr) *= sum;
+    }
+}
 
 
 // Refresh all memberships row-by-row using update_object_membership().
 static void
   update_all_memberships(const NumericMatrix & dist_mat,
                      const int nr_objects, const int nr_centers,
-                     const NumericVector & exponent, NumericMatrix & membership_mat)
+                     const NumericVector & exponent, NumericMatrix & membership_mat,
+                     const LogicalMatrix & constraints_mat)
   {
-    // loop over all objects
-    for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
-      update_object_membership(dist_mat, nr_centers, exponent,
-                         object_nr, membership_mat);
-    }
+      
+      // if constraints are provided
+      if (constraints_mat.nrow() > 0) {
+        for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
+          LogicalVector row_constraints = constraints_mat(object_nr, _);        
+          update_object_membership(dist_mat, nr_centers, exponent,
+                             object_nr, membership_mat, row_constraints);
+        }
+      } else {
+          for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
+              update_object_membership(dist_mat, nr_centers, exponent,
+                                       object_nr, membership_mat);       
+      }
+          
+  }
   }
 
 // Evaluate the fuzzy c-means objective Jm for the current clustering state.
@@ -154,7 +258,6 @@ static double
       currFuzzVal = fuzz[object_nr];  
       for(int center_nr = 0; center_nr < nr_centers; center_nr++) {
         sum += weight[object_nr] * pow(membership_mat(object_nr, center_nr), currFuzzVal)
-
 	  * dist_mat(object_nr, center_nr);
       }
     }
@@ -348,8 +451,10 @@ void flag_missing_entries(const NumericMatrix & feature_mat, LogicalMatrix & mis
 // [[Rcpp::export]]
 double run_fuzzy_cmeans(const NumericMatrix & feature_mat, NumericMatrix & centers,
                         NumericVector & weight, NumericVector & fuzz, int dist_metric, int iter_max, double rel_tol,
-                        int verbose, NumericMatrix & membership_mat, double ermin, IntegerVector & iter, double missing_value = NA_REAL, 
-                        double weight_missing = 0) {
+                        int verbose, NumericMatrix & membership_mat, double ermin, IntegerVector & iter, 
+                        double weight_missing = 0,
+                        const LogicalMatrix & constraints_mat = LogicalMatrix(),
+                        double missing_value = NA_REAL) {
 
   // check for user interrupts
   Rcpp::checkUserInterrupt();
@@ -369,10 +474,23 @@ double run_fuzzy_cmeans(const NumericMatrix & feature_mat, NumericMatrix & cente
   
   // calculate distances based on dist_metric(euclidean/manhattan)
   update_all_distances(feature_mat, centers, nr_objects, nr_features, 
-                         nr_centers, dist_metric, dist_mat, missing_vals);
+                         nr_centers, dist_metric, dist_mat, missing_vals, constraints_mat);
+  
+  // set all constrained memberships to 0
+  if (constraints_mat.nrow() > 0) {
+      for(int object_nr = 0; object_nr < nr_objects; object_nr++) {
+          LogicalVector row_constraints = constraints_mat(object_nr, _);        
+          for(int center_nr = 0; center_nr < nr_centers; center_nr++)
+          {
+              if (row_constraints[center_nr]) {
+                  membership_mat(object_nr, center_nr) = 0;
+              }
+          }
+      }
+  }
   
   // calculate memberships based on distances -> save in membership_mat
-  update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
+  update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat, constraints_mat);
   
   // calculate fitness: J(c, m) -> see literature
   old_fitness = new_fitness = objective_value(membership_mat, dist_mat, weight,
@@ -386,18 +504,19 @@ double run_fuzzy_cmeans(const NumericMatrix & feature_mat, NumericMatrix & cente
     update_cluster_centers(feature_mat, membership_mat, weight, nr_objects, nr_features,
                       nr_centers, fuzz, dist_metric, centers, ratio_missing_vals, missing_vals, weight_missing);
     update_all_distances(feature_mat, centers, nr_objects, nr_features, 
-                           nr_centers, dist_metric, dist_mat, missing_vals);
-    update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat);
+                           nr_centers, dist_metric, dist_mat, missing_vals, constraints_mat);
+    update_all_memberships(dist_mat, nr_objects, nr_centers, fuzz, membership_mat, constraints_mat);
 
     new_fitness = objective_value(membership_mat, dist_mat, weight, 
                                   nr_objects, nr_centers, fuzz);
 
     if(fabs(old_fitness - new_fitness) < rel_tol * (old_fitness + rel_tol)) {
-      if(verbose)
-        Rcout << "Iteration: " << iter << " converged with fitness: " 
+      if(verbose) {
+         Rcout << "Iteration: " << iter << " converged with fitness: " 
               << new_fitness << "\n";
-        ermin = new_fitness;
-        break;
+      }
+      ermin = new_fitness;
+      break;
     }
     else {
       if(verbose) {
