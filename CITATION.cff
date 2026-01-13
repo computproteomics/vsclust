@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: VSClust
+type: software
+repository: http://computproteomics.bmb.sdu.dk/app_direct/VSClust/
+identifiers:
+- type: other
+  value: vsclust
+  description: bio.tools
+license: GPL-2.0
+keywords:
+- term: Genomics
+  uri: http://edamontology.org/topic_0622
+- term: Proteomics
+  uri: http://edamontology.org/topic_0121
+- term: Omics
+  uri: http://edamontology.org/topic_3391
+- term: Metabolomics
+  uri: http://edamontology.org/topic_3172
+- term: Statistics and probability
+  uri: http://edamontology.org/topic_2269
+- term: Data mining
+  uri: http://edamontology.org/topic_3473
+abstract: Feature-based variance-sensitive clustering of omics data. Optimizes cluster
+  assignment by taking into account individual feature variance .
+message: If you use this software, please cite it and the Primary publications below.
+references:
+- doi: 10.1093/bioinformatics/bty224
+  title: 'VSClust: feature-based variance-sensitive clustering of omics data.'
+  authors:
+  - first_name: Veit
+    last_name: Schwämmle
+  - first_name: Ole N
+    last_name: Jensen
+  year: 2018
+  page_start: 2965
+  page_end: 2972
+  pub_type: article
+preferred-citation:
+  doi: 10.1093/bioinformatics/bty224
+  title: 'VSClust: feature-based variance-sensitive clustering of omics data.'
+  authors:
+  - first_name: Veit
+    last_name: Schwämmle
+  - first_name: Ole N
+    last_name: Jensen
+  year: 2018
+  page_start: 2965
+  page_end: 2972
+  pub_type: article
