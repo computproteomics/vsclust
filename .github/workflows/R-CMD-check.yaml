@@ -41,8 +41,15 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          cache: false
+          extra-packages: |
+            any::rcmdcheck
+            any::magick
           needs: check
+
+      - name: Install ImageMagick (Windows)
+        if: runner.os == 'Windows'
+        run: choco install imagemagick --yes
 
       - uses: r-lib/actions/check-r-package@v2
         with:

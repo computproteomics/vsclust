@@ -242,6 +242,9 @@ PrepareSEForVSClust <-
 #' @param maxClust Maximal number of cluster. The minimum is 3
 #' @param scaling Either `standardize` (default), `center` or `none`. Standardized 
 #' features get mean 0 and standard deviation 1. Centered samples get mean 0. 
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters (see `vsclust_algorithm` for details)
 #' @param cores The number of threads to be used for parallelisation
 #' @return list with the items `ClustInd`: list of clustering objects for each
 #' number of clusters, `p` plot object with plots for validity indices,
@@ -261,6 +264,7 @@ PrepareSEForVSClust <-
 estimClustNum <- function(dat,
                           maxClust = 25,
                           scaling = "standardize",
+                          constraints = NULL,
                           cores = 1) {
     ClustInd <- matrix(NA, nrow = maxClust - 2, ncol = 6)
     if (is.null(rownames(dat)))
@@ -272,10 +276,9 @@ estimClustNum <- function(dat,
     cl <- makeCluster(cores)
     clusterExport(
         cl = cl,
-        varlist = c("vsclust_algorithm"),
+        varlist = c("ClustComp", "vsclust_algorithm"),
         envir = environment()
     )
-    clusterEvalQ(cl = cl, library(vsclust))
     
     sds <- dat[rownames(tData), ncol(dat)]
     
@@ -298,6 +301,7 @@ estimClustNum <- function(dat,
             tData,
             NClust = x,
             Sds = sds,
+            constraints = constraints,
             NSs = 16,
             cl = cl
         )
@@ -336,6 +340,9 @@ estimClustNum <- function(dat,
 #' Otherwise, the function will call standard fuzzy c-means clustering
 #' @param scaling Either `standardize` (default), `center` or `none`. Standardized 
 #' features get mean 0 and standard deviation 1. Centered samples get mean 0.
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters (see `vsclust_algorithm` for details)
 #' @param cores Number of threads for the parallelization
 #' @param verbose Show more information during execution
 #' @return list with the items `dat`(the original data), `Bestcl` clustering
@@ -360,6 +367,7 @@ runClustWrapper <-
              proteins = NULL,
              VSClust = TRUE,
              scaling = "standardize",
+             constraints = NULL,
              cores,
              verbose = FALSE) {
         tData <- dat[, seq_len(ncol(dat) - 1)]
@@ -379,15 +387,15 @@ runClustWrapper <-
         cl <- makeCluster(cores)
         clusterExport(
             cl = cl,
-            varlist = c("vsclust_algorithm"),
+            varlist = c("ClustComp", "vsclust_algorithm"),
             envir = environment()
         )
-        clusterEvalQ(cl = cl, library(vsclust))
         
         clustout <- ClustComp(
             tData,
             NClust = NClust,
             Sds = sds,
+            constraints = constraints,
             NSs = 16,
             cl = cl,
             verbose = verbose

@@ -34,41 +34,41 @@
 #' 26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. 
 #' PMID: 20880957.
 determine_fuzz <- function(dims, NClust, Sds = 1) {
-  D <- dims[2]
-  d <- sqrt(D / 2)
-  mm <-
-    1 + (1418 / dims[1] + 22.05) * dims[2] ^ (-2) + (12.33 / dims[1] + 0.243) *
-    dims[2] ^ (-0.0406 * log(dims[1]) - 0.1134)
-  
-  ## Lower limit of the fuzzifier is 1.02 to avoid 
-  ## numerical issues
-  mm <- max(1.02, mm)
-  
-  ### d_i and d_t
-  difunc <-
-    function(c, D) {
-      x <- seq(0,c,1)
-      sum(choose(c, x) / (x * D + 1) * (-1) ^ x)
-    }
-  
-  di <- difunc(NClust, D)  / sqrt(pi) * exp(lgamma(D / 2 + 1) * (1 / D))
-  dt <- (NClust) ^ (-1 / D)
-  p <- dnorm(di, 0, Sds) * (1 - dnorm(dt, 0, Sds)) ^ (NClust - 1)
-  
-  m <- mm + p * mm * (D / 3 - 1)
-  m[m == Inf] <- 0
-  m[m == 0] <- NA
-  m[is.na(m)] <- mm * 10
-  
-   
-  
-  
-  ## If m for highest Sd is mm then all = mm
-  if (m[which.max(Sds)] == mm)
-    m[seq_len(length(m))] <- mm
-  
-  return(list (m = m, mm = mm))
-  
+    D <- dims[2]
+    d <- sqrt(D / 2)
+    mm <-
+        1 + (1418 / dims[1] + 22.05) * dims[2] ^ (-2) + (12.33 / dims[1] + 0.243) *
+        dims[2] ^ (-0.0406 * log(dims[1]) - 0.1134)
+    
+    ## Lower limit of the fuzzifier is 1.02 to avoid 
+    ## numerical issues
+    mm <- max(1.02, mm)
+    
+    ### d_i and d_t
+    difunc <-
+        function(c, D) {
+            x <- seq(0,c,1)
+            sum(choose(c, x) / (x * D + 1) * (-1) ^ x)
+        }
+    
+    di <- difunc(NClust, D)  / sqrt(pi) * exp(lgamma(D / 2 + 1) * (1 / D))
+    dt <- (NClust) ^ (-1 / D)
+    p <- dnorm(di, 0, Sds) * (1 - dnorm(dt, 0, Sds)) ^ (NClust - 1)
+    
+    m <- mm + p * mm * (D / 3 - 1)
+    m[m == Inf] <- 0
+    m[m == 0] <- NA
+    m[is.na(m)] <- mm * 10
+    
+    
+    
+    
+    ## If m for highest Sd is mm then all = mm
+    if (m[which.max(Sds)] == mm)
+        m[seq_len(length(m))] <- mm
+    
+    return(list (m = m, mm = mm))
+    
 }
 
 #' Run the vsclust clustering algorithm
@@ -86,6 +86,10 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 #' (default)
 #' @param m Fuzzifier value: numeric or vector of length equal to number of rows 
 #' of x
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters. If provided, the membership values for these features and cluster will
+#' not be calculated. This can be used to exclude certain features from specific clusters.
 #' @param ratePar (experimental) numeric value for punishing missing values
 #' @param weights numeric or vector of length equal to number of rows of x
 #' @param control list with arguments to vsclust algorithms (now only cutoff for 
@@ -117,145 +121,165 @@ determine_fuzz <- function(dims, NClust, Sds = 1) {
 #' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. 
 #' PMID: 20880957.
 vsclust_algorithm <-
-  function(x,
-           centers,
-           iterMax = 100,
-           verbose = FALSE,
-           dist = "euclidean",
-           m = 2,
-           ratePar = NULL,
-           weights = 1,
-           control = list())
-  {
-    x <- as.matrix(x)
-    xrows <- nrow(x)
-    xcols <- ncol(x)
-    
-    if (missing(centers))
-      stop("Argument 'centers' must be a number or a matrix.")
-    
-    dist <- pmatch(dist, c("euclidean", "manhattan"))
-    if (is.na(dist))
-      stop("invalid distance")
-    if (dist == -1)
-      stop("ambiguous distance")
-    
-    if (length(centers) == 1) {
-      ncenters <- centers
-      centers <- x[sample(seq_len(xrows), ncenters), , drop = FALSE]
-      if (any(duplicated(centers))) {
-        cn <- unique(x)
-        mm <- nrow(cn)
-        if (mm < ncenters)
-          stop("More cluster centers than distinct data points.")
-        centers <- cn[sample(seq_len(mm), ncenters), , drop = FALSE]
-      }
-    } else {
-      centers <- as.matrix(centers)
-      if (any(duplicated(centers)))
-        stop("Initial centers are not distinct.")
-      cn <- NULL
-      ncenters <- nrow(centers)
-      if (xrows < ncenters)
-        stop("More cluster centers than data points.")
+    function(x,
+             centers,
+             iterMax = 100,
+             verbose = FALSE,
+             dist = "euclidean",
+             m = 2,
+             constraints = NULL,
+             ratePar = NULL,
+             weights = 1,
+             control = list())
+    {
+        x <- as.matrix(x)
+        xrows <- nrow(x)
+        xcols <- ncol(x)
+        
+        if (missing(centers))
+            stop("Argument 'centers' must be a number or a matrix.")
+        
+        dist <- pmatch(dist, c("euclidean", "manhattan"))
+        if (is.na(dist))
+            stop("invalid distance")
+        if (dist == -1)
+            stop("ambiguous distance")
+        
+        if (length(centers) == 1) {
+            ncenters <- centers
+            centers <- x[sample(seq_len(xrows), ncenters), , drop = FALSE]
+            if (any(duplicated(centers))) {
+                cn <- unique(x)
+                mm <- nrow(cn)
+                if (mm < ncenters)
+                    stop("More cluster centers than distinct data points.")
+                centers <- cn[sample(seq_len(mm), ncenters), , drop = FALSE]
+            }
+        } else {
+            centers <- as.matrix(centers)
+            if (any(duplicated(centers)))
+                stop("Initial centers are not distinct.")
+            cn <- NULL
+            ncenters <- nrow(centers)
+            if (xrows < ncenters)
+                stop("More cluster centers than data points.")
+        }
+        
+        if (xcols != ncol(centers))
+            stop("Must have same number of columns in 'x' and 'centers'.")
+        
+        if (iterMax < 1)
+            stop("Argument 'iterMax' must be positive.")
+        
+        if (missing(ratePar)) {
+            ratePar <- 0
+        }
+        
+        # Check whether constraints are provided or set to NULL
+        if (!is.null(constraints)) {
+            if (!is.matrix(constraints)) {
+                stop("Argument 'constraints' must be a matrix or NULL.")
+            }
+            if (nrow(constraints) != xrows) {
+                stop("Number of rows in 'constraints' must be equal to number of rows in main data frame.")
+            }
+            if (ncol(constraints) != ncenters) {
+                stop("Number of columns in 'constraints' must be equal to number of centers.")
+            }
+            # matrix needs to be boolean
+            if (!is.logical(constraints)) {
+                stop("Matrix 'constraints' must be of type logical (TRUE/FALSE).")
+            } 
+        }
+        
+        
+        ## ensure that there are no missing values in centers
+        centers[is.na(centers)] <- 0
+        
+        reltol <- control$reltol
+        if (is.null(reltol))
+            reltol <- sqrt(.Machine$double.eps)
+        if (reltol <= 0)
+            stop("Control parameter 'reltol' must be positive.")
+        
+        if (any(weights < 0))
+            stop("Argument 'weights' has negative elements.")
+        if (!any(weights > 0))
+            stop("Argument 'weights' has no positive elements.")
+        weights <- rep(weights, length = xrows)
+        weights <- weights / sum(weights)
+        
+        # if length of fuzzifiers is lower than number of features, repeat the 
+        # pattern until end.
+        # Also counts for single fuzzifier
+        m <- rep(m, length = xrows)
+        
+        initcenters <- centers
+        pos <- as.factor(seq_len(ncenters))
+        rownames(centers) <- pos
+        
+        u <- matrix(0.0,  nrow = xrows, ncol = ncenters)
+        iter <- c(0L)
+        val <-
+            run_fuzzy_cmeans(x,
+                             centers,
+                             weights,
+                             m,
+                             dist - 1,
+                             iterMax,
+                             reltol,
+                             verbose,
+                             u ,
+                             1,
+                             iter,
+                             ratePar,
+                             constraints,
+                             NA_real_)
+        # put modified values in retval
+        retval <-
+            list(
+                x = x,
+                xrows = xrows,
+                xcols = xcols,
+                centers = centers,
+                ncenters = ncenters,
+                m = m,
+                dist = dist - 1,
+                iterMax = iterMax,
+                reltol = reltol,
+                verbose = verbose,
+                ratePar = ratePar,
+                u = u,
+                ermin = val,
+                iter = iter
+            )
+        
+        centers <- matrix(retval$centers,
+                          ncol = xcols,
+                          dimnames = list(seq_len(ncenters),
+                                          colnames(initcenters)))
+        u <- matrix(retval$u,
+                    ncol = ncenters,
+                    dimnames = list(rownames(x), seq_len(ncenters)))
+        # u <- u[order(perm), ]
+        iter <- retval$iter - 1
+        withinerror <- retval$ermin
+        
+        cluster <- apply(u, 1, which.max)
+        clustersize <- as.integer(table(cluster))
+        
+        retval <- list(
+            centers = centers,
+            size = clustersize,
+            cluster = cluster,
+            membership = u,
+            iter = iter,
+            withinerror = withinerror,
+            call = match.call()
+        )
+        class(retval) <- c("fclust")
+        return(retval)
     }
-    
-    if (xcols != ncol(centers))
-      stop("Must have same number of columns in 'x' and 'centers'.")
-    
-    if (iterMax < 1)
-      stop("Argument 'iterMax' must be positive.")
-    
-    if (missing(ratePar)) {
-      ratePar <- 0
-    }
-    
-    ## ensure that there are no missing values in centers
-    centers[is.na(centers)] <- 0
-    
-    reltol <- control$reltol
-    if (is.null(reltol))
-      reltol <- sqrt(.Machine$double.eps)
-    if (reltol <= 0)
-      stop("Control parameter 'reltol' must be positive.")
-    
-    if (any(weights < 0))
-      stop("Argument 'weights' has negative elements.")
-    if (!any(weights > 0))
-      stop("Argument 'weights' has no positive elements.")
-    weights <- rep(weights, length = xrows)
-    weights <- weights / sum(weights)
-    
-    # if length of fuzzifiers is lower than number of features, repeat the 
-    # pattern until end.
-    # Also counts for single fuzzifier
-    m <- rep(m, length = xrows)
-    
-    initcenters <- centers
-    pos <- as.factor(seq_len(ncenters))
-    rownames(centers) <- pos
-    
-    u <- matrix(0.0,  nrow = xrows, ncol = ncenters)
-    iter <- c(0L)
-    val <-
-      run_fuzzy_cmeans(x,
-                       centers,
-                       weights,
-                       m,
-                       dist - 1,
-                       iterMax,
-                       reltol,
-                       verbose,
-                       u ,
-                       1,
-                       iter,
-                       NA,
-                       ratePar)
-    # put modified values in retval
-    retval <-
-      list(
-        x = x,
-        xrows = xrows,
-        xcols = xcols,
-        centers = centers,
-        ncenters = ncenters,
-        m = m,
-        dist = dist - 1,
-        iterMax = iterMax,
-        reltol = reltol,
-        verbose = verbose,
-        ratePar = ratePar,
-        u = u,
-        ermin = val,
-        iter = iter
-      )
-    
-    centers <- matrix(retval$centers,
-                      ncol = xcols,
-                      dimnames = list(seq_len(ncenters),
-                                      colnames(initcenters)))
-    u <- matrix(retval$u,
-                ncol = ncenters,
-                dimnames = list(rownames(x), seq_len(ncenters)))
-    # u <- u[order(perm), ]
-    iter <- retval$iter - 1
-    withinerror <- retval$ermin
-    
-    cluster <- apply(u, 1, which.max)
-    clustersize <- as.integer(table(cluster))
-    
-    retval <- list(
-      centers = centers,
-      size = clustersize,
-      cluster = cluster,
-      membership = u,
-      iter = iter,
-      withinerror = withinerror,
-      call = match.call()
-    )
-    class(retval) <- c("fclust")
-    return(retval)
-  }
 
 #' Function to run clustering with automatic fuzzifier settings (might become 
 #' obsolete)
@@ -270,6 +294,9 @@ vsclust_algorithm <-
 #' @param NClust Number of clusters
 #' @param Sds Standard deviation of features (either vector of the same length 
 #' as features numbers in matrix or single value)
+#' @param constraints Optional matrix with constraints for the membership values
+#' fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+#' clusters (see `vsclust_algorithm` for details)
 #' @param cl object of class `cluster` or `SOCKcluster` to specify environment 
 #' for parallelization
 #' @param verbose Show more information during execution
@@ -277,8 +304,8 @@ vsclust_algorithm <-
 #' @return `indices` containing minimum centroid distance and Xie-Beni index for 
 #' both clustering methods
 #' @return `Bestcl` optimal vsclust results (variance-sensitive fcm clustering)
-#' @return `Bestcl2` optimal fuzzy c-means restults
-#' @return `m` vector of individual fuzzifer values per feature
+#' @return `Bestcl2` optimal fuzzy c-means results
+#' @return `m` vector of individual fuzzifier values per feature
 #' @return `withinerror` final optimization score for vsclust
 #' @return `withinerror2` final optimization score for fuzzy c-means clustering
 #' @examples
@@ -305,62 +332,65 @@ vsclust_algorithm <-
 #' Nov 15;26(22):2841-8. doi: 10.1093/bioinformatics/btq534. Epub 2010 Sep 29. 
 #' PMID: 20880957.
 ClustComp <-
-  function(dat,
-           NSs = 10,
-           NClust = NClust,
-           Sds = Sds,
-           cl = parallel::makePSOCKcluster(1),
-           verbose = FALSE
-           ) {
-    fuzz_out <- determine_fuzz(dim(dat), NClust, Sds)
-    m <- fuzz_out$m
-    mm <- fuzz_out$mm
-    
-    clusterExport(
-      cl = cl,
-      varlist = c("dat", "NClust", "m", "mm","verbose"),
-      envir = environment()
-    )
-    cls <-
-      parLapply(cl, seq_len(NSs), function(x)
-        vsclust_algorithm(
-          dat,
-          NClust,
-          m = m,
-          verbose = verbose,
-          iterMax =
-            1000
-        ))
-    # cls <- lapply(seq_len(NSs), function(x) vsclust_algorithm(tData,NClust,
-    # m=m, verbose=FALSE,iterMax=1000))  #print(cls[[1]])
-    Bestcl <- cls[[which.min(lapply(cls, function(x)
-      x$withinerror))]]
-    cls <-
-      parLapply(cl, seq_len(NSs), function(x)
-        vsclust_algorithm(
-          dat,
-          NClust,
-          m = mm,
-          verbose = verbose,
-          iterMax =
-            1000
-        ))
-    Bestcl2 <- cls[[which.min(lapply(cls, function(x)
-      x$withinerror))]]
-    # stopCluster(cl)
-    
-    # return validation indices
-    list(
-      indices = c(
-        min(dist(Bestcl$centers)),
-        cvalidate.xiebeni(Bestcl, mm),
-        min(dist(Bestcl2$centers)),
-        cvalidate.xiebeni(Bestcl2, mm)
-      ),
-      Bestcl = Bestcl,
-      Bestcl2 = Bestcl2,
-      m = m,
-      withinerror = Bestcl$withinerror,
-      withinerror2 = Bestcl2$withinerror
-    )
-  }
+    function(dat,
+             NSs = 10,
+             NClust = NClust,
+             Sds = Sds,
+             constraints = NULL,           
+             cl = parallel::makePSOCKcluster(1),
+             verbose = FALSE
+    ) {
+        fuzz_out <- determine_fuzz(dim(dat), NClust, Sds)
+        m <- fuzz_out$m
+        mm <- fuzz_out$mm
+        
+        clusterExport(
+            cl = cl,
+            varlist = c("dat", "NClust", "m", "mm","verbose", "constraints", "vsclust_algorithm"),
+            envir = environment()
+        )
+        cls <-
+            parLapply(cl, seq_len(NSs), function(x)
+                vsclust_algorithm(
+                    dat,
+                    NClust,
+                    m = m,
+                    constraints = constraints,
+                    verbose = verbose,
+                    iterMax =
+                        1000
+                ))
+        # cls <- lapply(seq_len(NSs), function(x) vsclust_algorithm(tData,NClust,
+        # m=m, verbose=FALSE,iterMax=1000))  #print(cls[[1]])
+        Bestcl <- cls[[which.min(lapply(cls, function(x)
+            x$withinerror))]]
+        cls <-
+            parLapply(cl, seq_len(NSs), function(x)
+                vsclust_algorithm(
+                    dat,
+                    NClust,
+                    m = mm,
+                    constraints = constraints,
+                    verbose = verbose,
+                    iterMax =
+                        1000
+                ))
+        Bestcl2 <- cls[[which.min(lapply(cls, function(x)
+            x$withinerror))]]
+        # stopCluster(cl)
+        
+        # return validation indices
+        list(
+            indices = c(
+                min(dist(Bestcl$centers)),
+                cvalidate.xiebeni(Bestcl, mm),
+                min(dist(Bestcl2$centers)),
+                cvalidate.xiebeni(Bestcl2, mm)
+            ),
+            Bestcl = Bestcl,
+            Bestcl2 = Bestcl2,
+            m = m,
+            withinerror = Bestcl$withinerror,
+            withinerror2 = Bestcl2$withinerror
+        )
+    }

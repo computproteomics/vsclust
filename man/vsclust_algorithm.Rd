@@ -11,6 +11,7 @@ vsclust_algorithm(
   verbose = FALSE,
   dist = "euclidean",
   m = 2,
+  constraints = NULL,
   ratePar = NULL,
   weights = 1,
   control = list()
@@ -31,6 +32,11 @@ center coordinates}
 
 \item{m}{Fuzzifier value: numeric or vector of length equal to number of rows 
 of x}
+
+\item{constraints}{Optional matrix with constraints for the membership values
+fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+clusters. If provided, the membership values for these features and cluster will
+not be calculated. This can be used to exclude certain features from specific clusters.}
 
 \item{ratePar}{(experimental) numeric value for punishing missing values}
 

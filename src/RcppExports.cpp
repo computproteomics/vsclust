@@ -24,8 +24,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // run_fuzzy_cmeans
-double run_fuzzy_cmeans(const NumericMatrix& feature_mat, NumericMatrix& centers, NumericVector& weight, NumericVector& fuzz, int dist_metric, int iter_max, double rel_tol, int verbose, NumericMatrix& membership_mat, double ermin, IntegerVector& iter, double missing_value, double weight_missing);
-RcppExport SEXP _vsclust_run_fuzzy_cmeans(SEXP feature_matSEXP, SEXP centersSEXP, SEXP weightSEXP, SEXP fuzzSEXP, SEXP dist_metricSEXP, SEXP iter_maxSEXP, SEXP rel_tolSEXP, SEXP verboseSEXP, SEXP membership_matSEXP, SEXP erminSEXP, SEXP iterSEXP, SEXP missing_valueSEXP, SEXP weight_missingSEXP) {
+double run_fuzzy_cmeans(const NumericMatrix& feature_mat, NumericMatrix& centers, NumericVector& weight, NumericVector& fuzz, int dist_metric, int iter_max, double rel_tol, int verbose, NumericMatrix& membership_mat, double ermin, IntegerVector& iter, double weight_missing, const LogicalMatrix& constraints_mat, double missing_value);
+RcppExport SEXP _vsclust_run_fuzzy_cmeans(SEXP feature_matSEXP, SEXP centersSEXP, SEXP weightSEXP, SEXP fuzzSEXP, SEXP dist_metricSEXP, SEXP iter_maxSEXP, SEXP rel_tolSEXP, SEXP verboseSEXP, SEXP membership_matSEXP, SEXP erminSEXP, SEXP iterSEXP, SEXP weight_missingSEXP, SEXP constraints_matSEXP, SEXP missing_valueSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,16 +40,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type membership_mat(membership_matSEXP);
     Rcpp::traits::input_parameter< double >::type ermin(erminSEXP);
     Rcpp::traits::input_parameter< IntegerVector& >::type iter(iterSEXP);
-    Rcpp::traits::input_parameter< double >::type missing_value(missing_valueSEXP);
     Rcpp::traits::input_parameter< double >::type weight_missing(weight_missingSEXP);
-    rcpp_result_gen = Rcpp::wrap(run_fuzzy_cmeans(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, missing_value, weight_missing));
+    Rcpp::traits::input_parameter< const LogicalMatrix& >::type constraints_mat(constraints_matSEXP);
+    Rcpp::traits::input_parameter< double >::type missing_value(missing_valueSEXP);
+    rcpp_result_gen = Rcpp::wrap(run_fuzzy_cmeans(feature_mat, centers, weight, fuzz, dist_metric, iter_max, rel_tol, verbose, membership_mat, ermin, iter, weight_missing, constraints_mat, missing_value));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
     {"_vsclust_flag_missing_entries", (DL_FUNC) &_vsclust_flag_missing_entries, 4},
-    {"_vsclust_run_fuzzy_cmeans", (DL_FUNC) &_vsclust_run_fuzzy_cmeans, 13},
+    {"_vsclust_run_fuzzy_cmeans", (DL_FUNC) &_vsclust_run_fuzzy_cmeans, 14},
     {NULL, NULL, 0}
 };
 

@@ -10,6 +10,7 @@ runClustWrapper(
   proteins = NULL,
   VSClust = TRUE,
   scaling = "standardize",
+  constraints = NULL,
   cores,
   verbose = FALSE
 )
@@ -27,6 +28,10 @@ Otherwise, the function will call standard fuzzy c-means clustering}
 
 \item{scaling}{Either `standardize` (default), `center` or `none`. Standardized 
 features get mean 0 and standard deviation 1. Centered samples get mean 0.}
+
+\item{constraints}{Optional matrix with constraints for the membership values
+fixing them to zeroes (TRUE values). Rows correspond to features and columns to
+clusters (see `vsclust_algorithm` for details)}
 
 \item{cores}{Number of threads for the parallelization}
 
