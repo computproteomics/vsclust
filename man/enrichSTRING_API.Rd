@@ -9,7 +9,9 @@ enrichSTRING_API(
   species = "none",
   category = "KEGG",
   adjpvalueCutoff = 0.05,
-  verbose = FALSE
+  verbose = FALSE,
+  max_retries = 3,
+  retry_delay = 5
 )
 }
 \arguments{
@@ -25,6 +27,12 @@ the request, and STRING will attempt to auto-detect or may fail.}
 \item{adjpvalueCutoff}{Numeric cutoff for the BH-adjusted p-value (default 0.05).}
 
 \item{verbose}{Logical indicating whether to print diagnostic messages (default \code{FALSE}).}
+
+\item{max_retries}{Integer. Maximum number of retry attempts when the STRING API returns
+a retryable error (HTTP 429, 500, 502, 503, or 504). Defaults to \code{3}.}
+
+\item{retry_delay}{Numeric. Number of seconds to wait between retry attempts
+(default \code{5}).}
 }
 \value{
 If any terms pass the cutoff, an \code{enrichResult} object
