@@ -550,7 +550,13 @@ runFuncEnrich <-
                     fun = "enrichSTRING_API",
                     category = unlist(infosource)
                 ))
-        validate(need(!is.null(x), "No result. IDs might not be matching or you do not have any significant enrichments"))
+        if (is.null(x)) {
+            msg <- "No result. IDs might not be matching or you do not have any significant enrichments"
+            if (!is.null(getDefaultReactiveDomain()))
+                validate(need(FALSE, msg))
+            else
+                stop(msg)
+        }
         if (!is.null(getDefaultReactiveDomain()))
             incProgress(0.7, detail = "received")
         message("got data from STRINGdb\n")
