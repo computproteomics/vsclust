@@ -2,15 +2,16 @@ test_that("enrichSTRING_API retries on transient HTTP errors and eventually fail
     # Track how many times POST is called
     call_count <- 0L
 
-    # Mock httr::POST to always return a 503 response
     mock_response <- structure(list(), class = "response")
+    # All attempts return 503 (retryable)
+    status_sequence <- c(503L, 503L, 503L, 503L)
 
     local_mocked_bindings(
         POST = function(...) {
             call_count <<- call_count + 1L
             mock_response
         },
-        status_code = function(resp) 503L,
+        status_code = function(resp) status_sequence[min(call_count, length(status_sequence))],
         content = function(resp, ...) "Service Unavailable",
         .package = "httr"
     )
@@ -65,14 +66,18 @@ test_that("enrichSTRING_API succeeds after initial transient failures", {
         sep = "\n"
     )
 
+    # First two calls return 503, third succeeds with 200
+    status_sequence <- c(503L, 503L, 200L)
+    content_sequence <- list("Service Unavailable", "Service Unavailable", tsv_text)
+
     local_mocked_bindings(
         POST = function(...) {
             call_count <<- call_count + 1L
             mock_response
         },
-        status_code = function(resp) if (call_count < 3L) 503L else 200L,
+        status_code = function(resp) status_sequence[min(call_count, length(status_sequence))],
         content = function(resp, as = "text", ...) {
-            if (call_count < 3L) "Service Unavailable" else tsv_text
+            content_sequence[[min(call_count, length(content_sequence))]]
         },
         .package = "httr"
     )

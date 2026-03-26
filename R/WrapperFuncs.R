@@ -696,20 +696,18 @@ enrichSTRING_API <- function(genes,
     # 3) Make the POST request with retry logic
     if (verbose) message("Contacting STRING for functional enrichment via POST...")
     resp <- NULL
-    for (attempt in seq_len(max_retries + 1)) {
+    attempt <- 0L
+    repeat {
+        attempt <- attempt + 1L
         resp <- httr::POST(url = url, body = body_list, encode = "form")
         code <- httr::status_code(resp)
-        if (!code %in% retryable_codes) {
-            break
+        if (!code %in% retryable_codes || attempt > max_retries) break
+        if (verbose) {
+            message("STRING API returned status ", code,
+                    ". Retrying in ", retry_delay, " seconds (attempt ",
+                    attempt, " of ", max_retries, ")...")
         }
-        if (attempt <= max_retries) {
-            if (verbose) {
-                message("STRING API returned status ", code,
-                        ". Retrying in ", retry_delay, " seconds (attempt ",
-                        attempt, " of ", max_retries, ")...")
-            }
-            Sys.sleep(retry_delay)
-        }
+        Sys.sleep(retry_delay)
     }
 
     # 4) Check status code
