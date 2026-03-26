@@ -550,7 +550,13 @@ runFuncEnrich <-
                     fun = "enrichSTRING_API",
                     category = unlist(infosource)
                 ))
-        validate(need(!is.null(x), "No result. IDs might not be matching or you do not have any significant enrichments"))
+        if (is.null(x)) {
+            msg <- "No result. IDs might not be matching or you do not have any significant enrichments"
+            if (!is.null(getDefaultReactiveDomain()))
+                validate(need(FALSE, msg))
+            else
+                stop(msg)
+        }
         if (!is.null(getDefaultReactiveDomain()))
             incProgress(0.7, detail = "received")
         message("got data from STRINGdb\n")
@@ -618,6 +624,10 @@ runFuncEnrich <-
 #'        \code{"Process"}, etc.). Defaults to \code{"KEGG"} if unspecified.
 #' @param adjpvalueCutoff Numeric cutoff for the BH-adjusted p-value (default 0.05).
 #' @param verbose Logical indicating whether to print diagnostic messages (default \code{FALSE}).
+#' @param max_retries Integer. Maximum number of retry attempts when the STRING API returns
+#'        a retryable error (HTTP 429, 500, 502, 503, or 504). Defaults to \code{3}.
+#' @param retry_delay Numeric. Number of seconds to wait between retry attempts
+#'        (default \code{5}).
 #'
 #' @return If any terms pass the cutoff, an \code{enrichResult} object
 #'   (from \emph{clusterProfiler}) is returned. Otherwise, if \emph{clusterProfiler}
@@ -656,7 +666,9 @@ enrichSTRING_API <- function(genes,
                              species        = "none",
                              category       = "KEGG",
                              adjpvalueCutoff   = 0.05,
-                             verbose        = FALSE
+                             verbose        = FALSE,
+                             max_retries    = 3,
+                             retry_delay    = 5
                              ) {
     # 1) Check for required packages
     if (!requireNamespace("httr", quietly=TRUE)) {
@@ -684,10 +696,26 @@ enrichSTRING_API <- function(genes,
     # The STRING endpoint:
     url <- "https://string-db.org/api/tsv/enrichment"
 
-    # 3) Make the POST request
+    # HTTP status codes that are transient and worth retrying
+    retryable_codes <- c(429L, 500L, 502L, 503L, 504L)
+
+    # 3) Make the POST request with retry logic
     if (verbose) message("Contacting STRING for functional enrichment via POST...")
-    resp <- httr::POST(url = url, body = body_list, encode = "form")
-    
+    resp <- NULL
+    attempt <- 0L
+    repeat {
+        attempt <- attempt + 1L
+        resp <- httr::POST(url = url, body = body_list, encode = "form")
+        code <- httr::status_code(resp)
+        if (!code %in% retryable_codes || attempt > max_retries) break
+        if (verbose) {
+            message("STRING API returned status ", code,
+                    ". Retrying in ", retry_delay, " seconds (attempt ",
+                    attempt, " of ", max_retries, ")...")
+        }
+        Sys.sleep(retry_delay)
+    }
+
     # 4) Check status code
     code <- httr::status_code(resp)
     if (code != 200) {

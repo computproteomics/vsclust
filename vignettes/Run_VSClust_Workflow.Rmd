@@ -283,8 +283,17 @@ does not provide a `geneRatio`. We use the gene `Count` instead.
 
 ```{r}
 # Functional enrichment
-ClustEnriched <- runFuncEnrich(VSClust_cl, infosource = "KEGG")
+# Note: requires network access to the STRING API; skipped when unavailable
+ClustEnriched <- tryCatch(
+    runFuncEnrich(VSClust_cl, infosource = "KEGG"),
+    error = function(e) {
+        message("STRING enrichment unavailable: ", conditionMessage(e))
+        NULL
+    }
+)
+```
 
+```{r eval=!is.null(ClustEnriched)}
 # Take the reduce version of the enrichment (redFuncs), not the full one 
 # (fullFuncs)
 redClustEnriched <- ClustEnriched$redFuncs
