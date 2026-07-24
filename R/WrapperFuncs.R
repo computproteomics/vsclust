@@ -525,66 +525,268 @@ runClustWrapper <-
 runFuncEnrich <-
     function(cl, protnames = NULL, infosource) {
         Accs <- list()
+        
         for (c in seq_len(max(cl$cluster))) {
-            cname <- paste("Cluster", c, sep = "_")
-            Accs[[cname]] <-
-                names(which(cl$cluster == c & rowMaxs(cl$membership) > 0.5))
+            cname <- paste0("Cluster_", c)
             
-            Accs[[cname]] <- Accs[[cname]][Accs[[cname]] != ""]
-            if (length(Accs[[cname]]) > 0) {
-                if (!is.null(protnames)) {
-                    Accs[[cname]] <- as.character(protnames[Accs[[cname]]])
-                }
-                
-                Accs[[cname]] <- sub("-[0-9]", "", Accs[[cname]])
+            ids <- names(which(
+                cl$cluster == c &
+                    matrixStats::rowMaxs(cl$membership) > 0.5
+            ))
+            
+            ids <- ids[!is.na(ids) & nzchar(ids)]
+            
+            if (!is.null(protnames)) {
+                ids <- as.character(protnames[ids])
+            }
+            
+            ids <- unique(ids[!is.na(ids) & nzchar(ids)])
+            
+            if (length(ids) > 0) {
+                Accs[[cname]] <- ids
             }
         }
-        # TODO? add extraction of multiple accession numbers
-        Accs <- lapply(Accs, function(x)
-            unique(ifelse(is.na(x), "B3", x)))
-        Accs <- Accs[lapply(Accs, length) > 0]
-        x <- NULL
-        try(x <-
-                clusterProfiler::compareCluster(
-                    Accs,
-                    fun = "enrichSTRING_API",
-                    category = unlist(infosource)
-                ))
-        if (is.null(x)) {
-            msg <- "No result. IDs might not be matching or you do not have any significant enrichments"
-            if (!is.null(getDefaultReactiveDomain()))
-                validate(need(FALSE, msg))
-            else
-                stop(msg)
+
+        if (length(Accs) == 0) {
+            stop("No valid protein identifiers were found.")
         }
-        if (!is.null(getDefaultReactiveDomain()))
-            incProgress(0.7, detail = "received")
-        message("got data from STRINGdb\n")
-        x@compareClusterResult <- cbind(x@compareClusterResult,
-                                        log10padval =
-                                            log10(x@compareClusterResult$p.adjust))
-        y <-
-            new("compareClusterResult",
-                compareClusterResult = x@compareClusterResult)
-        if (length(unique(y@compareClusterResult$ID)) > 20) {
-            message("Reducing number of STRINGdb results\n")
-            y@compareClusterResult <- y@compareClusterResult[order(y@compareClusterResult$p.adjust)[seq_len(20)],]
+        
+        ## Map all identifiers in one request
+        all_ids <- unique(unlist(Accs, use.names = FALSE))
+        mapping <- mapSTRINGids(all_ids)
+        
+        if (nrow(mapping) == 0) {
+            stop("None of the identifiers could be mapped by STRING.")
+        }
+        
+        ## Keep the first/best STRING mapping returned for each input
+        mapping <- mapping[!duplicated(mapping$queryItem), ]
+        
+        id_map <- stats::setNames(
+            mapping$stringId,
+            mapping$queryItem
+        )
+        
+        ## Replace original identifiers with mapped STRING identifiers
+        mappedAccs <- lapply(Accs, function(ids) {
+            string_ids <- unname(id_map[ids])
+            unique(string_ids[!is.na(string_ids) & nzchar(string_ids)])
+        })
+        
+        
+        mappedAccs <- mappedAccs[lengths(mappedAccs) > 0]
+        
+        if (length(mappedAccs) == 0) {
+            stop("No cluster contained identifiers that STRING could map.")
+        }
+        
+        x <- tryCatch(
+            clusterProfiler::compareCluster(
+                mappedAccs,
+                fun = "enrichSTRING_API",
+                species = "none",
+                category = unlist(infosource)
+            ),
+            error = function(e) {
+                message("STRING enrichment failed: ", conditionMessage(e))
+                NULL
+            }
+        )
+        
+        if (is.null(x) || nrow(x@compareClusterResult) == 0) {
+            msg <- paste(
+                "No enrichment result.",
+                "The STRING request may have failed, identifiers may not map,",
+                "or no terms passed the significance threshold."
+            )
             
+            if (!is.null(shiny::getDefaultReactiveDomain())) {
+                shiny::validate(shiny::need(FALSE, msg))
+            } else {
+                stop(msg)
+            }
+        }
+        
+        if (!is.null(shiny::getDefaultReactiveDomain())) {
+            shiny::incProgress(0.7, detail = "received")
+        }
+        
+        message("Got data from STRING\n")
+        
+        x@compareClusterResult$log10padval <-
+            log10(x@compareClusterResult$p.adjust)
+        
+        y <- methods::new(
+            "compareClusterResult",
+            compareClusterResult = x@compareClusterResult
+        )
+        
+        if (length(unique(y@compareClusterResult$ID)) > 20) {
+            message("Reducing number of STRING results\n")
+            
+            keep <- order(y@compareClusterResult$p.adjust)[seq_len(20)]
+            y@compareClusterResult <- y@compareClusterResult[keep, ]
             y@compareClusterResult$Cluster <-
                 as.character(y@compareClusterResult$Cluster)
         }
         
-        BHI <- calcBHI(Accs, x)
-        return(list(
+        BHI <- calcBHI(mappedAccs, x)
+        
+        list(
             fullFuncs = x,
             redFuncs = y,
-            BHI = BHI
-        ))
-        
+            BHI = BHI,
+            mapping = mapping
+        )
     }
 
-
-
+#' Map protein identifiers to STRING database identifiers
+#'
+#' Maps protein identifiers to STRING identifiers through the STRING
+#' `get_string_ids` API endpoint. Large identifier sets are divided into
+#' batches to reduce the risk of server-side timeouts.
+#'
+#' @param ids Character vector of protein identifiers.
+#' @param string_url Base URL of the STRING API.
+#' @param caller_identity Identifier for the calling package or application.
+#' @param batch_size Maximum number of identifiers submitted per request.
+#'
+#' @return A data frame containing the mappings returned by STRING.
+#'
+#' @export
+#'
+#' @importFrom httr POST status_code content
+#' @importFrom utils read.delim
+mapSTRINGids <- function(
+        ids,
+        string_url = "https://version-12-0.string-db.org/api",
+        caller_identity = "vsclust",
+        batch_size = 100L) {
+    
+    ids <- unique(as.character(ids))
+    ids <- ids[!is.na(ids) & nzchar(ids)]
+    
+    if (length(ids) == 0L) {
+        stop("No valid identifiers were provided.", call. = FALSE)
+    }
+    
+    batches <- split(
+        ids,
+        ceiling(seq_along(ids) / batch_size)
+    )
+    
+    n_batches <- length(batches)
+    total_start <- proc.time()[["elapsed"]]
+    
+    map_batch <- function(batch, batch_number) {
+        
+        message(
+            sprintf(
+                "Mapping STRING batch %d/%d (%d identifiers)...",
+                batch_number,
+                n_batches,
+                length(batch)
+            )
+        )
+        
+        batch_start <- proc.time()[["elapsed"]]
+        
+        response <- httr::POST(
+            url = paste0(string_url, "/tsv/get_string_ids"),
+            body = list(
+                identifiers = paste(batch, collapse = "\r"),
+                echo_query = 1,
+                caller_identity = caller_identity
+            ),
+            encode = "form"
+        )
+        
+        elapsed <- proc.time()[["elapsed"]] - batch_start
+        status <- httr::status_code(response)
+        
+        message(
+            sprintf(
+                "Finished STRING batch %d/%d in %.1f seconds (HTTP %d).",
+                batch_number,
+                n_batches,
+                elapsed,
+                status
+            )
+        )
+        
+        if (status == 524L) {
+            stop(
+                sprintf(
+                    paste0(
+                        "STRING identifier mapping timed out for batch %d/%d ",
+                        "containing %d identifiers after %.1f seconds ",
+                        "(HTTP 524). Consider reducing `batch_size`."
+                    ),
+                    batch_number,
+                    n_batches,
+                    length(batch),
+                    elapsed
+                ),
+                call. = FALSE
+            )
+        }
+        
+        if (status >= 400L) {
+            response_body <- httr::content(
+                response,
+                as = "text",
+                encoding = "UTF-8"
+            )
+            
+            stop(
+                sprintf(
+                    "STRING identifier mapping failed for batch %d/%d ",
+                    batch_number,
+                    n_batches
+                ),
+                "with HTTP status ",
+                status,
+                ".\n",
+                response_body,
+                call. = FALSE
+            )
+        }
+        
+        utils::read.delim(
+            text = httr::content(
+                response,
+                as = "text",
+                encoding = "UTF-8"
+            ),
+            sep = "\t",
+            header = TRUE,
+            stringsAsFactors = FALSE,
+            check.names = FALSE
+        )
+    }
+    
+    results <- Map(
+        f = map_batch,
+        batch = batches,
+        batch_number = seq_along(batches)
+    )
+    
+    total_elapsed <- proc.time()[["elapsed"]] - total_start
+    
+    message(
+        sprintf(
+            paste0(
+                "Mapped %d identifiers in %d batches. ",
+                "Total elapsed time: %.1f seconds."
+            ),
+            length(ids),
+            n_batches,
+            total_elapsed
+        )
+    )
+    
+    do.call(rbind, results)
+}
 
 #' Enrichment Analysis via STRING REST API
 #'
